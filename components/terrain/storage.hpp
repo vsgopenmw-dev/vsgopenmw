@@ -22,9 +22,9 @@ namespace Terrain
     class Storage
     {
     public:
+        Storage(float cellWorldSize, unsigned int cellVertices);
         virtual ~Storage() {}
 
-    public:
         /// Get bounds of the whole terrain in cell units
         virtual void getBounds(float& minX, float& maxX, float& minY, float& maxY) = 0;
 
@@ -76,13 +76,11 @@ namespace Terrain
 
         virtual float getHeightAt (const osg::Vec3f& worldPos) = 0;
 
-        /// Get the transformation factor for mapping cell units to world units.
-        virtual float getCellWorldSize() = 0;
+        /// The transformation factor for mapping cell units to world units.
+        const float cellWorldSize;
 
-        /// Get the number of vertices on one side for each cell. Should be (power of two)+1
-        virtual int getCellVertices() = 0;
-
-        virtual int getBlendmapScale(float chunkSize) = 0;
+        /// The number of vertices on one side for each cell. Should be (power of two)+1
+        const unsigned int cellVertices;
     };
 
 }
