@@ -1,5 +1,5 @@
-#ifndef VSGOPENMW_VSGADAPTERS_MYGUIRENDER_H 
-#define VSGOPENMW_VSGADAPTERS_MYGUIRENDER_H
+#ifndef VSGOPENMW_VSGADAPTERS_MYGUI_RENDER_H
+#define VSGOPENMW_VSGADAPTERS_MYGUI_RENDER_H
 
 #include <MyGUI_RenderManager.h>
 #include <vsg/core/ref_ptr.h>
@@ -17,13 +17,15 @@ namespace vsgAdapters {
 namespace mygui
 {
 
+class Texture;
+
 class Render : public MyGUI::RenderManager, public MyGUI::IRenderTarget, public vsgUtil::Composite<vsg::Node>
 {
     void compilePipelines(bool release=false);
     MyGUI::IntSize mViewSize;
     bool mUpdate = false;
     MyGUI::RenderTargetInfo mInfo;
-    using MapTexture = std::map<std::string, MyGUI::ITexture*>;
+    using MapTexture = std::map<std::string, std::unique_ptr<Texture>>;
     MapTexture mTextures;
 
     float mInvScalingFactor = 1.f;

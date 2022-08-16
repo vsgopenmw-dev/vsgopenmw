@@ -8,7 +8,6 @@
 #include <vsg/traversals/RecordTraversal.h>
 #include <vsg/traversals/CompileTraversal.h>
 #include <vsg/io/Options.h>
-#include <vsg/io/read.h>
 #include <vsg/state/ViewportState.h>
 #include <vsg/state/VertexInputState.h>
 #include <vsg/state/ColorBlendState.h>
@@ -16,8 +15,8 @@
 #include <vsg/state/RasterizationState.h>
 #include <vsg/state/MultisampleState.h>
 #include <vsg/state/DepthStencilState.h>
-#include <vsg/state/BindDescriptorSet.h>
-#include <vsg/state/DescriptorBuffer.h>
+#include <vsg/state/BindDynamicDescriptorSet.h>
+#include <vsg/state/BufferedDescriptorBuffer.h>
 #include <vsg/commands/Draw.h>
 #include <vsgXchange/glsl.h>
 
@@ -28,22 +27,14 @@
 namespace
 {
     const int viewID = 0;
+
 vsg::GraphicsPipelineStates createPipelineStates(VkBlendFactor srcBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, VkBlendFactor dstBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
 {
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
-                                          VK_COLOR_COMPONENT_G_BIT |
-                                          VK_COLOR_COMPONENT_B_BIT |
-                                          VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachment.blendEnable = VK_TRUE;
-    colorBlendAttachment.srcColorBlendFactor = srcBlendFactor;
-    colorBlendAttachment.dstColorBlendFactor = dstBlendFactor;
-    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachment.srcAlphaBlendFactor = srcBlendFactor;
-    colorBlendAttachment.dstAlphaBlendFactor = dstBlendFactor;
-    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachments.push_back(colorBlendAttachment);
+    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments {{true,
+        srcBlendFactor, dstBlendFactor, VK_BLEND_OP_ADD,
+        srcBlendFactor, dstBlendFactor, VK_BLEND_OP_ADD,
+        VK_COLOR_COMPONENT_R_BIT|VK_COLOR_COMPONENT_G_BIT|VK_COLOR_COMPONENT_B_BIT|VK_COLOR_COMPONENT_A_BIT
+    }};
 
     auto depthStencilState = vsg::DepthStencilState::create();
     depthStencilState->depthTestEnable = false;
@@ -63,7 +54,7 @@ vsg::GraphicsPipelineStates createPipelineStates(VkBlendFactor srcBlendFactor = 
     return {
         vsg::VertexInputState::create(),//vertexBindingsDescriptions, vertexAttributeDescriptions),
         vsg::InputAssemblyState::create(),
-        rasterState, 
+        rasterState,
         vsg::MultisampleState::create(),
         vsg::ColorBlendState::create(colorBlendAttachments),
         depthStencilState};
@@ -95,30 +86,24 @@ public:
     {
         return mNeedVertexCount;
     }
-    Buffer &getBuffer()
-    {
-        return mBuffer;
-    }
     MyGUI::Vertex *lock() override
     {
-        auto &buffer = getBuffer();
-        if (!buffer.mArray || buffer.mArray->dataSize() < mNeedVertexCount*sizeof(MyGUI::Vertex))
+        if (!mBuffer.mArray || mBuffer.mArray->dataSize() < mNeedVertexCount*sizeof(MyGUI::Vertex))
         {
-            buffer.mArray = vsg::ubyteArray::create(mNeedVertexCount*sizeof(MyGUI::Vertex));
+            mBuffer.mArray = vsg::ubyteArray::create(mNeedVertexCount*sizeof(MyGUI::Vertex));
             //vsg::createHostVisibleVertexBuffer()
-            buffer.mBuffer = vsg::DescriptorBuffer::create(buffer.mArray, 0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+            mBuffer.mBuffer = vsg::BufferedDescriptorBuffer::create(mBuffer.mArray, 0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
             auto set = 1;
-            auto descriptorSet = vsg::DescriptorSet::create(mLayout->setLayouts[set], vsg::Descriptors{buffer.mBuffer});
-            buffer.mBind = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, mLayout, set, descriptorSet);
-            buffer.mCompiled = false;
+            auto descriptorSet = vsg::DescriptorSet::create(mLayout->setLayouts[set], vsg::Descriptors{mBuffer.mBuffer});
+            mBuffer.mBind = vsg::BindDynamicDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, mLayout, set, descriptorSet);
+            mBuffer.mCompiled = false;
         }
-        return reinterpret_cast<MyGUI::Vertex*>(buffer.mArray->dataPointer());
+        return reinterpret_cast<MyGUI::Vertex*>(mBuffer.mArray->dataPointer());
     }
     void unlock() override
     {
-        auto &buffer = getBuffer();
-        if (buffer.mCompiled)
-            buffer.mBuffer->copyDataListToBuffers();
+        if (mBuffer.mCompiled)
+            mBuffer.mBuffer->copyDataListToBuffers();
     }
 };
 class Node : public vsg::Node
@@ -139,27 +124,26 @@ Render::Render(MyGUI::IntSize extent, vsg::Context *context, const vsg::Options 
     : mOptions(options)
     , mContext(context)
 {
+    mNode = vsg::ref_ptr{new Node(*this)};
+
     mCompileTraversal = vsg::CompileTraversal::create(context->device);
 
     if (scalingFactor != 0.f)
         mInvScalingFactor = 1.f / scalingFactor;
     setViewSize(extent.width, extent.height);
 
-    vsg::DescriptorSetLayoutBindings textureBindings = {{0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}}; 
-    vsg::DescriptorSetLayoutBindings vertexBindings = {{0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr}};
+    vsg::DescriptorSetLayoutBindings textureBindings = {{0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
+    vsg::DescriptorSetLayoutBindings vertexBindings = {{0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr}};
     mPipelineLayout = vsg::PipelineLayout::create(
         vsg::DescriptorSetLayouts{
             vsg::DescriptorSetLayout::create(textureBindings),
-            vsg::DescriptorSetLayout::create(vertexBindings)
-        },
+            vsg::DescriptorSetLayout::create(vertexBindings)},
         vsg::PushConstantRanges{});
 }
 
 Render::~Render()
 {
     mContext = nullptr;
-    for (MapTexture::iterator it = mTextures.begin(); it != mTextures.end(); ++it)
-        delete it->second;
 }
 
 MyGUI::IVertexBuffer* Render::createVertexBuffer()
@@ -171,6 +155,7 @@ MyGUI::IVertexBuffer* Render::createVertexBuffer()
 
 void Render::destroyVertexBuffer(MyGUI::IVertexBuffer *buffer)
 {
+    //vsgopenmw-deletion-queue
     if (mContext)
         vkDeviceWaitIdle(mContext->device->getDevice());
     delete buffer;
@@ -184,7 +169,7 @@ void Render::doRender(MyGUI::IVertexBuffer *buffer, MyGUI::ITexture *texture, si
         return;
 
     auto vertexBuffer = static_cast<VertexBuffer*>(buffer);
-    auto &b = vertexBuffer->getBuffer();
+    auto &b = vertexBuffer->mBuffer;
     if (!b.mCompiled || !tex->mCompiled)
     {
         if (!b.mCompiled)
@@ -248,6 +233,7 @@ void Render::setViewSize(int width, int height)
     ctx->defaultPipelineStates = {vsg::ViewportState::create(0, 0, width, height)};
     if (!mPipelines.empty())
     {
+        vkDeviceWaitIdle(ctx->device->getDevice());
         compilePipelines(true);
         ctx->record();
         ctx->waitForCompletion();
@@ -261,20 +247,17 @@ MyGUI::ITexture* Render::createTexture(const std::string &name)
 {
     auto item = mTextures.find(name);
     if (item != mTextures.end())
-        destroyTexture(item->second);
-
-    Texture *texture = new Texture(name, mOptions, mContext->copyImageCmd);
-    mTextures.insert(std::make_pair(name, texture));
-    return texture;
+        destroyTexture(item->second.get());
+    const auto it = mTextures.emplace(name, std::make_unique<Texture>(name, mOptions, mContext->copyImageCmd)).first;
+    return it->second.get();
 }
 
 void Render::destroyTexture(MyGUI::ITexture *texture)
 {
+    //vsgopenmw-deletion-queue
     if (mContext)
         vkDeviceWaitIdle(mContext->device->getDevice());
-    auto item = mTextures.find(texture->getName());
-    mTextures.erase(item);
-    delete texture;
+    mTextures.erase(texture->getName());
 }
 
 MyGUI::ITexture* Render::getTexture(const std::string &name)
@@ -286,24 +269,22 @@ MyGUI::ITexture* Render::getTexture(const std::string &name)
         tex->loadFromFile(name);
         return tex;
     }
-    return item->second;
+    return item->second.get();
 }
-    
+
 void Render::registerShader(const std::string& shaderName, const std::string& vertexProgramFile, const std::string& fragmentProgramFile)
 {
     auto options = vsg::Options::create();
     options->add(vsgXchange::glsl::create());
 
     auto shaders = vsg::ShaderStages{vsgUtil::readShader(vertexProgramFile, options), vsgUtil::readShader(fragmentProgramFile, options)};
-    
+
     auto pipeline = vsg::BindGraphicsPipeline::create(vsg::GraphicsPipeline::create(mPipelineLayout, shaders, createPipelineStates()));
-    mPipelineNames.emplace_back(shaderName); 
+    mPipelineNames.emplace_back(shaderName);
     mPipelines.emplace_back(pipeline);
 
     if (shaderName.empty())
     {
-        mNode = vsg::ref_ptr{new Node(*this)};
-
         mPipelineNames.emplace_back("premult_alpha");
         mPipelines.emplace_back(vsg::BindGraphicsPipeline::create(vsg::GraphicsPipeline::create(mPipelineLayout, shaders, createPipelineStates(VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA))));
 

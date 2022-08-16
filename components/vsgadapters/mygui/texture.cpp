@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <vsg/io/read.h>
 #include <vsg/io/Options.h>
 #include <vsg/state/DescriptorImage.h>
 #include <vsg/state/BindDescriptorSet.h>
@@ -11,6 +10,7 @@
 #include <vsg/commands/CopyAndReleaseImage.h>
 
 #include <components/vsgutil/share.hpp>
+#include <components/vsgutil/readimage.hpp>
 
 namespace
 {
@@ -29,9 +29,10 @@ namespace mygui
     {
     }
 
-    Texture::Texture(vsg::DescriptorImage *image)
-        : mTexture(image)
+    Texture::Texture(vsg::ImageView *imageView)
     {
+        if (imageView)
+            mTexture = vsg::DescriptorImage::create(vsg::ImageInfo::create(vsgUtil::share<vsg::Sampler>(sampler), vsg::ref_ptr{imageView}, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
     }
 
     Texture::~Texture()
@@ -44,7 +45,7 @@ namespace mygui
         mHeight = height;
         mFormat = format;
         mUsage = usage;
-         
+
         if (mFormat == MyGUI::PixelFormat::R8G8B8)
             mLockedImage = vsg::ubvec3Array2D::create(mWidth, mHeight, vsg::Data::Layout{VK_FORMAT_R8G8B8_UNORM});
         else if (mFormat == MyGUI::PixelFormat::R8G8B8A8)
@@ -55,7 +56,7 @@ namespace mygui
             mLockedImage = vsg::ubvec2Array2D::create(mWidth, mHeight, vsg::Data::Layout{VK_FORMAT_R8G8_UNORM});
         else
             throw std::runtime_error("Texture format not supported");
-        
+
         mTexture = vsg::DescriptorImage::create(vsgUtil::share<vsg::Sampler>(sampler), mLockedImage);
 
         if (mFormat == MyGUI::PixelFormat::L8)
@@ -74,7 +75,7 @@ namespace mygui
         //assert(!fname.empty());
         if (fname.empty())
             return;
-        auto textureData = vsg::read_cast<vsg::Data>(fname, mOptions);
+        auto textureData = vsgUtil::readOptionalImage(fname, mOptions);
         if (!textureData)
         {
             std::cout << "Failed to load " << fname << std::endl;
@@ -99,7 +100,7 @@ namespace mygui
         if (mUsage != MyGUI::TextureUsage::Dynamic)
             mLockedImage = nullptr;
     }
- 
+
     void Texture::createBindDescriptorSet(vsg::PipelineLayout *layout)
     {
         auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts.front(), vsg::Descriptors{mTexture});

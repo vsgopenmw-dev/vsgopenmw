@@ -1,5 +1,5 @@
-#ifndef VSGOPENMW_VSGADAPTERS_MYGUITEXTURE_H 
-#define VSGOPENMW_VSGADAPTERS_MYGUITEXTURE_H
+#ifndef VSGOPENMW_VSGADAPTERS_MYGUI_TEXTURE_H
+#define VSGOPENMW_VSGADAPTERS_MYGUI_TEXTURE_H
 
 #include <MyGUI_ITexture.h>
 
@@ -9,6 +9,7 @@ namespace vsg
 {
     class Data;
     class DescriptorImage;
+    class ImageView;
     class BindDescriptorSet;
     class BindGraphicsPipeline;
     class CopyAndReleaseImage;
@@ -32,7 +33,7 @@ namespace mygui
 
     public:
         Texture(const std::string &name, vsg::ref_ptr<const vsg::Options> options, vsg::CopyAndReleaseImage *copyImageCmd = nullptr);
-        Texture(vsg::DescriptorImage *image={});
+        Texture(vsg::ImageView *image={});
         virtual ~Texture();
 
         vsg::BindGraphicsPipeline *mPipeline = nullptr;
@@ -40,7 +41,7 @@ namespace mygui
         vsg::ref_ptr<vsg::BindDescriptorSet> mBindDescriptorSet;
         void createBindDescriptorSet(vsg::PipelineLayout *layout);
         void update(vsg::CopyAndReleaseImage &cmd);
-        
+
         bool mCompiled = false;
         std::string mShader;
 
@@ -66,7 +67,6 @@ namespace mygui
         MyGUI::IRenderTarget *getRenderTarget() override { return nullptr; }
         void setShader(const std::string& shader) override { mShader = shader; }
     };
-
 }
 }
 
