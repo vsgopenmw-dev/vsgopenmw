@@ -4,7 +4,7 @@
 #include <components/animation/visitor.hpp>
 #include <components/vsgutil/searchbytype.hpp>
 #include <components/misc/rng.hpp>
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 namespace MWAnim
 {

@@ -134,12 +134,7 @@ namespace MWClass
     {
         const std::string model = getModel(ptr); // Assume it's not empty, since we wouldn't have gotten the soundgen otherwise
         const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore(); 
-<<<<<<< HEAD
         std::string_view creatureId;
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-=======
-        std::string creatureId;
->>>>>>> 471034325 (vsgopenmw-openmw)
 
         for (const ESM::Creature &iter : store.get<ESM::Creature>())
         {

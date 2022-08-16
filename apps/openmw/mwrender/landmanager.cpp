@@ -1,7 +1,5 @@
 #include "landmanager.hpp"
 
-#include <osg/Stats>
-
 #include <components/resource/objectcache.hpp>
 
 #include "../mwbase/environment.hpp"
@@ -18,20 +16,20 @@ LandManager::LandManager(int loadFlags)
     mCache = new CacheType;
 }
 
-osg::ref_ptr<ESMTerrain::LandObject> LandManager::getLand(int x, int y)
+vsg::ref_ptr<ESMTerrain::LandObject> LandManager::getLand(int x, int y)
 {
-    osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(std::make_pair(x,y));
+    auto obj = mCache->getRefFromObjectCache(std::make_pair(x,y));
     if (obj)
-        return static_cast<ESMTerrain::LandObject*>(obj.get());
+        return vsg::ref_ptr{static_cast<ESMTerrain::LandObject*>(obj.get())};
     else
     {
         const auto world = MWBase::Environment::get().getWorld();
         if (!world)
-            return nullptr;
+            return {};
         const ESM::Land* land = world->getStore().get<ESM::Land>().search(x,y);
         if (!land)
-            return nullptr;
-        osg::ref_ptr<ESMTerrain::LandObject> landObj (new ESMTerrain::LandObject(land, mLoadFlags));
+            return {};
+        vsg::ref_ptr<ESMTerrain::LandObject> landObj (new ESMTerrain::LandObject(land, mLoadFlags));
         mCache->addEntryToObjectCache(std::make_pair(x,y), landObj.get());
         return landObj;
     }
@@ -39,7 +37,7 @@ osg::ref_ptr<ESMTerrain::LandObject> LandManager::getLand(int x, int y)
 
 void LandManager::reportStats(unsigned int frameNumber, osg::Stats *stats) const
 {
-    stats->setAttribute(frameNumber, "Land", mCache->getCacheSize());
+    //stats->setAttribute(frameNumber, "Land", mCache->getCacheSize());
 }
 
 

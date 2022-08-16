@@ -64,7 +64,7 @@ namespace MWRender
         return mLandManager.get();
     }
 
-    osg::ref_ptr<const ESMTerrain::LandObject> TerrainStorage::getLand(int cellX, int cellY)
+    vsg::ref_ptr<const ESMTerrain::LandObject> TerrainStorage::getLand(int cellX, int cellY)
     {
         return mLandManager->getLand(cellX, cellY);
     }

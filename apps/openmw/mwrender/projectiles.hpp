@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_MWRENDER_PROJECTILES_H
 #define VSGOPENMW_MWRENDER_PROJECTILES_H
 
+#include <optional>
+
 #include <vsg/nodes/Group.h>
 
 #include <components/vsgutil/composite.hpp>

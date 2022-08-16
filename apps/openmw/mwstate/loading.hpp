@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <mutex>
+#include <optional>
 
 #include "gamestate.hpp"
 

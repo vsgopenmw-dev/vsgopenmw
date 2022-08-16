@@ -3,6 +3,7 @@
 
 #include <array>
 #include <map>
+#include <optional>
 #include <set>
 
 #include <vsg/maths/vec4.h>

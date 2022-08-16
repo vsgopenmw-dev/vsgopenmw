@@ -151,7 +151,7 @@ namespace MWWorld
       mPlayerTraveling(false), mPlayerInJail(false), mSpellPreloadTimer(0.f)
     {
         mRendering = &render;
-        mPhysics = std::make_unique<MWPhysics::PhysicsSystem>(resourceSystem, nullptr);//rootNode));
+        mPhysics = std::make_unique<MWPhysics::PhysicsSystem>(resourceSystem);
 
         if (Settings::Manager::getBool("enable", "Navigator"))
         {

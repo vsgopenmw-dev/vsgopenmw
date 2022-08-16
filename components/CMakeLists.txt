@@ -135,8 +135,8 @@ add_component_dir (vfs
 add_component_dir (resource
     #scenemanager keyframemanager animation imagemanager
     bulletshapemanager bulletshape niffilemanager objectcache multiobjectcache 
-    resourcesystem resourcemanager stats foreachbulletobject
-
+    resourcesystem resourcemanager stats
+    # foreachbulletobject
     shadersettings
     )
 
@@ -530,7 +530,6 @@ target_link_libraries(components
     ${Boost_IOSTREAMS_LIBRARY}
     vsg::vsg
     ${SDL2_LIBRARIES}
-    ${OPENGL_gl_LIBRARY}
     ${MyGUI_LIBRARIES}
     ${LUA_LIBRARIES}
     LZ4::LZ4

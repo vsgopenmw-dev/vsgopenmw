@@ -69,16 +69,6 @@ void DeleteCollisionShape::operator()(btCollisionShape* shape) const
     deleteShape(shape);
 }
 
-BulletShape::BulletShape(const BulletShape &copy, const osg::CopyOp &copyop)
-    : mCollisionShape(duplicateCollisionShape(copy.mCollisionShape.get()))
-    , mAvoidCollisionShape(duplicateCollisionShape(copy.mAvoidCollisionShape.get()))
-    , mCollisionBox(copy.mCollisionBox)
-    , mAnimatedShapes(copy.mAnimatedShapes)
-    , mFileName(copy.mFileName)
-    , mFileHash(copy.mFileHash)
-{
-}
-
 void BulletShape::setLocalScaling(const btVector3& scale)
 {
     mCollisionShape->setLocalScaling(scale);
@@ -86,12 +76,12 @@ void BulletShape::setLocalScaling(const btVector3& scale)
         mAvoidCollisionShape->setLocalScaling(scale);
 }
 
-osg::ref_ptr<BulletShapeInstance> makeInstance(osg::ref_ptr<const BulletShape> source)
+vsg::ref_ptr<BulletShapeInstance> makeInstance(vsg::ref_ptr<const BulletShape> source)
 {
-    return {new BulletShapeInstance(std::move(source))};
+    return vsg::ref_ptr{new BulletShapeInstance(std::move(source))};
 }
 
-BulletShapeInstance::BulletShapeInstance(osg::ref_ptr<const BulletShape> source)
+BulletShapeInstance::BulletShapeInstance(vsg::ref_ptr<const BulletShape> source)
     : mSource(std::move(source))
 {
     mCollisionBox = mSource->mCollisionBox;

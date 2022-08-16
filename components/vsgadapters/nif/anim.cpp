@@ -6,7 +6,8 @@
 #include <components/animation/transformcontroller.hpp>
 #include <components/animation/path.hpp>
 
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/lower.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 namespace vsgAdapters
 {

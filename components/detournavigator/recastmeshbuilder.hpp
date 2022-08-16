@@ -41,7 +41,7 @@ namespace DetourNavigator
         explicit RecastMeshBuilder(const TileBounds& bounds) noexcept;
 
         void addObject(const btCollisionShape& shape, const btTransform& transform, const AreaType areaType,
-            osg::ref_ptr<const Resource::BulletShape> source, const ObjectTransform& objectTransform);
+            vsg::ref_ptr<const Resource::BulletShape> source, const ObjectTransform& objectTransform);
 
         void addObject(const btCompoundShape& shape, const btTransform& transform, const AreaType areaType);
 

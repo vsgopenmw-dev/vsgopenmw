@@ -26,11 +26,12 @@
 
 namespace osg
 {
-    class Group;
-    class Object;
     class Stats;
 }
-
+namespace vsg
+{
+    class Object;
+}
 namespace MWRender
 {
     class DebugDrawer;
@@ -147,7 +148,7 @@ namespace MWPhysics
     class PhysicsSystem : public RayCastingInterface
     {
         public:
-            PhysicsSystem (Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode);
+            PhysicsSystem (Resource::ResourceSystem* resourceSystem);
             virtual ~PhysicsSystem ();
 
             Resource::BulletShapeManager* getShapeManager();
@@ -179,7 +180,7 @@ namespace MWPhysics
             void updateRotation (const MWWorld::Ptr& ptr, osg::Quat rotate);
             void updatePosition (const MWWorld::Ptr& ptr);
 
-            void addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const osg::Object* holdObject);
+            void addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const vsg::Object* holdObject);
 
             void removeHeightField (int x, int y);
 
@@ -326,8 +327,6 @@ namespace MWPhysics
             std::unique_ptr<btCollisionShape> mWaterCollisionShape;
 
             //std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
-
-            osg::ref_ptr<osg::Group> mParentNode;
 
             float mPhysicsDt;
 

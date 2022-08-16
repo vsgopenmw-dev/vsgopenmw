@@ -1,9 +1,6 @@
 #include "niffilemanager.hpp"
 
-#include <iostream>
-
-#include <osg/Object>
-#include <osg/Stats>
+#include <istream>
 
 #include <components/vfs/manager.hpp>
 
@@ -11,25 +8,13 @@
 
 namespace Resource
 {
-
-    class NifFileHolder : public osg::Object
+    class NifFileHolder : public vsg::Object
     {
     public:
         NifFileHolder(const Nif::NIFFilePtr& file)
             : mNifFile(file)
         {
         }
-        NifFileHolder(const NifFileHolder& copy, const osg::CopyOp& copyop)
-            : mNifFile(copy.mNifFile)
-        {
-        }
-
-        NifFileHolder()
-        {
-        }
-
-        META_Object(Resource, NifFileHolder)
-
         Nif::NIFFilePtr mNifFile;
     };
 
@@ -40,13 +25,11 @@ namespace Resource
 
     NifFileManager::~NifFileManager()
     {
-
     }
-
 
     Nif::NIFFilePtr NifFileManager::get(const std::string &name)
     {
-        osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(name);
+        vsg::ref_ptr<vsg::Object> obj = mCache->getRefFromObjectCache(name);
         if (obj)
             return static_cast<NifFileHolder*>(obj.get())->mNifFile;
         else
@@ -60,7 +43,5 @@ namespace Resource
 
     void NifFileManager::reportStats(unsigned int frameNumber, osg::Stats *stats) const
     {
-        stats->setAttribute(frameNumber, "Nif", mCache->getCacheSize());
     }
-
 }

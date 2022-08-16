@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_VSGADAPTERS_NIF_ANIM_H
 #define VSGOPENMW_VSGADAPTERS_NIF_ANIM_H
 
+#include <optional>
+
 #include <components/animation/interpolate.hpp>
 #include <components/animation/extrapolate.hpp>
 #include <components/animation/constant.hpp>

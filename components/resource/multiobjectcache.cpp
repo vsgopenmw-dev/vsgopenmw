@@ -1,8 +1,7 @@
 #include "multiobjectcache.hpp"
 
+#include <iostream>
 #include <vector>
-
-#include <osg/Object>
 
 namespace Resource
 {
@@ -19,7 +18,7 @@ namespace Resource
 
     void MultiObjectCache::removeUnreferencedObjectsInCache()
     {
-        std::vector<osg::ref_ptr<osg::Object> > objectsToRemove;
+        std::vector<vsg::ref_ptr<vsg::Object> > objectsToRemove;
         {
             std::lock_guard<std::mutex> lock(_objectCacheMutex);
 
@@ -49,41 +48,28 @@ namespace Resource
         _objectCache.clear();
     }
 
-    void MultiObjectCache::addEntryToObjectCache(const std::string &filename, osg::Object *object)
+    void MultiObjectCache::addEntryToObjectCache(const std::string &filename, vsg::Object *object)
     {
         if (!object)
         {
-            OSG_ALWAYS << " trying to add NULL object to cache for " << filename << std::endl;
+            std::cerr << " trying to add NULL object to cache for " << filename << std::endl;
             return;
         }
         std::lock_guard<std::mutex> lock(_objectCacheMutex);
         _objectCache.insert(std::make_pair(filename, object));
     }
 
-    osg::ref_ptr<osg::Object> MultiObjectCache::takeFromObjectCache(const std::string &fileName)
+    vsg::ref_ptr<vsg::Object> MultiObjectCache::takeFromObjectCache(const std::string &fileName)
     {
         std::lock_guard<std::mutex> lock(_objectCacheMutex);
         ObjectCacheMap::iterator found = _objectCache.find(fileName);
         if (found == _objectCache.end())
-            return osg::ref_ptr<osg::Object>();
+            return vsg::ref_ptr<vsg::Object>();
         else
         {
-            osg::ref_ptr<osg::Object> object = found->second;
+            vsg::ref_ptr<vsg::Object> object = found->second;
             _objectCache.erase(found);
             return object;
-        }
-    }
-
-    void MultiObjectCache::releaseGLObjects(osg::State *state)
-    {
-        std::lock_guard<std::mutex> lock(_objectCacheMutex);
-
-        for(ObjectCacheMap::iterator itr = _objectCache.begin();
-            itr != _objectCache.end();
-            ++itr)
-        {
-            osg::Object* object = itr->second.get();
-            object->releaseGLObjects(state);
         }
     }
 

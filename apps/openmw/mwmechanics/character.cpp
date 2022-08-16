@@ -1150,8 +1150,6 @@ bool CharacterController::updateWeaponState()
 
     std::string_view downSoundId;
     bool weaponChanged = false;
-    bool ammunition = true;
-    float weapSpeed = 1.f;
     if (cls.hasInventoryStore(mPtr))
     {
         MWWorld::InventoryStore &inv = cls.getInventoryStore(mPtr);
@@ -1176,32 +1174,13 @@ bool CharacterController::updateWeaponState()
             weaponChanged = true;
         }
 
-        if (stats.getDrawState() == DrawState::Weapon && !mWeapon.isEmpty() && mWeapon.getType() == ESM::Weapon::sRecordId)
-        {
-            weapSpeed = mWeapon.get<ESM::Weapon>()->mBase->mData.mSpeed;
-            MWWorld::ConstContainerStoreIterator ammo = inv.getSlot(MWWorld::InventoryStore::Slot_Ammunition);
-            int ammotype = getWeaponType(mWeapon.get<ESM::Weapon>()->mBase->mData.mType)->mAmmoType;
-            if (ammotype != ESM::Weapon::None)
-                ammunition = ammo != inv.end() && ammo->get<ESM::Weapon>()->mBase->mData.mType == ammotype;
-            // Cancel attack if we no longer have ammunition
-            if (!ammunition)
-            {
-                if (mUpperBodyState == UpperBodyState::AttackWindUp)
-                {
-                    mAnimation->disable(mCurrentWeapon);
-                    mUpperBodyState = UpperBodyState::WeaponEquipped;
-                }
-                setAttackingOrSpell(false);
-            }
-        }
-
         MWWorld::ConstContainerStoreIterator torch = inv.getSlot(MWWorld::InventoryStore::Slot_CarriedLeft);
         if (torch != inv.end() && torch->getType() == ESM::Light::sRecordId && updateCarriedLeftVisible(mWeaponType))
         {
             if (mAnimation->isPlaying("shield"))
                 mAnimation->disable("shield");
 
-            mAnimation->play("torch", Priority_Torch, MWRender::Animation::BlendMask_LeftArm,
+            mAnimation->play("torch", Priority_Torch, MWAnim::BlendMask_LeftArm,
                 false, 1.0f, "start", "stop", 0.0f, std::numeric_limits<size_t>::max(), true);
         }
         else if (mAnimation->isPlaying("torch"))
@@ -1250,13 +1229,13 @@ bool CharacterController::updateWeaponState()
                 ammunition = false;
         }
 
-        if (!ammunition && mUpperBodyState > UpperCharState_WeapEquiped)
+        if (!ammunition && mUpperBodyState > UpperBodyState::WeaponEquipped)
         {
             mAnimation->disable(mCurrentWeapon);
-            mUpperBodyState = UpperCharState_WeapEquiped;
+            mUpperBodyState = UpperBodyState::WeaponEquipped;
         }
         // Crossbows start out with a bolt attached
-        else if (ammunition && weaptype == ESM::Weapon::MarksmanCrossbow && mWeaponType != ESM::Weapon::MarksmanCrossbow && mUpperBodyState >= UpperCharState_EquipingWeap)
+        else if (ammunition && weaptype == ESM::Weapon::MarksmanCrossbow && mWeaponType != ESM::Weapon::MarksmanCrossbow && mUpperBodyState >= UpperBodyState::Equipping)
             showAmmo(true);
     }
 

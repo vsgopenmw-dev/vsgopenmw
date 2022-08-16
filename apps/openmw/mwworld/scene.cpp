@@ -11,7 +11,6 @@
 #include <components/misc/resourcehelpers.hpp>
 #include <components/settings/settings.hpp>
 #include <components/resource/resourcesystem.hpp>
-#include <components/resource/scenemanager.hpp>
 #include <components/detournavigator/navigator.hpp>
 #include <components/detournavigator/agentbounds.hpp>
 #include <components/misc/convert.hpp>
@@ -396,7 +395,7 @@ namespace MWWorld
 
         if (cell->getCell()->isExterior())
         {
-            osg::ref_ptr<const ESMTerrain::LandObject> land = mRendering.getLandManager()->getLand(cellX, cellY);
+            auto land = mRendering.getLandManager()->getLand(cellX, cellY);
             const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VHGT) : nullptr;
             const int verts = ESM::Land::LAND_SIZE;
             const int worldsize = ESM::Land::REAL_SIZE;

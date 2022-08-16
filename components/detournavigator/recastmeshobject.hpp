@@ -22,19 +22,19 @@ namespace DetourNavigator
     class CollisionShape
     {
     public:
-        CollisionShape(osg::ref_ptr<const Resource::BulletShapeInstance> instance, const btCollisionShape& shape,
+        CollisionShape(vsg::ref_ptr<const Resource::BulletShapeInstance> instance, const btCollisionShape& shape,
                        const ObjectTransform& transform)
             : mInstance(std::move(instance))
             , mShape(shape)
             , mObjectTransform(transform)
         {}
 
-        const osg::ref_ptr<const Resource::BulletShapeInstance>& getInstance() const { return mInstance; }
+        const vsg::ref_ptr<const Resource::BulletShapeInstance>& getInstance() const { return mInstance; }
         const btCollisionShape& getShape() const { return mShape; }
         const ObjectTransform& getObjectTransform() const { return mObjectTransform; }
 
     private:
-        osg::ref_ptr<const Resource::BulletShapeInstance> mInstance;
+        vsg::ref_ptr<const Resource::BulletShapeInstance> mInstance;
         std::reference_wrapper<const btCollisionShape> mShape;
         ObjectTransform mObjectTransform;
     };
@@ -67,7 +67,7 @@ namespace DetourNavigator
 
             bool update(const btTransform& transform, const AreaType areaType) { return mImpl.update(transform, areaType); }
 
-            const osg::ref_ptr<const Resource::BulletShapeInstance>& getInstance() const { return mInstance; }
+            const vsg::ref_ptr<const Resource::BulletShapeInstance>& getInstance() const { return mInstance; }
 
             const btCollisionShape& getShape() const { return mImpl.getShape(); }
 
@@ -78,7 +78,7 @@ namespace DetourNavigator
             const ObjectTransform& getObjectTransform() const { return mObjectTransform; }
 
         private:
-            osg::ref_ptr<const Resource::BulletShapeInstance> mInstance;
+            vsg::ref_ptr<const Resource::BulletShapeInstance> mInstance;
             ObjectTransform mObjectTransform;
             ChildRecastMeshObject mImpl;
     };

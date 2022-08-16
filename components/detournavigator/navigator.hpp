@@ -35,10 +35,10 @@ namespace DetourNavigator
 
     struct ObjectShapes
     {
-        osg::ref_ptr<const Resource::BulletShapeInstance> mShapeInstance;
+        vsg::ref_ptr<const Resource::BulletShapeInstance> mShapeInstance;
         ObjectTransform mTransform;
 
-        ObjectShapes(const osg::ref_ptr<const Resource::BulletShapeInstance>& shapeInstance, const ObjectTransform& transform)
+        ObjectShapes(const vsg::ref_ptr<const Resource::BulletShapeInstance>& shapeInstance, const ObjectTransform& transform)
             : mShapeInstance(shapeInstance)
             , mTransform(transform)
         {
@@ -51,7 +51,7 @@ namespace DetourNavigator
         osg::Vec3f mConnectionStart;
         osg::Vec3f mConnectionEnd;
 
-        DoorShapes(const osg::ref_ptr<const Resource::BulletShapeInstance>& shapeInstance,
+        DoorShapes(const vsg::ref_ptr<const Resource::BulletShapeInstance>& shapeInstance,
                    const ObjectTransform& transform, const osg::Vec3f& connectionStart, const osg::Vec3f& connectionEnd)
             : ObjectShapes(shapeInstance, transform)
             , mConnectionStart(connectionStart)

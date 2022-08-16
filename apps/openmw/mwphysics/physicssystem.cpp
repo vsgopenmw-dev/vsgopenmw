@@ -93,7 +93,7 @@ namespace
 
 namespace MWPhysics
 {
-    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode)
+    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem)
         : mShapeManager(std::make_unique<Resource::BulletShapeManager>(resourceSystem->getVFS(), resourceSystem->getSceneManager(), resourceSystem->getNifFileManager()))
         , mResourceSystem(resourceSystem)
         , mDebugDrawEnabled(false)
@@ -101,7 +101,6 @@ namespace MWPhysics
         , mProjectileId(0)
         , mWaterHeight(0)
         , mWaterEnabled(false)
-        , mParentNode(parentNode)
         , mPhysicsDt(1.f / 60.f)
         , mActorCollisionShapeType(DetourNavigator::toCollisionShapeType(Settings::Manager::getInt("actor collision shape type", "Game")))
     {
@@ -457,7 +456,7 @@ namespace MWPhysics
         return MovementSolver::traceDown(ptr, position, found->second.get(), mCollisionWorld.get(), maxHeight);
     }
 
-    void PhysicsSystem::addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const osg::Object* holdObject)
+    void PhysicsSystem::addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const vsg::Object* holdObject)
     {
         mHeightFields[std::make_pair(x,y)] = std::make_unique<HeightField>(heights, x, y, size, verts, minH, maxH, holdObject, mTaskScheduler.get());
     }
@@ -481,7 +480,7 @@ namespace MWPhysics
     {
         if (ptr.mRef->mData.mPhysicsPostponed)
             return;
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(mesh);
+        auto shapeInstance = mShapeManager->getInstance(mesh);
         if (!shapeInstance || !shapeInstance->mCollisionShape)
             return;
 
@@ -627,7 +626,7 @@ namespace MWPhysics
 
     void PhysicsSystem::addActor (const MWWorld::Ptr& ptr, const std::string& mesh)
     {
-        osg::ref_ptr<const Resource::BulletShape> shape = mShapeManager->getShape(mesh);
+        auto shape = mShapeManager->getShape(mesh);
 
         // Try to get shape from basic model as fallback for creatures
         if (!ptr.getClass().isNpc() && shape && shape->mCollisionBox.mExtents.length2() == 0)
@@ -653,7 +652,7 @@ namespace MWPhysics
 
     int PhysicsSystem::addProjectile (const MWWorld::Ptr& caster, const osg::Vec3f& position, const std::string& mesh, bool computeRadius)
     {
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(mesh);
+        auto shapeInstance = mShapeManager->getInstance(mesh);
         assert(shapeInstance);
         float radius = computeRadius ? shapeInstance->mCollisionBox.mExtents.length() / 2.f : 1.f;
 

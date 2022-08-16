@@ -44,7 +44,6 @@ namespace MWGui
 
         std::vector<std::string> mSplashScreens;
     };
-
 }
 
 

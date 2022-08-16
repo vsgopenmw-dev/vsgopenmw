@@ -48,7 +48,8 @@
 #include <components/nif/property.hpp>
 #include <components/nif/controlled.hpp>
 #include <components/nif/extra.hpp>
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/lower.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 #include "particle.hpp"
 #include "anim.hpp"
