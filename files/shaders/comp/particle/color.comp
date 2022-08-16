@@ -1,0 +1,17 @@
+#include "workgroupsize.glsl"
+#include "particles.glsl"
+#include "comp/bindings.glsl"
+
+layout(set=COMPUTE_SET, binding=STORAGE_ARGS_BINDING) readonly buffer ColorBuffer{
+    vec4 colors[];
+};
+
+void main()
+{
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid < particles.length())
+    {
+        uint index = max(0,min(uint(particles[gid].velocityAge.w / COLOR_CURVE_STEP), colors.length()-1));
+        particles[gid].color = colors[index];
+    }
+}

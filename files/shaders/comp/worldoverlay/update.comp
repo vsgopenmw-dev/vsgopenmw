@@ -1,0 +1,25 @@
+layout (local_size_x = 18, local_size_y = 18) in;
+
+#include "lib/sets.glsl"
+
+layout (set=TEXTURE_SET, binding=0, rgba8) uniform image2D outImage;
+layout (set=TEXTURE_SET, binding=1) uniform sampler2D mask;
+
+layout (set=COMPUTE_SET, binding=0) uniform sampler2D colorTexture;
+
+layout(push_constant) uniform PushConstants {
+    vec4 dstRect;
+};
+
+void main()
+{
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy) + ivec2(dstRect.xy);
+    if (coord.x < dstRect.z && coord.y < dstRect.w)
+    {
+        ivec2 coord = ivec2(gl_GlobalInvocationID.xy) + ivec2(dstRect.xy);
+        vec2 texCoord = vec2(gl_GlobalInvocationID.xy) / (dstRect.zw-dstRect.xy);
+        vec4 color = texture(colorTexture, texCoord);
+        color.a = texelFetch(mask, coord, 0).r;
+        imageStore(outImage, coord, color);
+    }
+}

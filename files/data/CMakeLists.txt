@@ -99,6 +99,8 @@ set(BUILTIN_DATA_FILES
     shaders/adjustments.omwfx
     shaders/debug.omwfx
 
+    mygui/gui.vert
+    mygui/gui.frag
     mygui/core.skin
     mygui/core.xml
     mygui/core_layouteditor.xml

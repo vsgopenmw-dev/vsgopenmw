@@ -1,0 +1,21 @@
+#include "workgroupsize.glsl"
+#include "particles.glsl"
+#include "comp/bindings.glsl"
+
+layout(std140, set=COMPUTE_SET, binding=ARGS_BINDING) uniform Args {
+    SizeArgs args;
+};
+
+void main()
+{
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid < particles.length())
+    {
+        float age = particles[gid].velocityAge.w;
+        if (age < args.growTime)
+            particles[gid].positionSize.w = args.defaultSize * age / args.growTime;
+        float timeLeft = max(particles[gid].maxAge - age, 0.0001);
+        if (timeLeft < args.fadeTime) //>
+            particles[gid].positionSize.w = args.defaultSize  * timeLeft / args.fadeTime;
+    }
+}

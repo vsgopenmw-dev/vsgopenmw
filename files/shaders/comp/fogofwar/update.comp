@@ -1,0 +1,32 @@
+layout (local_size_x = 16, local_size_y = 16) in;
+
+#include "lib/sets.glsl"
+
+#include "constants.glsl"
+
+layout (set=COMPUTE_SET, binding=0, r8) uniform image2D fogImage;
+
+layout(push_constant) uniform PushConstants {
+    vec4 rect;
+    /*vec2*/vec4 center;
+};
+
+float square(float v)
+{
+    return v*v;
+}
+
+void main()
+{
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy) + ivec2(rect.xy);
+    if (coord.x < rect.z && coord.y < rect.w)
+    {
+        float sqrDist = square(coord.x - center.x) + square(coord.y - center.y);
+        float v = clamp(sqrDist/sqrExploreRadius, 0.f, 1.f);
+        if (v != 1)
+        {
+            float current = imageLoad(fogImage, coord).r;
+            imageStore(fogImage, coord, vec4(min(current, v)));
+        }
+    }
+}
