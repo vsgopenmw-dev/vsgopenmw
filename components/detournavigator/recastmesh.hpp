@@ -121,7 +121,7 @@ namespace DetourNavigator
 
     struct MeshSource
     {
-        osg::ref_ptr<const Resource::BulletShape> mShape;
+        vsg::ref_ptr<const Resource::BulletShape> mShape;
         ObjectTransform mObjectTransform;
         AreaType mAreaType;
     };

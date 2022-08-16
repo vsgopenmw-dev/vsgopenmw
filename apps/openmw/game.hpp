@@ -18,9 +18,6 @@
 #include "luaworker.hpp"
 #include "vsgengine.hpp"
 
-#include <osg/Stats>
-#include <osg/ref_ptr>
-
 namespace OMW
 {
 class LuaWorker;
@@ -81,10 +78,7 @@ public:
         if(!guiActive && player.getClass().getCreatureStats(player).isDead())
             mEngine.mStateManager->endGame();
 
-        osg::ref_ptr<osg::Stats> dummyStats = new osg::Stats ("dummy");
-
-        mEngine.mWorld->updatePhysics(dt, guiActive, osg::Timer_t(), 0, *dummyStats);
-
+        mEngine.mWorld->updatePhysics(dt, guiActive);
         mEngine.mWorld->update(dt, guiActive);
 
         mEngine.mWindowManager->update(dt);

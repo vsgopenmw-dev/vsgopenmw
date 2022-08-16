@@ -9,7 +9,7 @@ namespace Terrain
     {
     }
 
-    float Group::getHeightAt(const osg::Vec3f &worldPos)
+    float Group::getHeightAt(const vsg::vec3 &worldPos)
     {
         return mStorage->getHeightAt(worldPos);
     }

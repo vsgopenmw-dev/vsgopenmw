@@ -721,7 +721,7 @@ namespace MWRender
 
     float RenderManager::getTerrainHeightAt(const osg::Vec3f &pos)
     {
-        return mTerrain->getHeightAt(pos);
+        return mTerrain->getHeightAt(toVsg(pos));
     }
 
     void RenderManager::overrideFieldOfView(float val)

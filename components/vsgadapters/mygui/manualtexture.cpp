@@ -2,8 +2,7 @@
 
 #include <MyGUI_RenderManager.h>
 
-namespace vsgAdapters {
-namespace mygui
+namespace vsgAdapters::mygui
 {
     MyGUI::PixelFormat format(VkFormat vk)
     {
@@ -53,4 +52,4 @@ namespace mygui
             tex = createManualTexture(name, data);
         fillManualTexture(tex, data);
     }
-}}
+}

@@ -4,10 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-#include <osg/Group>
-#include <osg/Stats>
-#include <osg/Timer>
-
 #include <BulletCollision/CollisionShapes/btConeShape.h>
 #include <BulletCollision/CollisionShapes/btSphereShape.h>
 #include <BulletCollision/CollisionShapes/btStaticPlaneShape.h>
@@ -93,7 +89,7 @@ namespace
 
 namespace MWPhysics
 {
-    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode)
+    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem)
         : mShapeManager(std::make_unique<Resource::BulletShapeManager>(resourceSystem->getVFS(), resourceSystem->getSceneManager(), resourceSystem->getNifFileManager()))
         , mResourceSystem(resourceSystem)
         , mDebugDrawEnabled(false)
@@ -101,7 +97,6 @@ namespace MWPhysics
         , mProjectileId(0)
         , mWaterHeight(0)
         , mWaterEnabled(false)
-        , mParentNode(parentNode)
         , mPhysicsDt(1.f / 60.f)
         , mActorCollisionShapeType(DetourNavigator::toCollisionShapeType(Settings::Manager::getInt("actor collision shape type", "Game")))
     {
@@ -457,7 +452,7 @@ namespace MWPhysics
         return MovementSolver::traceDown(ptr, position, found->second.get(), mCollisionWorld.get(), maxHeight);
     }
 
-    void PhysicsSystem::addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const osg::Object* holdObject)
+    void PhysicsSystem::addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const vsg::Object* holdObject)
     {
         mHeightFields[std::make_pair(x,y)] = std::make_unique<HeightField>(heights, x, y, size, verts, minH, maxH, holdObject, mTaskScheduler.get());
     }
@@ -481,7 +476,7 @@ namespace MWPhysics
     {
         if (ptr.mRef->mData.mPhysicsPostponed)
             return;
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(mesh);
+        auto shapeInstance = mShapeManager->getInstance(mesh);
         if (!shapeInstance || !shapeInstance->mCollisionShape)
             return;
 
@@ -627,7 +622,7 @@ namespace MWPhysics
 
     void PhysicsSystem::addActor (const MWWorld::Ptr& ptr, const std::string& mesh)
     {
-        osg::ref_ptr<const Resource::BulletShape> shape = mShapeManager->getShape(mesh);
+        auto shape = mShapeManager->getShape(mesh);
 
         // Try to get shape from basic model as fallback for creatures
         if (!ptr.getClass().isNpc() && shape && shape->mCollisionBox.mExtents.length2() == 0)
@@ -653,7 +648,7 @@ namespace MWPhysics
 
     int PhysicsSystem::addProjectile (const MWWorld::Ptr& caster, const osg::Vec3f& position, const std::string& mesh, bool computeRadius)
     {
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(mesh);
+        auto shapeInstance = mShapeManager->getInstance(mesh);
         assert(shapeInstance);
         float radius = computeRadius ? shapeInstance->mCollisionBox.mExtents.length() / 2.f : 1.f;
 
@@ -755,7 +750,7 @@ namespace MWPhysics
         return simulations;
     }
 
-    void PhysicsSystem::stepSimulation(float dt, bool skipSimulation, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
+    void PhysicsSystem::stepSimulation(float dt, bool skipSimulation)
     {
         for (auto& [animatedObject, changed] : mAnimatedObjects)
         {
@@ -785,7 +780,7 @@ namespace MWPhysics
         {
             auto simulations = prepareSimulation(mTimeAccum >= mPhysicsDt);
             // modifies mTimeAccum
-            mTaskScheduler->applyQueuedMovements(mTimeAccum, std::move(simulations), frameStart, frameNumber, stats);
+            mTaskScheduler->applyQueuedMovements(mTimeAccum, std::move(simulations));
         }
     }
 
@@ -939,10 +934,12 @@ namespace MWPhysics
 
     void PhysicsSystem::reportStats(unsigned int frameNumber, osg::Stats& stats) const
     {
+        /*
         stats.setAttribute(frameNumber, "Physics Actors", mActors.size());
         stats.setAttribute(frameNumber, "Physics Objects", mObjects.size());
         stats.setAttribute(frameNumber, "Physics Projectiles", mProjectiles.size());
         stats.setAttribute(frameNumber, "Physics HeightFields", mHeightFields.size());
+        */
     }
 
     void PhysicsSystem::reportCollision(const btVector3& position, const btVector3& normal)

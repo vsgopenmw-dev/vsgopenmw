@@ -48,7 +48,8 @@
 #include <components/nif/property.hpp>
 #include <components/nif/controlled.hpp>
 #include <components/nif/extra.hpp>
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/lower.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 #include "particle.hpp"
 #include "anim.hpp"
@@ -525,9 +526,8 @@ namespace vsgAdapters
             auto &nodeOptions = getNodeOptions();
             auto particlesDescriptor = vsg::DescriptorBuffer::create(particleArray, Pipeline::Descriptors::PARTICLE_BINDING, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
             addModeDescriptor(particlesDescriptor, Pipeline::Mode::PARTICLE);
-            auto particleSet = vsg::DescriptorSet::create(mBuilder.particle->getLayout()->setLayouts[Pipeline::TEXTURE_SET], vsg::Descriptors{particlesDescriptor});
             computeGroup->stateCommands = {
-                vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mBuilder.particle->getLayout(), Pipeline::TEXTURE_SET, particleSet)
+                vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mBuilder.particle->getLayout(), Pipeline::TEXTURE_SET, vsg::Descriptors{particlesDescriptor})
             };
 
             nodeOptions.numUvSets = 1;

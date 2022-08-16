@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#include <osg/Image>
-
 #include <vsg/state/BindDescriptorSet.h>
 #include <vsg/state/DescriptorImage.h>
 #include <vsg/utils/SharedObjects.h>
@@ -33,8 +31,8 @@ namespace Terrain
     vsg::ref_ptr<vsg::StateGroup> CreateLayers::create(Storage &storage, float chunkSize, const vsg::vec2 &chunkCenter)
     {
         std::vector<LayerInfo> layerList;
-        std::vector<osg::ref_ptr<osg::Image>> blendmaps;
-        storage.getBlendmaps(chunkSize, osg::Vec2f(chunkCenter.x, chunkCenter.y), blendmaps, layerList);
+        vsg::DataList blendmaps;
+        storage.getBlendmaps(chunkSize, vsg::vec2(chunkCenter.x, chunkCenter.y), blendmaps, layerList);
 
         auto bindPipeline = pipelineCache->getPipeline({(uint32_t)layerList.size()});
         auto layout = bindPipeline->pipeline->layout;
@@ -54,12 +52,8 @@ namespace Terrain
         }
         {
             vsg::ImageInfoList blendImageInfoList;
-            for (auto map : blendmaps)
-            {
-                auto data = vsg::ubyteArray2D::create(map->s(), map->t(), vsg::Data::Layout{VK_FORMAT_R8_UNORM});
-                std::memcpy(data->dataPointer(), map->getDataPointer(), map->getTotalSizeInBytes());
+            for (auto &data : blendmaps)
                 blendImageInfoList.emplace_back(vsg::ImageInfo::create(sampler, data));
-            }
             descriptors.emplace_back(vsg::DescriptorImage::create(blendImageInfoList, 1));
         }
         /*
@@ -79,8 +73,7 @@ namespace Terrain
             descriptors.emplace_back(vsg::DescriptorImage::create(vsg::Sampler::create(), blendData, 1));
         }
         */
-        auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts[Pipeline::TEXTURE_SET], descriptors);
-        auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, Pipeline::TEXTURE_SET, descriptorSet);
+        auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, Pipeline::TEXTURE_SET, descriptors);
         auto sg = vsg::StateGroup::create();
         sg->stateCommands = {bindPipeline, bds};
         return sg;

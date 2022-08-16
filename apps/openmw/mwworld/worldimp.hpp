@@ -146,7 +146,7 @@ namespace MWWorld
             void processDoors(float duration);
             ///< Run physics simulation and modify \a world accordingly.
 
-            void doPhysics(float duration, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+            void doPhysics(float duration);
             ///< Run physics simulation and modify \a world accordingly.
 
             void updateNavigator();
@@ -494,7 +494,7 @@ namespace MWWorld
             /// \return pointer to created record
 
             void update(float duration, bool paused);
-            void updatePhysics(float duration, bool paused, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+            void updatePhysics(float duration, bool paused);
 
             void updateWindowManager();
 

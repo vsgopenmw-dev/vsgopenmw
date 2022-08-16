@@ -35,12 +35,6 @@ namespace Loading
 {
     class Listener;
 }
-
-namespace SceneUtil
-{
-    class WorkQueue;
-}
-
 namespace MWGui
 {
 

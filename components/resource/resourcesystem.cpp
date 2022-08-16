@@ -169,7 +169,5 @@ class ImageManager {};
 
     void ResourceSystem::releaseGLObjects(osg::State *state)
     {
-        for (std::vector<BaseResourceManager*>::const_iterator it = mResourceManagers.begin(); it != mResourceManagers.end(); ++it)
-            (*it)->releaseGLObjects(state);
     }
 }

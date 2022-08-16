@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_MWANIM_EFFECTS_H
 #define VSGOPENMW_MWANIM_EFFECTS_H
 
+#include <optional>
+
 #include <vsg/nodes/Group.h>
 
 #include <components/vsgutil/attachable.hpp>

@@ -11,8 +11,6 @@
 
 #include <BulletCollision/CollisionDispatch/btCollisionWorld.h>
 
-#include <osg/Timer>
-
 #include "physicssystem.hpp"
 #include "ptrholder.hpp"
 #include "components/misc/budgetmeasurement.hpp"
@@ -40,7 +38,7 @@ namespace MWPhysics
             /// @param timeAccum accumulated time from previous run to interpolate movements
             /// @param actorsData per actor data needed to compute new positions
             /// @return new position of each actor
-            void applyQueuedMovements(float & timeAccum, std::vector<Simulation>&& simulations, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+            void applyQueuedMovements(float & timeAccum, std::vector<Simulation>&& simulations);
 
             void resetSimulation(const ActorMap& actors);
 
@@ -68,7 +66,7 @@ namespace MWPhysics
             void refreshLOSCache();
             void updateAabbs();
             void updatePtrAabb(const std::shared_ptr<PtrHolder>& ptr);
-            void updateStats(osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+            //void updateStats(std::chrono::steady_clock::time_point frameStart, unsigned int frameNumber, osg::Stats& stats);
             std::tuple<int, float> calculateStepConfig(float timeAccum) const;
             void afterPreStep();
             void afterPostStep();
@@ -114,16 +112,15 @@ namespace MWPhysics
             std::condition_variable_any mHasJob;
 
             unsigned int mFrameNumber;
-            const osg::Timer* mTimer;
 
             int mPrevStepCount;
             Misc::BudgetMeasurement mBudget;
             Misc::BudgetMeasurement mAsyncBudget;
             unsigned int mBudgetCursor;
-            osg::Timer_t mAsyncStartTime;
-            osg::Timer_t mTimeBegin;
-            osg::Timer_t mTimeEnd;
-            osg::Timer_t mFrameStart;
+            std::chrono::steady_clock::time_point mAsyncStartTime;
+            std::chrono::steady_clock::time_point mTimeBegin;
+            std::chrono::steady_clock::time_point mTimeEnd;
+            std::chrono::steady_clock::time_point mFrameStart;
     };
 
 }

@@ -151,7 +151,7 @@ namespace MWWorld
       mPlayerTraveling(false), mPlayerInJail(false), mSpellPreloadTimer(0.f)
     {
         mRendering = &render;
-        mPhysics = std::make_unique<MWPhysics::PhysicsSystem>(resourceSystem, nullptr);//rootNode));
+        mPhysics = std::make_unique<MWPhysics::PhysicsSystem>(resourceSystem);
 
         if (Settings::Manager::getBool("enable", "Navigator"))
         {
@@ -1498,11 +1498,11 @@ namespace MWWorld
         mPhysics->updateAnimatedCollisionShape(ptr);
     }
 
-    void World::doPhysics(float duration, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
+    void World::doPhysics(float duration)
     {
         processDoors(duration);
         mProjectileManager->update(duration);
-        mPhysics->stepSimulation(duration, mDiscardMovements, frameStart, frameNumber, stats);
+        mPhysics->stepSimulation(duration, mDiscardMovements);
         mProjectileManager->processHits();
         mDiscardMovements = false;
         mPhysics->moveActors();
@@ -1829,19 +1829,10 @@ namespace MWWorld
         }
     }
 
-    void World::updatePhysics (float duration, bool paused, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
+    void World::updatePhysics (float duration, bool paused)
     {
         if (!paused)
-        {
-            doPhysics (duration, frameStart, frameNumber, stats);
-        }
-        else
-        {
-            // zero the async stats if we are paused
-            //stats.setAttribute(frameNumber, "physicsworker_time_begin", 0);
-            //stats.setAttribute(frameNumber, "physicsworker_time_taken", 0);
-            //stats.setAttribute(frameNumber, "physicsworker_time_end", 0);
-        }
+            doPhysics (duration);
     }
 
     void World::preloadSpells()

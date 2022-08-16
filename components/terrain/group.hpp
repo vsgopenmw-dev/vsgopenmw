@@ -1,11 +1,10 @@
 #ifndef VSGOPENMW_TERRAIN_GROUP_H
 #define VSGOPENMW_TERRAIN_GROUP_H
 
-#include <osg/Vec3f>
+#include <memory>
 
 #include <vsg/nodes/Group.h>
 #include <vsg/io/Options.h>
-#include <memory>
 
 #include <components/vsgutil/composite.hpp>
 
@@ -23,7 +22,7 @@ namespace Terrain
         /// @param storage Storage instance to get terrain data from (heights, normals, colors, textures..)
         Group(Storage* storage, vsg::ref_ptr<const vsg::Options> imageOptions, vsg::ref_ptr<const vsg::Options> shaderOptions);
 
-        float getHeightAt (const osg::Vec3f& worldPos);
+        float getHeightAt (const vsg::vec3& worldPos);
 
         /// Load the cell into the scene graph.
         /// @note Not thread safe.

@@ -8,7 +8,7 @@
 #include <components/vsgutil/name.hpp>
 #include <components/animation/transform.hpp>
 #include <components/animation/meta.hpp>
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 namespace
 {

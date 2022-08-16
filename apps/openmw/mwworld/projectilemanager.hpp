@@ -1,6 +1,7 @@
 #ifndef OPENMW_MWWORLD_PROJECTILEMANAGER_H
 #define OPENMW_MWWORLD_PROJECTILEMANAGER_H
 
+#include <optional>
 #include <string>
 #include <set>
 

@@ -357,8 +357,7 @@ Map::FogTexture *Map::getOrCreateFogTexture()
     imageView->components = {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R};
     auto storageImageView = vsg::ImageView::create(dstImage, VK_IMAGE_ASPECT_COLOR_BIT); //VUID-VkWriteDescriptorSet-descriptorType-00336
     auto storageImage = vsg::DescriptorImage::create(vsg::ImageInfo::create(vsg::ref_ptr<vsg::Sampler>(), storageImageView, VK_IMAGE_LAYOUT_GENERAL), 0, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    auto descriptorSet = vsg::DescriptorSet::create(mUpdateFog->layout->setLayouts[Pipeline::COMPUTE_SET], vsg::Descriptors{storageImage});
-    auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mUpdateFog->layout, Pipeline::COMPUTE_SET, descriptorSet);
+    auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mUpdateFog->layout, Pipeline::COMPUTE_SET, vsg::Descriptors{storageImage});
     bds->compile(*context);
 
     auto tex = std::make_unique<FogTexture>();

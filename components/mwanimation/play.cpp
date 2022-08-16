@@ -5,7 +5,7 @@
 
 #include <components/animation/reset.hpp>
 #include <components/animation/controllermap.hpp>
-#include <components/misc/stringops.hpp>
+#include <components/misc/strings/algorithm.hpp>
 
 namespace
 {

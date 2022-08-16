@@ -9,8 +9,7 @@
 
 #include <SDL_surface.h>
 
-namespace vsgAdapters {
-namespace sdl
+namespace vsgAdapters::sdl
 {
 typedef std::unique_ptr<SDL_Surface, void (*)(SDL_Surface *)> SurfaceUniquePtr;
 
@@ -52,6 +51,6 @@ inline SurfaceUniquePtr createSurface(vsg::ref_ptr<vsg::Data> data)
     return SurfaceUniquePtr(surface, SDL_FreeSurface);
 }
 
-}}
+}
 
 #endif

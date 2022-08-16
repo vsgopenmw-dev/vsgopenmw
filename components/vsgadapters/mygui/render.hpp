@@ -13,8 +13,7 @@ namespace vsg
     class PipelineLayout;
 }
 
-namespace vsgAdapters {
-namespace mygui
+namespace vsgAdapters::mygui
 {
 
 class Texture;
@@ -66,6 +65,6 @@ public:
     void registerShader(const std::string& _shaderName, const std::string& _vertexProgramFile, const std::string& _fragmentProgramFile) override;
 };
 
-}}
+}
 
 #endif

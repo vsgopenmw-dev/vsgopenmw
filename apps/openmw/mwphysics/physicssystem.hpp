@@ -13,8 +13,6 @@
 
 #include <osg/Quat>
 #include <osg/BoundingBox>
-#include <osg/ref_ptr>
-#include <osg/Timer>
 
 #include <components/misc/span.hpp>
 #include <components/detournavigator/collisionshapetype.hpp>
@@ -26,11 +24,12 @@
 
 namespace osg
 {
-    class Group;
-    class Object;
     class Stats;
 }
-
+namespace vsg
+{
+    class Object;
+}
 namespace MWRender
 {
     class DebugDrawer;
@@ -147,7 +146,7 @@ namespace MWPhysics
     class PhysicsSystem : public RayCastingInterface
     {
         public:
-            PhysicsSystem (Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode);
+            PhysicsSystem (Resource::ResourceSystem* resourceSystem);
             virtual ~PhysicsSystem ();
 
             Resource::BulletShapeManager* getShapeManager();
@@ -179,7 +178,7 @@ namespace MWPhysics
             void updateRotation (const MWWorld::Ptr& ptr, osg::Quat rotate);
             void updatePosition (const MWWorld::Ptr& ptr);
 
-            void addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const osg::Object* holdObject);
+            void addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH, const vsg::Object* holdObject);
 
             void removeHeightField (int x, int y);
 
@@ -188,7 +187,7 @@ namespace MWPhysics
             bool toggleCollisionMode();
 
             /// Determine new position based on all queued movements, then clear the list.
-            void stepSimulation(float dt, bool skipSimulation, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+            void stepSimulation(float dt, bool skipSimulation);
 
             /// Apply new positions to actors
             void moveActors();
@@ -326,8 +325,6 @@ namespace MWPhysics
             std::unique_ptr<btCollisionShape> mWaterCollisionShape;
 
             //std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
-
-            osg::ref_ptr<osg::Group> mParentNode;
 
             float mPhysicsDt;
 

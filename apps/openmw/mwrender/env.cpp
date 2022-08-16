@@ -63,9 +63,7 @@ namespace MWRender
         auto object = Pipeline::Object(0);
         object.value().envColor = color;
         auto layout = Pipeline::getCompatiblePipelineLayout();
-        sg->stateCommands = {vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, Pipeline::OBJECT_SET,
-                vsg::DescriptorSet::create(layout->setLayouts[Pipeline::OBJECT_SET], vsg::Descriptors{object.descriptor()}))
-        };
+        sg->stateCommands = {vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, Pipeline::OBJECT_SET, vsg::Descriptors{object.descriptor()})};
         return sg;
     }
 

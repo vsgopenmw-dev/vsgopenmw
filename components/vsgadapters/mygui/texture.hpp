@@ -17,9 +17,7 @@ namespace vsg
     class Options;
 }
 
-namespace vsgAdapters
-{
-namespace mygui
+namespace vsgAdapters::mygui
 {
     class Texture : public MyGUI::ITexture {
         std::string mName;
@@ -67,7 +65,6 @@ namespace mygui
         MyGUI::IRenderTarget *getRenderTarget() override { return nullptr; }
         void setShader(const std::string& shader) override { mShader = shader; }
     };
-}
 }
 
 #endif

@@ -3,11 +3,10 @@
 #include <optional>
 #include <shared_mutex>
 #include <mutex>
+#include <chrono>
 
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
-
-#include <osg/Stats>
 
 #include "components/debug/debuglog.hpp"
 #include <components/misc/barrier.hpp>
@@ -323,15 +322,10 @@ namespace MWPhysics
           , mNextJob(0)
           , mNextLOS(0)
           , mFrameNumber(0)
-          , mTimer(osg::Timer::instance())
           , mPrevStepCount(1)
           , mBudget(physicsDt)
           , mAsyncBudget(0.0f)
           , mBudgetCursor(0)
-          , mAsyncStartTime(0)
-          , mTimeBegin(0)
-          , mTimeEnd(0)
-          , mFrameStart(0)
     {
         if (mNumThreads >= 1)
         {
@@ -410,7 +404,7 @@ namespace MWPhysics
         return std::make_tuple(numSteps, actualDelta);
     }
 
-    void PhysicsTaskScheduler::applyQueuedMovements(float & timeAccum, std::vector<Simulation>&& simulations, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
+    void PhysicsTaskScheduler::applyQueuedMovements(float & timeAccum, std::vector<Simulation>&& simulations)
     {
         waitForWorkers();
 
@@ -419,7 +413,7 @@ namespace MWPhysics
 
         MaybeExclusiveLock lock(mSimulationMutex, mNumThreads);
 
-        double timeStart = mTimer->tick();
+        auto timeStart = std::chrono::steady_clock::now();
 
         // start by finishing previous background computation
         if (mNumThreads != 0)
@@ -427,8 +421,7 @@ namespace MWPhysics
             syncWithMainThread();
 
             if(mAdvanceSimulation)
-                mAsyncBudget.update(mTimer->delta_s(mAsyncStartTime, mTimeEnd), mPrevStepCount, mBudgetCursor);
-            updateStats(frameStart, frameNumber, stats);
+                mAsyncBudget.update(std::chrono::duration_cast<std::chrono::duration<double>>(mTimeEnd-mAsyncStartTime).count(), mPrevStepCount, mBudgetCursor);
         }
 
         auto [numSteps, newDelta] = calculateStepConfig(timeAccum);
@@ -462,14 +455,14 @@ namespace MWPhysics
             doSimulation();
             syncWithMainThread();
             if(mAdvanceSimulation)
-                mBudget.update(mTimer->delta_s(timeStart, mTimer->tick()), numSteps, mBudgetCursor);
+                mBudget.update(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now()-timeStart).count(), numSteps, mBudgetCursor);
             return;
         }
 
-        mAsyncStartTime = mTimer->tick();
+        mAsyncStartTime = std::chrono::steady_clock::now();
         mHasJob.notify_all();
         if (mAdvanceSimulation)
-            mBudget.update(mTimer->delta_s(timeStart, mTimer->tick()), 1, mBudgetCursor);
+            mBudget.update(std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now()-timeStart).count(), 1, mBudgetCursor);
     }
 
     void PhysicsTaskScheduler::resetSimulation(const ActorMap& actors)
@@ -691,6 +684,7 @@ namespace MWPhysics
         mPostSimBarrier->wait([this] { afterPostSim(); });
     }
 
+    /*
     void PhysicsTaskScheduler::updateStats(osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
     {
         if (!stats.collectStats("engine"))
@@ -705,7 +699,7 @@ namespace MWPhysics
         mTimeBegin = mTimer->tick();
         mFrameNumber = frameNumber;
     }
-
+*/
     void PhysicsTaskScheduler::debugDraw()
     {
         MaybeSharedLock lock(mCollisionWorldMutex, mNumThreads);
@@ -758,7 +752,7 @@ namespace MWPhysics
                         [](const LOSRequest& req) { return req.mStale; }),
                     mLOSCache.end());
         }
-        mTimeEnd = mTimer->tick();
+        mTimeEnd = std::chrono::steady_clock::now();
 
         std::unique_lock lock(mWorkersDoneMutex);
         ++mWorkersFrameCounter;

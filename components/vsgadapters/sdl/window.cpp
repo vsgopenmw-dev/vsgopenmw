@@ -2,8 +2,7 @@
 
 #include <SDL_vulkan.h>
 
-namespace vsgAdapters {
-namespace sdl
+namespace vsgAdapters::sdl
 {
     Window::Window(SDL_Window *window, vsg::ref_ptr<vsg::WindowTraits> traits)
         : vsg::WindowAdapter(vsg::ref_ptr<vsg::Surface>(), traits)
@@ -28,4 +27,4 @@ namespace sdl
             throw std::runtime_error("SDL_Vulkan_CreateSurface failed");
         _surface = vsg::Surface::create(surface, _instance);
     }
-}}
+}

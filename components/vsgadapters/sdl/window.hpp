@@ -3,10 +3,9 @@
 
 #include <vsg/viewer/WindowAdapter.h>
 
-struct SDL_Window;
+class SDL_Window;
 
-namespace vsgAdapters {
-namespace sdl
+namespace vsgAdapters::sdl
 {
     // Renders into an existing SDL_Window created with SDL_WINDOW_VULKAN capability.
     class Window : public vsg::WindowAdapter
@@ -19,6 +18,6 @@ namespace sdl
         void _initSurface() override;
         SDL_Window *mWindow;
     };
-}}
+}
 
 #endif

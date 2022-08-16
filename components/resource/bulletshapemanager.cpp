@@ -2,17 +2,10 @@
 
 #include <cstring>
 
-#include <osg/NodeVisitor>
-#include <osg/TriangleFunctor>
-#include <osg/Transform>
-#include <osg/Drawable>
-
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 
 #include <components/misc/pathhelpers.hpp>
-#include <components/sceneutil/visitor.hpp>
 #include <components/vfs/manager.hpp>
-#include <components/misc/osguservalues.hpp>
 
 #include <components/nifbullet/bulletnifloader.hpp>
 
@@ -24,7 +17,7 @@
 
 namespace Resource
 {
-
+/*
 struct GetTriangleFunctor
 {
     GetTriangleFunctor()
@@ -80,12 +73,12 @@ public:
         drawable.accept(functor);
     }
 
-    osg::ref_ptr<BulletShape> getShape()
+    vsg::ref_ptr<BulletShape> getShape()
     {
         if (!mTriangleMesh)
-            return osg::ref_ptr<BulletShape>();
+            return vsg::ref_ptr<BulletShape>();
 
-        osg::ref_ptr<BulletShape> shape (new BulletShape);
+        vsg::ref_ptr<BulletShape> shape (new BulletShape);
 
         auto triangleMeshShape = std::make_unique<TriangleMeshShape>(mTriangleMesh.release(), true);
         btVector3 aabbMin = triangleMeshShape->getLocalAabbMin();
@@ -104,6 +97,7 @@ public:
 private:
     std::unique_ptr<btTriangleMesh> mTriangleMesh;
 };
+*/
 
 BulletShapeManager::BulletShapeManager(const VFS::Manager* vfs, SceneManager* sceneMgr, NifFileManager* nifFileManager)
     : ResourceManager(vfs)
@@ -119,14 +113,14 @@ BulletShapeManager::~BulletShapeManager()
 
 }
 
-osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &name)
+vsg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &name)
 {
     const std::string normalized = mVFS->normalizeFilename(std::string("meshes/") + name);
 
-    osg::ref_ptr<BulletShape> shape;
-    osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(normalized);
+    vsg::ref_ptr<BulletShape> shape;
+    vsg::ref_ptr<vsg::Object> obj = mCache->getRefFromObjectCache(normalized);
     if (obj)
-        shape = osg::ref_ptr<BulletShape>(static_cast<BulletShape*>(obj.get()));
+        shape = vsg::ref_ptr<BulletShape>(static_cast<BulletShape*>(obj.get()));
     else
     {
         //if (Misc::getFileExtension(normalized) == "nif")
@@ -139,8 +133,8 @@ osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &
         {
             // TODO: support .bullet shape files
 
-            osg::ref_ptr<const osg::Node> constNode (mSceneManager->getTemplate(normalized));
-            osg::ref_ptr<osg::Node> node (const_cast<osg::Node*>(constNode.get())); // const-trickery required because there is no const version of NodeVisitor
+            vsg::ref_ptr<const osg::Node> constNode (mSceneManager->getTemplate(normalized));
+            vsg::ref_ptr<osg::Node> node (const_cast<osg::Node*>(constNode.get())); // const-trickery required because there is no const version of NodeVisitor
 
             // Check first if there's a custom collision node
             unsigned int visitAllNodesMask = 0xffffffff;
@@ -164,7 +158,7 @@ osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &
                 node->accept(visitor);
                 shape = visitor.getShape();
                 if (!shape)
-                    return osg::ref_ptr<BulletShape>();
+                    return vsg::ref_ptr<BulletShape>();
             }
 
             if (shape != nullptr)
@@ -180,33 +174,33 @@ osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &
     return shape;
 }
 
-osg::ref_ptr<BulletShapeInstance> BulletShapeManager::cacheInstance(const std::string &name)
+vsg::ref_ptr<BulletShapeInstance> BulletShapeManager::cacheInstance(const std::string &name)
 {
     const std::string normalized = mVFS->normalizeFilename(name);
 
-    osg::ref_ptr<BulletShapeInstance> instance = createInstance(normalized);
+    vsg::ref_ptr<BulletShapeInstance> instance = createInstance(normalized);
     if (instance)
         mInstanceCache->addEntryToObjectCache(normalized, instance.get());
     return instance;
 }
 
-osg::ref_ptr<BulletShapeInstance> BulletShapeManager::getInstance(const std::string &name)
+vsg::ref_ptr<BulletShapeInstance> BulletShapeManager::getInstance(const std::string &name)
 {
     const std::string normalized = mVFS->normalizeFilename(name);
 
-    osg::ref_ptr<osg::Object> obj = mInstanceCache->takeFromObjectCache(normalized);
+    vsg::ref_ptr<vsg::Object> obj = mInstanceCache->takeFromObjectCache(normalized);
     if (obj.get())
-        return static_cast<BulletShapeInstance*>(obj.get());
+        return vsg::ref_ptr{static_cast<BulletShapeInstance*>(obj.get())};
     else
         return createInstance(normalized);
 }
 
-osg::ref_ptr<BulletShapeInstance> BulletShapeManager::createInstance(const std::string &name)
+vsg::ref_ptr<BulletShapeInstance> BulletShapeManager::createInstance(const std::string &name)
 {
-    osg::ref_ptr<const BulletShape> shape = getShape(name);
+    vsg::ref_ptr<const BulletShape> shape = getShape(name);
     if (shape)
         return makeInstance(std::move(shape));
-    return osg::ref_ptr<BulletShapeInstance>();
+    return vsg::ref_ptr<BulletShapeInstance>();
 }
 
 void BulletShapeManager::updateCache(double referenceTime)
@@ -225,8 +219,8 @@ void BulletShapeManager::clearCache()
 
 void BulletShapeManager::reportStats(unsigned int frameNumber, osg::Stats *stats) const
 {
-    stats->setAttribute(frameNumber, "Shape", mCache->getCacheSize());
-    stats->setAttribute(frameNumber, "Shape Instance", mInstanceCache->getCacheSize());
+    //stats->setAttribute(frameNumber, "Shape", mCache->getCacheSize());
+    //stats->setAttribute(frameNumber, "Shape Instance", mInstanceCache->getCacheSize());
 }
 
 }

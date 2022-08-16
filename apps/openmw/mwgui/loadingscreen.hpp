@@ -1,8 +1,6 @@
 #ifndef VSGOPENMW_MWGUI_LOADINGSCREEN_H
 #define VSGOPENMW_MWGUI_LOADINGSCREEN_H
 
-#include <osg/Timer>
-
 #include "windowbase.hpp"
 
 namespace VFS
@@ -17,24 +15,13 @@ namespace MWGui
     {
     public:
         LoadingScreen(const VFS::Manager *vfs);
-        ~LoadingScreen();
         bool stretch{};
-        bool offsetLabel{};
 
-        void setLabel (const std::string& label);
-
-        void setComplete(float fraction);
-
-        void setVisible(bool visible) override;
-        void showWallpaper(bool show);
+        void setLabel (const std::string& label, bool offset);
+        void update(float complete, float dt, bool showWallpaper);
 
     private:
-        void changeWallpaperIfRequired();
-
-        double mNextWallpaperChangeTime = 0.0;
-
-        bool mShowWallpaper = true;
-        osg::Timer mTimer;
+        float mChangeWallpaperCountdown = 0;
 
         MyGUI::Widget* mLoadingBox;
 
@@ -44,7 +31,6 @@ namespace MWGui
 
         std::vector<std::string> mSplashScreens;
     };
-
 }
 
 

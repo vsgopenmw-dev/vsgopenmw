@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_MWRENDER_EFFECT_H
 #define VSGOPENMW_MWRENDER_EFFECT_H
 
+#include <optional>
+
 #include "../mwworld/ptr.hpp"
 
 namespace MWRender

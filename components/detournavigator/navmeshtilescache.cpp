@@ -1,7 +1,5 @@
 #include "navmeshtilescache.hpp"
 
-#include <osg/Stats>
-
 #include <cstring>
 
 namespace DetourNavigator
@@ -81,11 +79,13 @@ namespace DetourNavigator
 
     void reportStats(const NavMeshTilesCache::Stats& stats, unsigned int frameNumber, osg::Stats& out)
     {
+        /*
         out.setAttribute(frameNumber, "NavMesh CacheSize", static_cast<double>(stats.mNavMeshCacheSize));
         out.setAttribute(frameNumber, "NavMesh UsedTiles", static_cast<double>(stats.mUsedNavMeshTiles));
         out.setAttribute(frameNumber, "NavMesh CachedTiles", static_cast<double>(stats.mCachedNavMeshTiles));
         if (stats.mGetCount > 0)
             out.setAttribute(frameNumber, "NavMesh CacheHitRate", static_cast<double>(stats.mHitCount) / stats.mGetCount * 100.0);
+            */
     }
 
     void NavMeshTilesCache::removeLeastRecentlyUsed()

@@ -22,8 +22,7 @@ namespace
     }
 }
 
-namespace vsgAdapters {
-namespace mygui
+namespace vsgAdapters::mygui
 {
     Texture::Texture(const std::string &name, vsg::ref_ptr<const vsg::Options> options, vsg::CopyAndReleaseImage *copyImageCmd) : mName(name), mOptions(options), mCopyImageCmd(copyImageCmd)
     {
@@ -103,7 +102,6 @@ namespace mygui
 
     void Texture::createBindDescriptorSet(vsg::PipelineLayout *layout)
     {
-        auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts.front(), vsg::Descriptors{mTexture});
-        mBindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSet);
+        mBindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, vsg::Descriptors{mTexture});
     }
-}}
+}

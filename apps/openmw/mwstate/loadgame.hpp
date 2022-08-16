@@ -37,7 +37,6 @@ struct LoadGame : public Loading
     MWBase::StateManager::State &state;
     StateManager &stateManager;
 
-    std::atomic_bool abort{};
     std::atomic_bool askForConfirmation{};
     std::shared_ptr<Choice> choice;
     bool firstPersonCam = false;
@@ -259,11 +258,7 @@ struct LoadGame : public Loading
     }
     bool run(float dt) override
     {
-        abort = stateManager.hasQuitRequest();
-        if (abort)
-            return false;
-
-        if (askForConfirmation)
+        if (askForConfirmation && !abort)
         {
             if (!choice)
             {
@@ -283,10 +278,10 @@ struct LoadGame : public Loading
 
         try
         {
-            auto keepRunning = Loading::run(dt);
-            if (!keepRunning)
+            auto threadRunning = Loading::run(dt);
+            if (!threadRunning && !abort)
                 postLoad();
-            return keepRunning;
+            return threadRunning;
         }
         catch (const std::exception& e)
         {

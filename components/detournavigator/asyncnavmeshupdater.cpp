@@ -15,7 +15,6 @@
 
 #include <DetourNavMesh.h>
 
-#include <osg/Stats>
 #include <osg/io_utils>
 
 #include <algorithm>
@@ -322,6 +321,7 @@ namespace DetourNavigator
 
     void reportStats(const AsyncNavMeshUpdater::Stats& stats, unsigned int frameNumber, osg::Stats& out)
     {
+        /*
         out.setAttribute(frameNumber, "NavMesh Jobs", static_cast<double>(stats.mJobs));
         out.setAttribute(frameNumber, "NavMesh Waiting", static_cast<double>(stats.mWaiting));
         out.setAttribute(frameNumber, "NavMesh Pushed", static_cast<double>(stats.mPushed));
@@ -336,7 +336,7 @@ namespace DetourNavigator
                                     / static_cast<double>(stats.mDb->mGetTileCount) * 100.0);
         }
 
-        reportStats(stats.mCache, frameNumber, out);
+        reportStats(stats.mCache, frameNumber, out);*/
     }
 
     void AsyncNavMeshUpdater::process() noexcept

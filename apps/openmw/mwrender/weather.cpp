@@ -233,7 +233,7 @@ namespace MWRender
             binGroup->addChild(vsg::BeginQuery::create(mQueryPool, 1, 0));
             {
                 auto queryPipeline = builder.graphics->getOrCreate(queryOptions());
-                auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, queryPipeline->pipeline->layout, Pipeline::TEXTURE_SET, vsg::DescriptorSet::create(queryPipeline->pipeline->layout->setLayouts[Pipeline::TEXTURE_SET], vsg::Descriptors{sunTex}));
+                auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, queryPipeline->pipeline->layout, Pipeline::TEXTURE_SET, vsg::Descriptors{sunTex});
                 auto sg = vsg::StateGroup::create();
                 sg->stateCommands = {queryPipeline, bds};
                 sg->children = {sDrawQuad};

@@ -20,7 +20,7 @@ namespace MWRender
         TerrainStorage(Resource::ResourceSystem* resourceSystem, const std::string& normalMapPattern = "", const std::string& normalHeightMapPattern = "", bool autoUseNormalMaps = false, const std::string& specularMapPattern = "", bool autoUseSpecularMaps = false);
         ~TerrainStorage();
 
-        osg::ref_ptr<const ESMTerrain::LandObject> getLand (int cellX, int cellY) override;
+        vsg::ref_ptr<const ESMTerrain::LandObject> getLand (int cellX, int cellY) override;
         const ESM::LandTexture* getLandTexture(int index, short plugin) override;
 
         bool hasData(int cellX, int cellY) override;

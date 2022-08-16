@@ -1,7 +1,7 @@
 #ifndef OPENMW_MWPHYSICS_HEIGHTFIELD_H
 #define OPENMW_MWPHYSICS_HEIGHTFIELD_H
 
-#include <osg/ref_ptr>
+#include <vsg/core/ref_ptr.h>
 
 #include <LinearMath/btScalar.h>
 
@@ -11,7 +11,7 @@
 class btCollisionObject;
 class btHeightfieldTerrainShape;
 
-namespace osg
+namespace vsg
 {
     class Object;
 }
@@ -24,7 +24,7 @@ namespace MWPhysics
     {
     public:
         HeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH,
-                    const osg::Object* holdObject, PhysicsTaskScheduler* scheduler);
+                    const vsg::Object* holdObject, PhysicsTaskScheduler* scheduler);
         ~HeightField();
 
         btCollisionObject* getCollisionObject();
@@ -34,7 +34,7 @@ namespace MWPhysics
     private:
         std::unique_ptr<btHeightfieldTerrainShape> mShape;
         std::unique_ptr<btCollisionObject> mCollisionObject;
-        osg::ref_ptr<const osg::Object> mHoldObject;
+        vsg::ref_ptr<const vsg::Object> mHoldObject;
 #if BT_BULLET_VERSION < 310
         std::vector<btScalar> mHeights;
 #endif

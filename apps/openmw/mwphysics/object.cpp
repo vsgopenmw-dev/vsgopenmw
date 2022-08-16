@@ -13,7 +13,7 @@
 
 namespace MWPhysics
 {
-    Object::Object(const MWWorld::Ptr& ptr, osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance, osg::Quat rotation, int collisionType, PhysicsTaskScheduler* scheduler)
+    Object::Object(const MWWorld::Ptr& ptr, vsg::ref_ptr<Resource::BulletShapeInstance> shapeInstance, osg::Quat rotation, int collisionType, PhysicsTaskScheduler* scheduler)
         : mShapeInstance(std::move(shapeInstance))
         , mSolid(true)
         , mScale(ptr.getCellRef().getScale(), ptr.getCellRef().getScale(), ptr.getCellRef().getScale())
@@ -34,9 +34,9 @@ namespace MWPhysics
         mTaskScheduler->removeCollisionObject(mCollisionObject.get());
     }
 
-    const Resource::BulletShapeInstance* Object::getShapeInstance() const
+    const vsg::ref_ptr<Resource::BulletShapeInstance> Object::getShapeInstance() const
     {
-        return mShapeInstance.get();
+        return mShapeInstance;
     }
 
     void Object::setScale(float scale)

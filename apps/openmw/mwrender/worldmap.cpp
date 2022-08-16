@@ -135,8 +135,7 @@ namespace MWRender
             auto storageImage = vsg::DescriptorImage::create(vsg::ImageInfo::create(vsg::ref_ptr<vsg::Sampler>(), storageImageView, VK_IMAGE_LAYOUT_GENERAL), 0, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
             auto maskTexture = vsg::DescriptorImage::create(vsg::ImageInfo::create(vsgUtil::shareDefault<vsg::Sampler>(), alphaTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 1);
 
-            auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts[Pipeline::TEXTURE_SET], vsg::Descriptors{storageImage, maskTexture});
-            auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, layout, Pipeline::TEXTURE_SET, descriptorSet);
+            auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, layout, Pipeline::TEXTURE_SET, vsg::Descriptors{storageImage, maskTexture});
 
             auto commands = vsg::Commands::create();
             commands->children = {pipeline, bds, pc, mDispatch};
@@ -260,8 +259,7 @@ namespace MWRender
             return;
 
         auto descriptor = vsg::DescriptorImage::create(vsg::ImageInfo::create(vsgUtil::shareDefault<vsg::Sampler>(), vsg::ref_ptr{localMapTexture}, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-        auto descriptorSet = vsg::DescriptorSet::create(mUpdate->layout->setLayouts[Pipeline::COMPUTE_SET], vsg::Descriptors{descriptor});
-        auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mUpdate->layout, Pipeline::COMPUTE_SET, descriptorSet);
+        auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, mUpdate->layout, Pipeline::COMPUTE_SET, vsg::Descriptors{descriptor});
         bds->compile(*mContext);
 
         mUpdate->requests.push_back({bds, vsg::vec4(originX, originY, originX+mCellSize, originY+mCellSize)});

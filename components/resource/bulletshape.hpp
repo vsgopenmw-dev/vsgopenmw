@@ -5,8 +5,7 @@
 #include <map>
 #include <memory>
 
-#include <osg/Object>
-#include <osg/ref_ptr>
+#include <vsg/core/Object.h>
 #include <osg/Vec3f>
 
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
@@ -27,13 +26,10 @@ namespace Resource
 
     using CollisionShapePtr = std::unique_ptr<btCollisionShape, DeleteCollisionShape>;
 
-    class BulletShape : public osg::Object
+    class BulletShape : public vsg::Object
     {
     public:
         BulletShape() = default;
-        BulletShape(const BulletShape& copy, const osg::CopyOp& copyop);
-
-        META_Object(Resource, BulletShape)
 
         CollisionShapePtr mCollisionShape;
         CollisionShapePtr mAvoidCollisionShape;
@@ -74,15 +70,15 @@ namespace Resource
     class BulletShapeInstance : public BulletShape
     {
     public:
-        BulletShapeInstance(osg::ref_ptr<const BulletShape> source);
+        BulletShapeInstance(vsg::ref_ptr<const BulletShape> source);
 
-        const osg::ref_ptr<const BulletShape>& getSource() const { return mSource; }
+        const vsg::ref_ptr<const BulletShape>& getSource() const { return mSource; }
 
     private:
-        osg::ref_ptr<const BulletShape> mSource;
+        vsg::ref_ptr<const BulletShape> mSource;
     };
 
-    osg::ref_ptr<BulletShapeInstance> makeInstance(osg::ref_ptr<const BulletShape> source);
+    vsg::ref_ptr<BulletShapeInstance> makeInstance(vsg::ref_ptr<const BulletShape> source);
 
     // Subclass btBhvTriangleMeshShape to auto-delete the meshInterface
     struct TriangleMeshShape : public btBvhTriangleMeshShape

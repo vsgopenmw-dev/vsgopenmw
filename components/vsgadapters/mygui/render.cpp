@@ -62,8 +62,7 @@ vsg::GraphicsPipelineStates createPipelineStates(VkBlendFactor srcBlendFactor = 
 
 }
 
-namespace vsgAdapters {
-namespace mygui
+namespace vsgAdapters::mygui
 {
 
 class VertexBuffer : public MyGUI::IVertexBuffer
@@ -303,4 +302,4 @@ void Render::compilePipelines(bool release)
     }
 }
 
-}}
+}

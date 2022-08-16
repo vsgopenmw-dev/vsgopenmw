@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_MWSTATE_LOADINGSCREEN_H
 #define VSGOPENMW_MWSTATE_LOADINGSCREEN_H
 
+#include <memory>
+
 #include "gui.hpp"
 #include "loading.hpp"
 

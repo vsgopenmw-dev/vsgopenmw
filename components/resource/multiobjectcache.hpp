@@ -5,20 +5,13 @@
 #include <string>
 #include <mutex>
 
-#include <osg/ref_ptr>
-#include <osg/Referenced>
-
-namespace osg
-{
-    class Object;
-    class State;
-}
+#include <vsg/core/Object.h>
 
 namespace Resource
 {
 
     /// @brief Cache for "non reusable" objects.
-    class MultiObjectCache : public osg::Referenced
+    class MultiObjectCache : public vsg::Object
     {
     public:
         MultiObjectCache();
@@ -29,19 +22,16 @@ namespace Resource
         /** Remove all objects from the cache. */
         void clear();
 
-        void addEntryToObjectCache(const std::string& filename, osg::Object* object);
+        void addEntryToObjectCache(const std::string& filename, vsg::Object* object);
 
         /** Take an Object from cache. Return nullptr if no object found. */
-        osg::ref_ptr<osg::Object> takeFromObjectCache(const std::string& fileName);
-
-        /** call releaseGLObjects on all objects attached to the object cache.*/
-        void releaseGLObjects(osg::State* state);
+        vsg::ref_ptr<vsg::Object> takeFromObjectCache(const std::string& fileName);
 
         unsigned int getCacheSize() const;
 
     protected:
 
-        typedef std::multimap<std::string, osg::ref_ptr<osg::Object> >             ObjectCacheMap;
+        typedef std::multimap<std::string, vsg::ref_ptr<vsg::Object> >             ObjectCacheMap;
 
         ObjectCacheMap                          _objectCache;
         mutable std::mutex                      _objectCacheMutex;

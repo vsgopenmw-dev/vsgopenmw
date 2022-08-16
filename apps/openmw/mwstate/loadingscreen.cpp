@@ -28,10 +28,8 @@ namespace MWState
             mLoading->abort = true;
 
         auto loadingScreen = static_cast<MWGui::LoadingScreen*>(mWm.getLoadingScreen());
-        loadingScreen->offsetLabel = mWm.getMessagesCount()>0;
-        loadingScreen->showWallpaper(wallpaper);
-        loadingScreen->setComplete(mLoading->getComplete());
-        loadingScreen->setLabel(mLoading->getDescription());
+        loadingScreen->setLabel(mLoading->getDescription(), mWm.getMessagesCount()>0);
+        loadingScreen->update(mLoading->getComplete(), dt, wallpaper);
         return true;
     }
 }

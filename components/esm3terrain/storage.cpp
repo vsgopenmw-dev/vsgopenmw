@@ -2,9 +2,9 @@
 
 #include <set>
 
-#include <osg/Image>
 #include <osg/Plane>
 
+#include <components/vsgadapters/osgcompat.hpp>
 #include <components/debug/debuglog.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/misc/strings/algorithm.hpp>
@@ -16,27 +16,15 @@ namespace ESMTerrain
     class LandCache
     {
     public:
-        typedef std::map<std::pair<int, int>, osg::ref_ptr<const LandObject> > Map;
+        using Map = std::map<std::pair<int, int>, vsg::ref_ptr<const LandObject>>;
         Map mMap;
     };
-
-    LandObject::LandObject()
-        : mLand(nullptr)
-        , mLoadFlags(0)
-    {
-    }
 
     LandObject::LandObject(const ESM::Land *land, int loadFlags)
         : mLand(land)
         , mLoadFlags(loadFlags)
     {
         mLand->loadData(mLoadFlags, &mData);
-    }
-
-    LandObject::LandObject(const LandObject &copy, const osg::CopyOp &copyop)
-        : mLand(nullptr)
-        , mLoadFlags(0)
-    {
     }
 
     LandObject::~LandObject()
@@ -56,22 +44,22 @@ namespace ESMTerrain
     {
     }
 
-    bool Storage::getMinMaxHeights(float size, const osg::Vec2f &center, float &min, float &max)
+    bool Storage::getMinMaxHeights(float size, const vsg::vec2 &center, float &min, float &max)
     {
         assert (size <= 1 && "Storage::getMinMaxHeights, chunk size should be <= 1 cell");
 
-        osg::Vec2f origin = center - osg::Vec2f(size/2.f, size/2.f);
+        vsg::vec2 origin = center - vsg::vec2(size/2.f, size/2.f);
 
-        int cellX = static_cast<int>(std::floor(origin.x()));
-        int cellY = static_cast<int>(std::floor(origin.y()));
+        int cellX = static_cast<int>(std::floor(origin.x));
+        int cellY = static_cast<int>(std::floor(origin.y));
 
-        int startRow = (origin.x() - cellX) * ESM::Land::LAND_SIZE;
-        int startColumn = (origin.y() - cellY) * ESM::Land::LAND_SIZE;
+        int startRow = (origin.x - cellX) * ESM::Land::LAND_SIZE;
+        int startColumn = (origin.y - cellY) * ESM::Land::LAND_SIZE;
 
         int endRow = startRow + size * (ESM::Land::LAND_SIZE-1) + 1;
         int endColumn = startColumn + size * (ESM::Land::LAND_SIZE-1) + 1;
 
-        osg::ref_ptr<const LandObject> land = getLand (cellX, cellY);
+        auto land = getLand (cellX, cellY);
         const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VHGT) : nullptr;
         if (data)
         {
@@ -96,7 +84,7 @@ namespace ESMTerrain
         return false;
     }
 
-    void Storage::fixNormal (osg::Vec3f& normal, int cellX, int cellY, int col, int row, LandCache& cache)
+    void Storage::fixNormal (vsg::vec3& normal, int cellX, int cellY, int col, int row, LandCache& cache)
     {
         while (col >= ESM::Land::LAND_SIZE-1)
         {
@@ -123,27 +111,26 @@ namespace ESMTerrain
         const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VNML) : nullptr;
         if (data)
         {
-            normal.x() = data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3];
-            normal.y() = data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3+1];
-            normal.z() = data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3+2];
-            normal.normalize();
+            normal = vsg::normalize(vsg::vec3(
+                data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3],
+                data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3+1],
+                data->mNormals[col*ESM::Land::LAND_SIZE*3+row*3+2]));
         }
         else
-            normal = osg::Vec3f(0,0,1);
+            normal = vsg::vec3(0,0,1);
     }
 
-    void Storage::averageNormal(osg::Vec3f &normal, int cellX, int cellY, int col, int row, LandCache& cache)
+    void Storage::averageNormal(vsg::vec3 &normal, int cellX, int cellY, int col, int row, LandCache& cache)
     {
-        osg::Vec3f n1,n2,n3,n4;
+        vsg::vec3 n1,n2,n3,n4;
         fixNormal(n1, cellX, cellY, col+1, row, cache);
         fixNormal(n2, cellX, cellY, col-1, row, cache);
         fixNormal(n3, cellX, cellY, col, row+1, cache);
         fixNormal(n4, cellX, cellY, col, row-1, cache);
-        normal = (n1+n2+n3+n4);
-        normal.normalize();
+        normal = vsg::normalize(n1+n2+n3+n4);
     }
 
-    void Storage::fixColour (osg::Vec4ub& color, int cellX, int cellY, int col, int row, LandCache& cache)
+    void Storage::fixColour (vsg::ubvec4& color, int cellX, int cellY, int col, int row, LandCache& cache)
     {
         if (col == ESM::Land::LAND_SIZE-1)
         {
@@ -160,39 +147,37 @@ namespace ESMTerrain
         const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VCLR) : nullptr;
         if (data)
         {
-            color.r() = data->mColours[col*ESM::Land::LAND_SIZE*3+row*3];
-            color.g() = data->mColours[col*ESM::Land::LAND_SIZE*3+row*3+1];
-            color.b() = data->mColours[col*ESM::Land::LAND_SIZE*3+row*3+2];
+            color = {data->mColours[col*ESM::Land::LAND_SIZE*3+row*3],
+                data->mColours[col*ESM::Land::LAND_SIZE*3+row*3+1],
+                data->mColours[col*ESM::Land::LAND_SIZE*3+row*3+2], 0xff};
         }
         else
         {
-            color.r() = 255;
-            color.g() = 255;
-            color.b() = 255;
+            color = {0xff,0xff,0xff, 0xff};
         }
     }
 
-    void Storage::fillVertexBuffers (int lodLevel, float size, const osg::Vec2f& center,
-                                            osg::ref_ptr<osg::Vec3Array> positions,
-                                            osg::ref_ptr<osg::Vec3Array> normals,
-                                            osg::ref_ptr<osg::Vec4ubArray> colours)
+    void Storage::fillVertexBuffers (int lodLevel, float size, const vsg::vec2& center,
+                                            vsg::ref_ptr<vsg::vec3Array> &positions,
+                                            vsg::ref_ptr<vsg::vec3Array> &normals,
+                                            vsg::ref_ptr<vsg::ubvec4Array> &colours)
     {
         // LOD level n means every 2^n-th vertex is kept
         size_t increment = static_cast<size_t>(1) << lodLevel;
 
-        osg::Vec2f origin = center - osg::Vec2f(size/2.f, size/2.f);
+        vsg::vec2 origin = center - vsg::vec2(size/2.f, size/2.f);
 
-        int startCellX = static_cast<int>(std::floor(origin.x()));
-        int startCellY = static_cast<int>(std::floor(origin.y()));
+        int startCellX = static_cast<int>(std::floor(origin.x));
+        int startCellY = static_cast<int>(std::floor(origin.y));
 
         size_t numVerts = static_cast<size_t>(size*(ESM::Land::LAND_SIZE - 1) / increment + 1);
 
-        positions->resize(numVerts*numVerts);
-        normals->resize(numVerts*numVerts);
-        colours->resize(numVerts*numVerts);
+        positions = vsg::vec3Array::create(numVerts*numVerts);
+        normals = vsg::vec3Array::create(numVerts*numVerts);
+        colours = vsg::ubvec4Array::create(numVerts*numVerts);
 
-        osg::Vec3f normal;
-        osg::Vec4ub color;
+        vsg::vec3 normal;
+        vsg::ubvec4 color;
 
         float vertY = 0;
         float vertX = 0;
@@ -229,8 +214,8 @@ namespace ESMTerrain
                     rowStart += increment;
 
                 // Only relevant for chunks smaller than (contained in) one cell
-                rowStart += (origin.x() - startCellX) * ESM::Land::LAND_SIZE;
-                colStart += (origin.y() - startCellY) * ESM::Land::LAND_SIZE;
+                rowStart += (origin.x - startCellX) * ESM::Land::LAND_SIZE;
+                colStart += (origin.y - startCellY) * ESM::Land::LAND_SIZE;
                 int rowEnd = std::min(static_cast<int>(rowStart + std::min(1.f, size) * (ESM::Land::LAND_SIZE-1) + 1), static_cast<int>(ESM::Land::LAND_SIZE));
                 int colEnd = std::min(static_cast<int>(colStart + std::min(1.f, size) * (ESM::Land::LAND_SIZE-1) + 1), static_cast<int>(ESM::Land::LAND_SIZE));
 
@@ -254,7 +239,7 @@ namespace ESMTerrain
                         if (alteration)
                             height += getAlteredHeight(col, row);
                         (*positions)[static_cast<unsigned int>(vertX*numVerts + vertY)]
-                            = osg::Vec3f((vertX / float(numVerts - 1) - 0.5f) * size * Constants::CellSizeInUnits,
+                            = vsg::vec3((vertX / float(numVerts - 1) - 0.5f) * size * Constants::CellSizeInUnits,
                                          (vertY / float(numVerts - 1) - 0.5f) * size * Constants::CellSizeInUnits,
                                          height);
 
@@ -263,10 +248,10 @@ namespace ESMTerrain
                             for (int i=0; i<3; ++i)
                                 normal[i] = normalData->mNormals[srcArrayIndex+i];
 
-                            normal.normalize();
+                            normal = vsg::normalize(normal);
                         }
                         else
-                            normal = osg::Vec3f(0,0,1);
+                            normal = vsg::vec3(0,0,1);
 
                         // Normals apparently don't connect seamlessly between cells
                         if (col == ESM::Land::LAND_SIZE-1 || row == ESM::Land::LAND_SIZE-1)
@@ -282,23 +267,18 @@ namespace ESMTerrain
 
                         if (colourData)
                         {
-                            for (int i=0; i<3; ++i)
-                                color[i] = colourData->mColours[srcArrayIndex+i];
+                            color = {colourData->mColours[srcArrayIndex],
+                                colourData->mColours[srcArrayIndex+1],
+                                colourData->mColours[srcArrayIndex+2], 0xff};
                         }
                         else
-                        {
-                            color.r() = 255;
-                            color.g() = 255;
-                            color.b() = 255;
-                        }
+                            color = {0xff, 0xff, 0xff, 0xff};
                         if (alteration)
                             adjustColor(col, row, heightData, color); //Does nothing by default, override in OpenMW-CS
 
                         // Unlike normals, colors mostly connect seamlessly between cells, but not always...
                         if (col == ESM::Land::LAND_SIZE-1 || row == ESM::Land::LAND_SIZE-1)
                             fixColour(color, cellX, cellY, col, row, cache);
-
-                        color.a() = 255;
 
                         (*colours)[static_cast<unsigned int>(vertX*numVerts + vertY)] = color;
 
@@ -373,16 +353,16 @@ namespace ESMTerrain
         return texture;
     }
 
-    void Storage::getBlendmaps(float chunkSize, const osg::Vec2f &chunkCenter, ImageVector &blendmaps, std::vector<Terrain::LayerInfo> &layerList)
+    void Storage::getBlendmaps(float chunkSize, const vsg::vec2 &chunkCenter, DataList &blendmaps, std::vector<Terrain::LayerInfo> &layerList)
     {
-        osg::Vec2f origin = chunkCenter - osg::Vec2f(chunkSize/2.f, chunkSize/2.f);
-        int cellX = static_cast<int>(std::floor(origin.x()));
-        int cellY = static_cast<int>(std::floor(origin.y()));
+        vsg::vec2 origin = chunkCenter - vsg::vec2(chunkSize/2.f, chunkSize/2.f);
+        int cellX = static_cast<int>(std::floor(origin.x));
+        int cellY = static_cast<int>(std::floor(origin.y));
 
         int realTextureSize = ESM::Land::LAND_TEXTURE_SIZE+1; // add 1 to wrap around next cell
 
-        int rowStart = (origin.x() - cellX) * realTextureSize;
-        int colStart = (origin.y() - cellY) * realTextureSize;
+        int rowStart = (origin.x - cellX) * realTextureSize;
+        int colStart = (origin.y - cellY) * realTextureSize;
 
         const int blendmapSize = (realTextureSize-1) * chunkSize + 1;
         // We need to upscale the blendmap 2x with nearest neighbor sampling to look like Vanilla
@@ -417,16 +397,13 @@ namespace ESMTerrain
 
                     if (layerIndex >= layerList.size())
                     {
-                        osg::ref_ptr<osg::Image> image (new osg::Image);
-                        image->allocateImage(blendmapImageSize, blendmapImageSize, 1, GL_ALPHA, GL_UNSIGNED_BYTE);
-                        unsigned char* pData = image->data();
-                        memset(pData, 0, image->getTotalDataSize());
+                        auto image = vsg::ubyteArray::create(blendmapImageSize, blendmapImageSize, vsg::Data::Layout{.format=VK_FORMAT_R8_UNORM});
                         blendmaps.emplace_back(image);
                         layerList.emplace_back(info);
                     }
                 }
                 unsigned int layerIndex = found->second;
-                unsigned char* pData = blendmaps[layerIndex]->data();
+                unsigned char* pData = reinterpret_cast<unsigned char*>(blendmaps[layerIndex]->dataPointer());
                 int realY = (blendmapSize - y - 1)*imageScaleFactor;
                 int realX = x*imageScaleFactor;
                 pData[((realY+0)*blendmapImageSize + realX + 0)] = 255;
@@ -437,12 +414,12 @@ namespace ESMTerrain
         }
     }
 
-    float Storage::getHeightAt(const osg::Vec3f &worldPos)
+    float Storage::getHeightAt(const vsg::vec3 &worldPos)
     {
-        int cellX = static_cast<int>(std::floor(worldPos.x() / float(Constants::CellSizeInUnits)));
-        int cellY = static_cast<int>(std::floor(worldPos.y() / float(Constants::CellSizeInUnits)));
+        int cellX = static_cast<int>(std::floor(worldPos.x / float(Constants::CellSizeInUnits)));
+        int cellY = static_cast<int>(std::floor(worldPos.y / float(Constants::CellSizeInUnits)));
 
-        osg::ref_ptr<const LandObject> land = getLand(cellX, cellY);
+        auto land = getLand(cellX, cellY);
         if (!land)
             return defaultHeight;
 
@@ -453,8 +430,8 @@ namespace ESMTerrain
         // Mostly lifted from Ogre::Terrain::getHeightAtTerrainPosition
 
         // Normalized position in the cell
-        float nX = (worldPos.x() - (cellX * Constants::CellSizeInUnits)) / float(Constants::CellSizeInUnits);
-        float nY = (worldPos.y() - (cellY * Constants::CellSizeInUnits)) / float(Constants::CellSizeInUnits);
+        float nX = (worldPos.x - (cellX * Constants::CellSizeInUnits)) / float(Constants::CellSizeInUnits);
+        float nY = (worldPos.y - (cellY * Constants::CellSizeInUnits)) / float(Constants::CellSizeInUnits);
 
         // get left / bottom points (rounded down)
         float factor = ESM::Land::LAND_SIZE - 1.0f;
@@ -486,10 +463,10 @@ namespace ESMTerrain
         */
 
         // Build all 4 positions in normalized cell space, using point-sampled height
-        osg::Vec3f v0 (startXTS, startYTS, getVertexHeight(data, startX, startY) / float(Constants::CellSizeInUnits));
-        osg::Vec3f v1 (endXTS, startYTS, getVertexHeight(data, endX, startY) / float(Constants::CellSizeInUnits));
-        osg::Vec3f v2 (endXTS, endYTS, getVertexHeight(data, endX, endY) / float(Constants::CellSizeInUnits));
-        osg::Vec3f v3 (startXTS, endYTS, getVertexHeight(data, startX, endY) / float(Constants::CellSizeInUnits));
+        vsg::vec3 v0 (startXTS, startYTS, getVertexHeight(data, startX, startY) / float(Constants::CellSizeInUnits));
+        vsg::vec3 v1 (endXTS, startYTS, getVertexHeight(data, endX, startY) / float(Constants::CellSizeInUnits));
+        vsg::vec3 v2 (endXTS, endYTS, getVertexHeight(data, endX, endY) / float(Constants::CellSizeInUnits));
+        vsg::vec3 v3 (startXTS, endYTS, getVertexHeight(data, startX, endY) / float(Constants::CellSizeInUnits));
         // define this plane in terrain space
         osg::Plane plane;
         // FIXME: deal with differing triangle alignment
@@ -498,9 +475,9 @@ namespace ESMTerrain
             // odd row
             bool secondTri = ((1.0 - yParam) > xParam);
             if (secondTri)
-                plane = osg::Plane(v0, v1, v3);
+                plane = osg::Plane(toOsg(v0), toOsg(v1), toOsg(v3));
             else
-                plane = osg::Plane(v1, v2, v3);
+                plane = osg::Plane(toOsg(v1), toOsg(v2), toOsg(v3));
         }
         /*
         else
@@ -533,7 +510,7 @@ namespace ESMTerrain
         }
     }
 
-    void Storage::adjustColor(int col, int row, const ESM::Land::LandData *heightData, osg::Vec4ub& color) const
+    void Storage::adjustColor(int col, int row, const ESM::Land::LandData *heightData, vsg::ubvec4& color) const
     {
     }
 

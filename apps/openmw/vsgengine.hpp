@@ -19,11 +19,6 @@ namespace vsg
 {
     class OperationThreads;
 }
-namespace SceneUtil
-{
-    class WorkQueue;
-}
-
 namespace VFS
 {
     class Manager;

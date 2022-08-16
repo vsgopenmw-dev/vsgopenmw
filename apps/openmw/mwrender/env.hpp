@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_MWRENDER_ENV_H
 #define VSGOPENMW_MWRENDER_ENV_H
 
+#include  <optional>
+
 #include <vsg/nodes/StateGroup.h>
 #include <vsg/state/DescriptorImage.h>
 

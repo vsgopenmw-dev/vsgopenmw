@@ -8,6 +8,7 @@
 
 #include <deque>
 #include <memory>
+#include <optional>
 
 #include <vsg/core/ref_ptr.h>
 #include <vsg/maths/box.h>
