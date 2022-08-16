@@ -4,6 +4,7 @@
 namespace osg
 {
     class Vec3f;
+    class Quat;
 }
 
 namespace MWWorld
@@ -13,6 +14,8 @@ namespace MWWorld
 
 namespace MWMechanics
 {
+void throwWeapon(MWWorld::Ptr actor, MWWorld::Ptr weapon, float attackStrength, const osg::Vec3f &launchPos, const osg::Quat &orient);
+void shoot(MWWorld::Ptr actor, MWWorld::Ptr ammo, MWWorld::Ptr weapon, float attackStrength, const osg::Vec3f launchPos, const osg::Quat &orient);
 
 bool applyOnStrikeEnchantment(const MWWorld::Ptr& attacker, const MWWorld::Ptr& victim, const MWWorld::Ptr& object, const osg::Vec3f& hitPosition,
                               const bool fromProjectile=false);

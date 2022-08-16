@@ -1,6 +1,9 @@
 #ifndef MWLUA_LUAMANAGERIMP_H
 #define MWLUA_LUAMANAGERIMP_H
-
+namespace MWRender
+{
+    class RenderManager;
+}
 #include <map>
 #include <set>
 
@@ -28,6 +31,7 @@ namespace MWLua
     {
     public:
         LuaManager(const VFS::Manager* vfs, const std::string& libsDir);
+        MWRender::RenderManager *mRenderManager{};
 
         // Called by engine.cpp before UI setup.
         void initL10n();

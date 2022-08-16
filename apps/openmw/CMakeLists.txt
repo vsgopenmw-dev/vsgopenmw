@@ -1,29 +1,28 @@
 # local files
 set(GAME
     main.cpp
-    engine.cpp
+    vsgengine.cpp
     options.cpp
-
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.rc
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.exe.manifest
 )
 
-if (ANDROID)
-    set(GAME ${GAME} android_main.cpp)
-endif()
-
 set(GAME_HEADER
-    engine.hpp
+    vsgengine.hpp
+    game.hpp
+    boot.hpp
+    luaworker.hpp
 )
 
 source_group(game FILES ${GAME} ${GAME_HEADER})
 
 add_openmw_dir (mwrender
-    actors objects renderingmanager animation rotatecontroller sky skyutil npcanimation vismask
-    creatureanimation effectmanager util renderinginterface pathgrid rendermode weaponanimation screenshotmanager
-    bulletdebugdraw globalmap characterpreview camera localmap water terrainstorage ripplesimulation
-    renderbin actoranimation landmanager navmesh actorspaths recastmesh fogmanager objectpaging groundcover
-    postprocessor pingpongcull luminancecalculator pingpongcanvas transparentpass navmeshmode
+    mask bin rendermode rendermanager terrainstorage landmanager
+    animcontext bodyparts wieldingcreature npc player face scene camera itemlight effect effects projectiles
+    env weather weatherdata
+    # renderinginterface pathgrid
+    map worldmap preview shadow
+    #bulletdebugdraw ripplesimulation
+    #navmesh actorspaths recastmesh navmeshmode objectpaging
+    fogmanager simplewater imageio
     )
 
 add_openmw_dir (mwinput
@@ -42,9 +41,9 @@ add_openmw_dir (mwgui
     merchantrepair repair soulgemdialog companionwindow bookpage journalviewmodel journalbooks
     itemmodel containeritemmodel inventoryitemmodel sortfilteritemmodel itemview
     tradeitemmodel companionitemmodel pickpocketitemmodel controllers savegamedialog
-    recharge mode videowidget backgroundimage itemwidget screenfader debugwindow spellmodel spellview
+    recharge mode videowidget videowindow backgroundimage itemwidget screenfader debugwindow spellmodel spellview
     draganddrop timeadvancer jailscreen itemchargeview keyboardnavigation textcolours statswatcher
-    postprocessorhud
+    #postprocessorhud
     )
 
 add_openmw_dir (mwdialogue
@@ -77,7 +76,8 @@ add_openmw_dir (mwworld
     actionequip timestamp actionalchemy cellstore actionapply actioneat
     store esmstore fallback actionrepair actionsoulgem livecellref actiondoor
     contentloader esmloader actiontrap cellreflist cellref weather projectilemanager
-    cellpreloader datetimemanager groundcoverstore magiceffects
+    #cellpreloader 
+    datetimemanager groundcoverstore magiceffects
     )
 
 add_openmw_dir (mwphysics
@@ -102,6 +102,7 @@ add_openmw_dir (mwmechanics
 
 add_openmw_dir (mwstate
     statemanagerimp charactermanager character quicksavemanager
+    gamestate loading gui menu video choice loadingscreen error loadgame savegame askloadrecent
     )
 
 add_openmw_dir (mwbase
@@ -132,18 +133,6 @@ include_directories(
 )
 
 target_link_libraries(openmw
-    # CMake's built-in OSG finder does not use pkgconfig, so we have to
-    # manually ensure the order is correct for inter-library dependencies.
-    # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21701
-    ${OSGPARTICLE_LIBRARIES}
-    ${OSGVIEWER_LIBRARIES}
-    ${OSGGA_LIBRARIES}
-    ${OSGSHADOW_LIBRARIES}
-    ${OSGDB_LIBRARIES}
-    ${OSGUTIL_LIBRARIES}
-    ${OSG_LIBRARIES}
-
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -155,6 +144,8 @@ target_link_libraries(openmw
     "osg-ffmpeg-videoplayer"
     "oics"
     components
+    vsg::vsg
+    vsgXchange::vsgXchange
 )
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.16 AND MSVC)

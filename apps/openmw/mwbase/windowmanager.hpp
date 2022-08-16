@@ -55,6 +55,7 @@ namespace MWGui
 {
     class Layout;
 
+    class LoadingScreen;
     class Console;
     class SpellWindow;
     class TradeWindow;
@@ -70,7 +71,6 @@ namespace MWGui
     class WindowModal;
     class JailScreen;
     class MessageBox;
-    class PostProcessorHud;
 
     enum ShowInDialogueMode {
         ShowInDialogueMode_IfPossible,
@@ -148,7 +148,6 @@ namespace MWBase
             virtual MWGui::ConfirmationDialog* getConfirmationDialog() = 0;
             virtual MWGui::TradeWindow* getTradeWindow() = 0;
             virtual const std::vector<MWGui::MessageBox*> getActiveMessageBoxes() = 0;
-            virtual MWGui::PostProcessorHud* getPostProcessorHud() = 0;
 
             /// Make the player use an item, while updating GUI state accordingly
             virtual void useItem(const MWWorld::Ptr& item, bool force=false) = 0;
@@ -175,7 +174,6 @@ namespace MWBase
             virtual void setFocusObject(const MWWorld::Ptr& focus) = 0;
             virtual void setFocusObjectScreenCoords(float min_x, float min_y, float max_x, float max_y) = 0;
 
-            virtual void setCursorVisible(bool visible) = 0;
             virtual void setCursorActive(bool active) = 0;
             virtual void getMousePosition(int &x, int &y) = 0;
             virtual void getMousePosition(float &x, float &y) = 0;
@@ -243,8 +241,7 @@ namespace MWBase
             virtual void scheduleMessageBox(std::string message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) = 0;
             virtual void staticMessageBox(const std::string& message) = 0;
             virtual void removeStaticMessageBox() = 0;
-            virtual void interactiveMessageBox (const std::string& message,
-                                                const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false) = 0;
+            virtual void interactiveMessageBox (const std::string& message, const std::vector<std::string>& buttons = std::vector<std::string>()) = 0;
 
             /// returns the index of the pressed button or -1 if no button was pressed (->MessageBoxmanager->InteractiveMessageBox)
             virtual int readPressedButton() = 0;
@@ -284,7 +281,7 @@ namespace MWBase
             /// Warning: do not use MyGUI::InputManager::setKeyFocusWidget directly. Instead use this.
             virtual void setKeyFocusWidget (MyGUI::Widget* widget) = 0;
 
-            virtual Loading::Listener* getLoadingScreen() = 0;
+            virtual MWGui::LoadingScreen* getLoadingScreen() = 0;
 
             /// Should the cursor be visible?
             virtual bool getCursorVisible() = 0;
@@ -328,7 +325,6 @@ namespace MWBase
 
             virtual void toggleConsole() = 0;
             virtual void toggleDebugWindow() = 0;
-            virtual void togglePostProcessorHud() = 0;
 
             /// Cycle to next or previous spell
             virtual void cycleSpell(bool next) = 0;
@@ -360,12 +356,6 @@ namespace MWBase
             virtual void forceLootMode(const MWWorld::Ptr& ptr) = 0;
 
             virtual void asyncPrepareSaveMap() = 0;
-
-            /// Sets the cull masks for all applicable views
-            virtual void setCullMask(uint32_t mask) = 0;
-
-            /// Same as viewer->getCamera()->getCullMask(), provided for consistency.
-            virtual uint32_t getCullMask() = 0;
     };
 }
 

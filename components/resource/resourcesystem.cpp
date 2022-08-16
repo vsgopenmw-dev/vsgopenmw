@@ -1,28 +1,106 @@
 #include "resourcesystem.hpp"
 
-#include <algorithm>
+#include <vsgXchange/images.h>
+#include <vsgXchange/glsl.h>
+#include <vsg/io/Options.h>
+#include <vsg/utils/SharedObjects.h>
 
-#include "scenemanager.hpp"
-#include "imagemanager.hpp"
+#include <components/vsgadapters/vfs.hpp>
+#include <components/vsgadapters/nif/nif.hpp>
+#include <components/vsgadapters/nif/kf.hpp>
+#include <components/pipeline/builder.hpp>
+#include <components/misc/resourcehelpers.hpp>
+
 #include "niffilemanager.hpp"
-#include "keyframemanager.hpp"
+#include "shadersettings.hpp"
+
+namespace
+{
+    vsg::ref_ptr<const vsg::Options> createShaderOptions(const std::string &shaderPath)
+    {
+        auto options = vsg::Options::create();
+        auto shaderSettings = vsg::ref_ptr{new Resource::ShaderSettings};
+        options->readerWriters = {shaderSettings, vsgXchange::glsl::create()};
+        options->paths = {shaderPath};
+        return options;
+    }
+
+    vsg::ref_ptr<const vsg::Options> createImageOptions(const VFS::Manager *vfs)
+    {
+        auto images = vsg::ref_ptr{new vsgXchange::images};
+        auto options = vsg::Options::create();
+        options->readerWriters = {vsg::ref_ptr{new vsgAdapters::vfs(*vfs, {images})}};
+        options->sharedObjects = vsg::SharedObjects::create();
+        return options;
+    }
+
+    vsg::ref_ptr<const vsg::Options> createTextureOptions(const VFS::Manager *vfs, const vsg::Options &imageOptions)
+    {
+        auto textureOptions = vsg::Options::create(imageOptions);
+        textureOptions->paths = {"textures"};
+        textureOptions->sharedObjects = vsg::SharedObjects::create();
+        textureOptions->findFileCallback = [vfs](const vsg::Path &file, const vsg::Options *options) -> vsg::Path
+        {
+            for (auto &dir : options->paths)
+            {
+                auto corrected = Misc::ResourceHelpers::correctResourcePath(dir, file, vfs);
+                if (corrected != file)
+                    return corrected;
+            }
+            return file;
+        };
+        return textureOptions;
+    }
+
+    vsg::ref_ptr<const vsg::Options> createNodeOptions(const VFS::Manager *vfs, const Pipeline::Builder &builder, vsg::ref_ptr<const vsg::Options> textureOptions)
+    {
+        auto vfsReader = vsg::ref_ptr{new vsgAdapters::vfs(*vfs)};
+        vfsReader->add(vsg::ref_ptr{new vsgAdapters::nif(builder, textureOptions)});
+        auto nodeOptions = vsg::Options::create();
+        nodeOptions->sharedObjects = vsg::SharedObjects::create();
+        nodeOptions->findFileCallback = [](const vsg::Path &file, const vsg::Options *options) -> auto
+        {
+            return "meshes/" + file;
+        };
+        nodeOptions->readerWriters = {vfsReader};
+        return nodeOptions;
+    }
+
+    vsg::ref_ptr<const vsg::Options> createAnimationOptions(const VFS::Manager *vfs)
+    {
+        auto vfsReader = vsg::ref_ptr{new vsgAdapters::vfs(*vfs)};
+        vfsReader->add(vsg::ref_ptr{new vsgAdapters::kf});
+        auto options = vsg::Options::create();
+        options->findFileCallback = [](const vsg::Path &file, const vsg::Options *options) -> vsg::Path
+        {
+            auto f = file;
+            auto ext = vsg::lowerCaseFileExtension(file);
+            if (ext == ".nif")
+                f.replace(f.size()-4, 4, ".kf");
+            return std::string("meshes/") + f;
+        };
+        options->readerWriters = {vfsReader};
+        options->sharedObjects = vsg::SharedObjects::create();
+        return options;
+    }
+}
 
 namespace Resource
 {
+//vsgopenmw-delete-me
+class ImageManager {};
 
-    ResourceSystem::ResourceSystem(const VFS::Manager *vfs)
+    ResourceSystem::ResourceSystem(const VFS::Manager *vfs, const std::string &shaderPath)
         : mVFS(vfs)
+        , shaderOptions(createShaderOptions(shaderPath))
+        , builder(new Pipeline::Builder(shaderOptions))
+        , imageOptions(createImageOptions(vfs))
+        , textureOptions(createTextureOptions(vfs, *imageOptions))
+        , nodeOptions(createNodeOptions(vfs, *builder, textureOptions))
+        , animationOptions(createAnimationOptions(vfs))
     {
         mNifFileManager = std::make_unique<NifFileManager>(vfs);
-        mImageManager = std::make_unique<ImageManager>(vfs);
-        mSceneManager = std::make_unique<SceneManager>(vfs, mImageManager.get(), mNifFileManager.get());
-        mKeyframeManager = std::make_unique<KeyframeManager>(vfs, mSceneManager.get());
-
         addResourceManager(mNifFileManager.get());
-        addResourceManager(mKeyframeManager.get());
-        // note, scene references images so add images afterwards for correct implementation of updateCache()
-        addResourceManager(mSceneManager.get());
-        addResourceManager(mImageManager.get());
     }
 
     ResourceSystem::~ResourceSystem()
@@ -34,12 +112,12 @@ namespace Resource
 
     SceneManager* ResourceSystem::getSceneManager()
     {
-        return mSceneManager.get();
+        return nullptr;//mSceneManager.get();
     }
 
     ImageManager* ResourceSystem::getImageManager()
     {
-        return mImageManager.get();
+        return nullptr;//mImageManager.get();
     }
 
     NifFileManager* ResourceSystem::getNifFileManager()
@@ -49,23 +127,15 @@ namespace Resource
 
     KeyframeManager* ResourceSystem::getKeyframeManager()
     {
-        return mKeyframeManager.get();
+        return nullptr;//mSceneManager.get();
     }
 
     void ResourceSystem::setExpiryDelay(double expiryDelay)
     {
-        for (std::vector<BaseResourceManager*>::iterator it = mResourceManagers.begin(); it != mResourceManagers.end(); ++it)
-            (*it)->setExpiryDelay(expiryDelay);
-
-        // NIF files aren't needed any more once the converted objects are cached in SceneManager / BulletShapeManager,
-        // so no point in using an expiry delay
-        mNifFileManager->setExpiryDelay(0.0);
     }
 
     void ResourceSystem::updateCache(double referenceTime)
     {
-        for (std::vector<BaseResourceManager*>::iterator it = mResourceManagers.begin(); it != mResourceManagers.end(); ++it)
-            (*it)->updateCache(referenceTime);
     }
 
     void ResourceSystem::clearCache()
@@ -102,5 +172,4 @@ namespace Resource
         for (std::vector<BaseResourceManager*>::const_iterator it = mResourceManagers.begin(); it != mResourceManagers.end(); ++it)
             (*it)->releaseGLObjects(state);
     }
-
 }

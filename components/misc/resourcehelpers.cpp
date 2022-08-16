@@ -140,13 +140,14 @@ std::string Misc::ResourceHelpers::correctActorModelPath(const std::string &resP
         mdlname.insert(mdlname.begin()+p+1, 'x');
     else
         mdlname.insert(mdlname.begin(), 'x');
-    if(!vfs->exists(mdlname))
+    if(!vfs->exists("meshes/" + mdlname))
     {
         return resPath;
     }
     return mdlname;
 }
 
+//vsgopenmw-delete-me
 std::string Misc::ResourceHelpers::correctMeshPath(const std::string &resPath, const VFS::Manager* vfs)
 {
     return "meshes\\" + resPath;

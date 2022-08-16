@@ -7,7 +7,8 @@
 
 #include <components/misc/mathutil.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 #include <components/detournavigator/navigatorutils.hpp>
 
 #include "../mwphysics/collisiontype.hpp"
@@ -563,21 +564,21 @@ namespace MWMechanics
             // Currently we take the 35% of actor's height from the ground as vector height.
             // This approach allows us to detect small obstacles (e.g. crates) and curved walls.
             osg::Vec3f halfExtents = MWBase::Environment::get().getWorld()->getHalfExtents(actor);
-            osg::Vec3f pos = actor.getRefData().getPosition().asVec3();
-            osg::Vec3f source = pos + osg::Vec3f(0, 0, 0.75f * halfExtents.z());
-            osg::Vec3f fallbackDirection = actor.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0,-1,0);
-            osg::Vec3f destination = source + fallbackDirection * (halfExtents.y() + 16);
+            auto pos = toVsg(actor.getRefData().getPosition().asVec3());
+            auto source = pos + vsg::vec3(0, 0, 0.75f * halfExtents.z());
+            auto fallbackDirection = -MWAnim::forward(actor.getRefData().getPosition());
+            auto destination = source + fallbackDirection * (halfExtents.y() + 16);
 
-            bool isObstacleDetected = MWBase::Environment::get().getWorld()->castRay(source.x(), source.y(), source.z(), destination.x(), destination.y(), destination.z(), mask);
+            bool isObstacleDetected = MWBase::Environment::get().getWorld()->castRay(source.x, source.y, source.z, destination.x, destination.y, destination.z, mask);
             if (isObstacleDetected)
                 return;
 
             // Check if there is nothing behind - probably actor is near cliff.
             // A current approach: cast ray 1.5-yard ray down in 1.5 yard behind actor from 35% of actor's height.
             // If we did not hit anything, there is a cliff behind actor.
-            source = pos + osg::Vec3f(0, 0, 0.75f * halfExtents.z()) + fallbackDirection * (halfExtents.y() + 96);
-            destination = source - osg::Vec3f(0, 0, 0.75f * halfExtents.z() + 96);
-            bool isCliffDetected = !MWBase::Environment::get().getWorld()->castRay(source.x(), source.y(), source.z(), destination.x(), destination.y(), destination.z(), mask);
+            source = pos + vsg::vec3(0, 0, 0.75f * halfExtents.z()) + fallbackDirection * (halfExtents.y() + 96);
+            destination = source - vsg::vec3(0, 0, 0.75f * halfExtents.z() + 96);
+            bool isCliffDetected = !MWBase::Environment::get().getWorld()->castRay(source.x, source.y, source.z, destination.x, destination.y, destination.z, mask);
             if (isCliffDetected)
                 return;
 

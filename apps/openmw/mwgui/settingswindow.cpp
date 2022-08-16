@@ -25,8 +25,6 @@
 #include <components/widgets/sharedstatebutton.hpp>
 #include <components/settings/settings.hpp>
 #include <components/resource/resourcesystem.hpp>
-#include <components/resource/scenemanager.hpp>
-#include <components/sceneutil/lightmanager.hpp>
 #include <components/lua_ui/scriptsettings.hpp>
 #include <components/vfs/manager.hpp>
 
@@ -49,26 +47,6 @@ namespace
 
         Log(Debug::Warning) << "Warning: Invalid texture mipmap option: "<< val;
         return "#{SettingsMenu:TextureFilteringOther}";
-    }
-
-    std::string lightingMethodToStr(SceneUtil::LightingMethod method)
-    {
-        std::string result;
-        switch (method)
-        {
-        case SceneUtil::LightingMethod::FFP:
-            result = "#{SettingsMenu:LightingMethodLegacy}";
-            break;
-        case SceneUtil::LightingMethod::PerObjectUniform:
-            result = "#{SettingsMenu:LightingMethodShadersCompatibility}";
-            break;
-        case SceneUtil::LightingMethod::SingleUBO:
-        default:
-            result = "#{SettingsMenu:LightingMethodShaders}";
-            break;
-        }
-
-        return MyGUI::LanguageManager::getInstance().replaceTags(result);
     }
 
     void parseResolution (int &x, int &y, const std::string& str)
@@ -356,8 +334,10 @@ namespace MWGui
 
         updateMaxLightsComboBox(mMaxLights);
 
+        /*
         Settings::WindowMode windowMode = static_cast<Settings::WindowMode>(Settings::Manager::getInt("window mode", "Video"));
         mWindowBorderButton->setEnabled(windowMode != Settings::WindowMode::Fullscreen && windowMode != Settings::WindowMode::WindowedFullscreen);
+        */
 
         mKeyboardSwitch->setStateSelected(true);
         mControllerSwitch->setStateSelected(false);
@@ -508,7 +488,7 @@ namespace MWGui
 
         _sender->setCaptionWithReplacing(_sender->getItemNameAt(_sender->getIndexSelected()));
 
-        MWBase::Environment::get().getWindowManager()->interactiveMessageBox("#{SettingsMenu:ChangeRequiresRestart}", {"#{sOK}"}, true);
+        MWBase::Environment::get().getWindowManager()->interactiveMessageBox("#{SettingsMenu:ChangeRequiresRestart}", {"#{sOK}"});
 
         Settings::Manager::setString("lighting method", "Shaders", *_sender->getItemDataAt<std::string>(pos));
         apply();
@@ -521,7 +501,7 @@ namespace MWGui
 
         _sender->setCaptionWithReplacing(_sender->getItemNameAt(_sender->getIndexSelected()));
 
-        MWBase::Environment::get().getWindowManager()->interactiveMessageBox("#{SettingsMenu:ChangeRequiresRestart}", {"#{sOK}"}, true);
+        MWBase::Environment::get().getWindowManager()->interactiveMessageBox("#{SettingsMenu:ChangeRequiresRestart}", {"#{sOK}"});
 
         std::vector<std::string> currentLocales = Settings::Manager::getStringArray("preferred locales", "General");
         if (currentLocales.size() <= langPriority)
@@ -556,6 +536,7 @@ namespace MWGui
 
     void SettingsWindow::onLightsResetButtonClicked(MyGUI::Widget* _sender)
     {
+        /*
         std::vector<std::string> buttons = {"#{sYes}", "#{sNo}"};
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox("#{SettingsMenu:LightingResetToDefaults}", buttons, true);
         int selectedButton = MWBase::Environment::get().getWindowManager()->readPressedButton();
@@ -580,6 +561,7 @@ namespace MWGui
 
         apply();
         configureWidgets(mMainWidget, false);
+        */
     }
 
     void SettingsWindow::onButtonToggled(MyGUI::Widget* _sender)
@@ -736,6 +718,7 @@ namespace MWGui
 
     void SettingsWindow::updateLightSettings()
     {
+        /*
         auto lightingMethod = MWBase::Environment::get().getResourceSystem()->getSceneManager()->getLightingMethod();
         std::string lightingMethodStr = lightingMethodToStr(lightingMethod);
 
@@ -755,10 +738,12 @@ namespace MWGui
             mLightingMethodButton->addItem(lightingMethodToStr(method), SceneUtil::LightManager::getLightingMethodString(method));
         }
         mLightingMethodButton->setIndexSelected(mLightingMethodButton->findItemIndexWith(lightingMethodStr));
+        */
     }
 
     void SettingsWindow::updateWindowModeSettings()
     {
+        /*
         size_t index = static_cast<size_t>(Settings::Manager::getInt("window mode", "Video"));
 
         if (index > static_cast<size_t>(Settings::WindowMode::Windowed))
@@ -808,6 +793,7 @@ namespace MWGui
 
             mWindowBorderButton->setEnabled(false);
         }
+        */
     }
 
     void SettingsWindow::layoutControlsBox()

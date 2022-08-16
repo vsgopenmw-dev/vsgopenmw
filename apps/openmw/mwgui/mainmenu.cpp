@@ -5,7 +5,6 @@
 #include <MyGUI_RenderManager.h>
 
 #include <components/widgets/imagebutton.hpp>
-#include <components/settings/settings.hpp>
 #include <components/vfs/manager.hpp>
 
 #include "../mwbase/environment.hpp"
@@ -20,13 +19,11 @@
 
 namespace MWGui
 {
-
     MainMenu::MainMenu(int w, int h, const VFS::Manager* vfs, const std::string& versionDescription)
         : WindowBase("openmw_mainmenu.layout")
         , mWidth (w), mHeight (h)
         , mVFS(vfs), mButtonBox(nullptr)
         , mBackground(nullptr)
-        , mVideoBackground(nullptr)
         , mVideo(nullptr)
         , mSaveGameDialog(nullptr)
     {
@@ -146,8 +143,7 @@ namespace MWGui
     {
         if (mVideo && !show)
         {
-            MyGUI::Gui::getInstance().destroyWidget(mVideoBackground);
-            mVideoBackground = nullptr;
+            MyGUI::Gui::getInstance().destroyWidget(mVideo);
             mVideo = nullptr;
         }
         if (mBackground && !show)
@@ -159,31 +155,15 @@ namespace MWGui
         if (!show)
             return;
 
-        bool stretch = Settings::Manager::getBool("stretch menu background", "GUI");
-
         if (mHasAnimatedMenu)
         {
             if (!mVideo)
             {
-                // Use black background to correct aspect ratio
-                mVideoBackground = MyGUI::Gui::getInstance().createWidgetReal<MyGUI::ImageBox>("ImageBox", 0,0,1,1,
-                    MyGUI::Align::Default, "MainMenuBackground");
-                mVideoBackground->setImageTexture("black");
-
-                mVideo = mVideoBackground->createWidget<VideoWidget>("ImageBox", 0,0,1,1,
+                mVideo = MyGUI::Gui::getInstance().createWidgetReal<VideoWidget>("ImageBox", 0,0,1,1,
                     MyGUI::Align::Stretch, "MainMenuBackground");
-                mVideo->setVFS(mVFS);
-
-                mVideo->playVideo("video\\menu_background.bik");
+                mVideo->stretch = stretch;
+                mVideo->playVideo("menu_background.bik", *mVFS);
             }
-
-            MyGUI::IntSize viewSize = MyGUI::RenderManager::getInstance().getViewSize();
-            int screenWidth = viewSize.width;
-            int screenHeight = viewSize.height;
-            mVideoBackground->setSize(screenWidth, screenHeight);
-
-            mVideo->autoResize(stretch);
-
             mVideo->setVisible(true);
         }
         else
@@ -200,14 +180,9 @@ namespace MWGui
 
     void MainMenu::onFrame(float dt)
     {
-        if (mVideo)
-        {
-            if (!mVideo->update())
-            {
-                // If finished playing, start again
-                mVideo->playVideo("video\\menu_background.bik");
-            }
-        }
+        // If finished playing, start again
+        if (mVideo && !mVideo->update())
+            mVideo->playVideo("menu_background.bik", *mVFS);
     }
 
     bool MainMenu::exit()
@@ -307,6 +282,5 @@ namespace MWGui
         }
         else
             mButtonBox->setCoord (mWidth/2 - maxwidth/2, mHeight/2 - curH/2, maxwidth, curH);
-
     }
 }

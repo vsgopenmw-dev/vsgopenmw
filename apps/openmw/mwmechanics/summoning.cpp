@@ -1,7 +1,6 @@
 #include "summoning.hpp"
 
 #include <components/debug/debuglog.hpp>
-#include <components/misc/resourcehelpers.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
@@ -12,7 +11,7 @@
 #include "../mwworld/manualref.hpp"
 #include "../mwworld/inventorystore.hpp"
 
-#include "../mwrender/animation.hpp"
+#include "../mwrender/effect.hpp"
 
 #include "creaturestats.hpp"
 #include "aifollow.hpp"
@@ -81,16 +80,7 @@ namespace MWMechanics
 
                 MWWorld::Ptr placed = world->safePlaceObject(ref.getPtr(), summoner, summoner.getCell(), 0, 120.f);
 
-                MWRender::Animation* anim = world->getAnimation(placed);
-                if (anim)
-                {
-                    const ESM::Static* fx = world->getStore().get<ESM::Static>().search("VFX_Summon_Start");
-                    if (fx)
-                    {
-                        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                        anim->addEffect(Misc::ResourceHelpers::correctMeshPath(fx->mModel, vfs), -1, false);
-                    }
-                }
+                MWRender::addEffect(placed, "VFX_Summon_Start");
             }
             catch (std::exception& e)
             {

@@ -10,11 +10,6 @@
 #include <string>
 #include <memory>
 
-namespace SceneUtil
-{
-    class PositionAttitudeTransform;
-}
-
 namespace ESM
 {
     class Script;
@@ -34,8 +29,6 @@ namespace MWWorld
 
     class RefData
     {
-            SceneUtil::PositionAttitudeTransform* mBaseNode;
-
             MWScript::Locals mLocals;
             std::shared_ptr<MWLua::LocalScripts> mLuaScripts;
 
@@ -88,15 +81,6 @@ namespace MWWorld
 
             RefData& operator= (const RefData& refData);
             RefData& operator= (RefData&& other) noexcept;
-
-            /// Return base node (can be a null pointer).
-            SceneUtil::PositionAttitudeTransform* getBaseNode();
-
-            /// Return base node (can be a null pointer).
-            const SceneUtil::PositionAttitudeTransform* getBaseNode() const;
-
-            /// Set base node (can be a null pointer).
-            void setBaseNode (SceneUtil::PositionAttitudeTransform* base);
 
             int getCount(bool absolute = true) const;
 

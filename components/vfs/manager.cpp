@@ -102,17 +102,6 @@ namespace VFS
         return {};
     }
 
-    std::string Manager::getAbsoluteFileName(std::string_view name) const
-    {
-        std::string normalized(name);
-        normalize_path(normalized, mStrict);
-
-        std::map<std::string, File*>::const_iterator found = mIndex.find(normalized);
-        if (found == mIndex.end())
-            throw std::runtime_error("Resource '" + normalized + "' not found");
-        return found->second->getPath();
-    }
-
     namespace
     {
         bool startsWith(std::string_view text, std::string_view start)

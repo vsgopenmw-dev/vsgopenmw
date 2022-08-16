@@ -7,6 +7,7 @@
 namespace MWGui
 {
 
+    //vsgopenmw-fixme(upstream-me)
     /// \brief Allows us to get the members of
     ///        ResourceImageSetPointer that we need.
     /// \example MyGUI::FactoryManager::getInstance().registerFactory<ResourceImageSetPointerFix>("Resource", "ResourceImageSetPointer");

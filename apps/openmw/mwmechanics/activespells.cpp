@@ -5,8 +5,6 @@
 #include <components/debug/debuglog.hpp>
 
 #include <components/misc/rng.hpp>
-#include <components/misc/resourcehelpers.hpp>
-
 #include <components/misc/strings/algorithm.hpp>
 
 #include <components/esm3/loadmgef.hpp>
@@ -20,7 +18,7 @@
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
 
-#include "../mwrender/animation.hpp"
+#include "../mwrender/effect.hpp"
 
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/class.hpp"
@@ -263,15 +261,7 @@ namespace MWMechanics
             }
             if(reflected)
             {
-                const ESM::Static* reflectStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find("VFX_Reflect");
-                MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(ptr);
-                if(animation && !reflectStatic->mModel.empty())
-                {
-                    const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                    animation->addEffect(
-                        Misc::ResourceHelpers::correctMeshPath(reflectStatic->mModel, vfs),
-                        ESM::MagicEffect::Reflect, false, std::string());
-                }
+                MWRender::addEffect(ptr, "VFX_Reflect", ESM::MagicEffect::Reflect);
                 caster.getClass().getCreatureStats(caster).getActiveSpells().addSpell(*reflected);
             }
             if(removedSpell)

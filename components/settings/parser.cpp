@@ -8,8 +8,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include <Base64.h>
-
 void Settings::SettingsFileParser::loadSettingsFile(const std::string& file, CategorySettingValueMap& settings,
                                                     bool base64Encoded, bool overrideExisting)
 {
@@ -19,6 +17,11 @@ void Settings::SettingsFileParser::loadSettingsFile(const std::string& file, Cat
     auto stream = std::ref<std::istream>(fstream);
 
     std::istringstream decodedStream;
+    
+    /*
+     Just a note to people who are thinking of copying and pasting this into their projects: don't! There are several issues with the example here, and I've unfortunately seen people copying this into their productions systems before.
+     
+     If you are looking for a safer modern Cpp Base64 alternative, I've made a post on how to write a good C++ Base64 encoder. At the very least you will learn how base64 encoding works.
     if (base64Encoded)
     {
         std::string base64String(std::istreambuf_iterator<char>(fstream), {});
@@ -30,6 +33,7 @@ void Settings::SettingsFileParser::loadSettingsFile(const std::string& file, Cat
         decodedStream.str(std::move(decodedString));
         stream = std::ref<std::istream>(decodedStream);
     }
+    */
 
     Log(Debug::Info) << "Loading settings file: " << file;
     std::string currentCategory;

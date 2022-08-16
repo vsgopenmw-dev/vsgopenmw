@@ -8,7 +8,6 @@
 #include "MyGUI_FactoryManager.h"
 
 #include <components/misc/utf8stream.hpp>
-#include <components/sceneutil/depth.hpp>
 
 
 namespace MWGui
@@ -1213,7 +1212,7 @@ public:
 
         RenderXform renderXform (mCroppedParent, textFormat.mRenderItem->getRenderTarget()->getInfo());
 
-        float z = SceneUtil::AutoDepth::isReversed() ? 1.f : -1.f;
+        float z = 0;
 
         GlyphStream glyphStream(textFormat.mFont, static_cast<float>(mCoord.left), static_cast<float>(mCoord.top - mViewTop),
                                   z /*mNode->getNodeDepth()*/, vertices, renderXform);
@@ -1271,17 +1270,20 @@ public:
 
     void showPage (TypesetBook::Ptr book, size_t page) override
     {
-        mPageDisplay->showPage (book, page);
+        if (mPageDisplay)
+            mPageDisplay->showPage (book, page);
     }
 
     void adviseLinkClicked (std::function <void (InteractiveId)> linkClicked) override
     {
-        mPageDisplay->mLinkClicked = linkClicked;
+        if (mPageDisplay)
+            mPageDisplay->mLinkClicked = linkClicked;
     }
 
     void unadviseLinkClicked () override
     {
-        mPageDisplay->mLinkClicked = std::function <void (InteractiveId)> ();
+        if (mPageDisplay)
+            mPageDisplay->mLinkClicked = std::function <void (InteractiveId)> ();
     }
 
 protected:
@@ -1294,32 +1296,32 @@ protected:
         {
             mPageDisplay = getSubWidgetText()->castType<PageDisplay>();
         }
-        else
-        {
-            throw std::runtime_error("BookPage unable to find page display sub widget");
-        }
     }
 
     void onMouseLostFocus(Widget* _new) override
     {
         // NOTE: MyGUI also fires eventMouseLostFocus for widgets that are about to be destroyed (if they had focus).
         // Child widgets may already be destroyed! So be careful.
-        mPageDisplay->onMouseLostFocus ();
+        if (mPageDisplay)
+            mPageDisplay->onMouseLostFocus ();
     }
 
     void onMouseMove(int left, int top) override
     {
-        mPageDisplay->onMouseMove (left, top);
+        if (mPageDisplay)
+            mPageDisplay->onMouseMove (left, top);
     }
 
     void onMouseButtonPressed (int left, int top, MyGUI::MouseButton id) override
     {
-        mPageDisplay->onMouseButtonPressed (left, top, id);
+        if (mPageDisplay)
+            mPageDisplay->onMouseButtonPressed (left, top, id);
     }
 
     void onMouseButtonReleased(int left, int top, MyGUI::MouseButton id) override
     {
-        mPageDisplay->onMouseButtonReleased (left, top, id);
+        if (mPageDisplay)
+            mPageDisplay->onMouseButtonReleased (left, top, id);
     }
 
     PageDisplay* mPageDisplay;

@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <MyGUI_Widget.h>
+#include "backgroundimage.hpp"
 
 namespace Video
 {
@@ -19,50 +19,32 @@ namespace MWGui
 {
 
     /**
-     * Widget that plays a video.
+     * Plays video.
      */
-    class VideoWidget : public MyGUI::Widget
+    class VideoWidget : public BackgroundImage
     {
-    public:
         MYGUI_RTTI_DERIVED(VideoWidget)
-
+    public:
         VideoWidget();
-        
         ~VideoWidget();
 
-        /// Set the VFS (virtual file system) to find the videos on.
-        void setVFS(const VFS::Manager* vfs);
+        /// Stretch the video to fill the whole screen? If false, black bars may be added to fix the aspect ratio.
+        bool stretch = false;
 
-        void playVideo (const std::string& video);
-
-        int getVideoWidth();
-        int getVideoHeight();
+        void playVideo (const std::string& video, const VFS::Manager &vfs);
 
         /// @return Is the video still playing?
         bool update();
 
-        /// Return true if a video is currently playing and it has an audio stream.
-        bool hasAudioStream();
-
         /// Stop video and free resources (done automatically on destruction)
         void stop();
 
-        void pause();
-        void resume();
-        bool isPaused() const;
-
-        /// Adjust the coordinates of this video widget relative to its parent,
-        /// based on the dimensions of the playing video.
-        /// @param stretch Stretch the video to fill the whole screen? If false,
-        ///                black bars may be added to fix the aspect ratio.
-        void autoResize (bool stretch);
-
+        /// Return true if a video is currently playing and it has an audio stream.
+        bool hasAudioStream();
     private:
-        const VFS::Manager* mVFS;
-        std::unique_ptr<MyGUI::ITexture> mTexture;
+        MyGUI::ITexture *mTexture = nullptr;
         std::unique_ptr<Video::VideoPlayer> mPlayer;
     };
-
 }
 
 #endif

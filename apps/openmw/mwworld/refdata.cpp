@@ -31,7 +31,6 @@ namespace MWWorld
 
     void RefData::copy (const RefData& refData)
     {
-        mBaseNode = refData.mBaseNode;
         mLocals = refData.mLocals;
         mEnabled = refData.mEnabled;
         mCount = refData.mCount;
@@ -49,13 +48,12 @@ namespace MWWorld
 
     void RefData::cleanup()
     {
-        mBaseNode = nullptr;
         mCustomData = nullptr;
         mLuaScripts = nullptr;
     }
 
     RefData::RefData()
-    : mBaseNode(nullptr), mDeletedByContentFile(false), mEnabled (true), mPhysicsPostponed(false), mCount (1), mCustomData (nullptr), mChanged(false), mFlags(0)
+    : mDeletedByContentFile(false), mEnabled (true), mPhysicsPostponed(false), mCount (1), mCustomData (nullptr), mChanged(false), mFlags(0)
     {
         for (int i=0; i<3; ++i)
         {
@@ -65,7 +63,7 @@ namespace MWWorld
     }
 
     RefData::RefData (const ESM::CellRef& cellRef)
-    : mBaseNode(nullptr), mDeletedByContentFile(false), mEnabled (true), mPhysicsPostponed(false), 
+    : mDeletedByContentFile(false), mEnabled (true), mPhysicsPostponed(false),
       mCount (1), mPosition (cellRef.mPos),
       mCustomData (nullptr),
       mChanged(false), mFlags(0) // Loading from ESM/ESP files -> assume unchanged
@@ -73,7 +71,7 @@ namespace MWWorld
     }
 
     RefData::RefData (const ESM::ObjectState& objectState, bool deletedByContentFile)
-    : mBaseNode(nullptr), mDeletedByContentFile(deletedByContentFile),
+    : mDeletedByContentFile(deletedByContentFile),
       mEnabled (objectState.mEnabled != 0), mPhysicsPostponed(false),
       mCount (objectState.mCount),
       mPosition (objectState.mPosition),
@@ -88,7 +86,7 @@ namespace MWWorld
     }
 
     RefData::RefData (const RefData& refData)
-    : mBaseNode(nullptr), mCustomData (nullptr)
+    : mCustomData (nullptr)
     {
         try
         {
@@ -142,21 +140,6 @@ namespace MWWorld
 
     RefData::RefData(RefData&& other) noexcept = default;
     RefData& RefData::operator=(RefData&& other) noexcept = default;
-
-    void RefData::setBaseNode(SceneUtil::PositionAttitudeTransform *base)
-    {
-        mBaseNode = base;
-    }
-
-    SceneUtil::PositionAttitudeTransform* RefData::getBaseNode()
-    {
-        return mBaseNode;
-    }
-
-    const SceneUtil::PositionAttitudeTransform* RefData::getBaseNode() const
-    {
-        return mBaseNode;
-    }
 
     int RefData::getCount(bool absolute) const
     {

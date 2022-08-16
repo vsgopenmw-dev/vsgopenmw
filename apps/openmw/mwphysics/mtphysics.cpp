@@ -18,7 +18,7 @@
 #include "../mwmechanics/movement.hpp"
 #include "../mwmechanics/creaturestats.hpp"
 
-#include "../mwrender/bulletdebugdraw.hpp"
+//#include "../mwrender/bulletdebugdraw.hpp"
 
 #include "../mwworld/class.hpp"
 
@@ -709,7 +709,7 @@ namespace MWPhysics
     void PhysicsTaskScheduler::debugDraw()
     {
         MaybeSharedLock lock(mCollisionWorldMutex, mNumThreads);
-        mDebugDrawer->step();
+        //mDebugDrawer->step();
     }
 
     void* PhysicsTaskScheduler::getUserPointer(const btCollisionObject* object) const

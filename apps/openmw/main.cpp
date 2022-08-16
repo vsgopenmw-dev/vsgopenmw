@@ -8,7 +8,7 @@
 
 #include "mwgui/debugwindow.hpp"
 
-#include "engine.hpp"
+#include "vsgengine.hpp"
 #include "options.hpp"
 
 #include <boost/program_options/variables_map.hpp>
@@ -17,8 +17,6 @@
 #include <components/windows.hpp>
 // makes __argc and __argv available on windows
 #include <cstdlib>
-
-extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 #endif
 
 #include <filesystem>
@@ -161,54 +159,6 @@ bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::Configurat
     return true;
 }
 
-namespace
-{
-    class OSGLogHandler : public osg::NotifyHandler
-    {
-        void notify(osg::NotifySeverity severity, const char* msg) override
-        {
-            // Copy, because osg logging is not thread safe.
-            std::string msgCopy(msg);
-            if (msgCopy.empty())
-                return;
-
-            Debug::Level level;
-            switch (severity)
-            {
-            case osg::ALWAYS:
-            case osg::FATAL:
-                level = Debug::Error;
-                break;
-            case osg::WARN:
-            case osg::NOTICE:
-                level = Debug::Warning;
-                break;
-            case osg::INFO:
-                level = Debug::Info;
-                break;
-            case osg::DEBUG_INFO:
-            case osg::DEBUG_FP:
-            default:
-                level = Debug::Debug;
-            }
-            std::string_view s(msgCopy);
-            if (s.size() < 1024)
-                Log(level) << (s.back() == '\n' ? s.substr(0, s.size() - 1) : s);
-            else
-            {
-                while (!s.empty())
-                {
-                    size_t lineSize = 1;
-                    while (lineSize < s.size() && s[lineSize - 1] != '\n')
-                        lineSize++;
-                    Log(level) << s.substr(0, s[lineSize - 1] == '\n' ? lineSize - 1 : lineSize);
-                    s = s.substr(lineSize);
-                }
-            }
-        }
-    };
-}
-
 int runApplication(int argc, char *argv[])
 {
     Platform::init();
@@ -219,7 +169,6 @@ int runApplication(int argc, char *argv[])
     setenv("OSG_GL_TEXTURE_STORAGE", "OFF", 0);
 #endif
 
-    osg::setNotifyHandler(new OSGLogHandler());
     Files::ConfigurationManager cfgMgr;
     std::unique_ptr<OMW::Engine> engine = std::make_unique<OMW::Engine>(cfgMgr);
 

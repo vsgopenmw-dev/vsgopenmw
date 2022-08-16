@@ -15,7 +15,10 @@ namespace MWWorld
 {
     class CellStore;
 }
-
+namespace MWRender
+{
+    class RenderManager;
+}
 namespace MWLua
 {
 
@@ -48,7 +51,7 @@ namespace MWLua
     sol::function getAsyncPackageInitializer(const Context&);
 
     // Implemented in camerabindings.cpp
-    sol::table initCameraPackage(const Context&);
+    sol::table initCameraPackage(const Context&, MWRender::RenderManager *renderManager);
 
     // Implemented in uibindings.cpp
     sol::table initUserInterfacePackage(const Context&);

@@ -1,7 +1,7 @@
 #ifndef OPENMW_MWRENDER_FOGMANAGER_H
 #define OPENMW_MWRENDER_FOGMANAGER_H
 
-#include <osg/Vec4f>
+#include <vsg/maths/vec4.h>
 
 namespace ESM
 {
@@ -16,9 +16,9 @@ namespace MWRender
         FogManager();
 
         void configure(float viewDistance, const ESM::Cell *cell);
-        void configure(float viewDistance, float fogDepth, float underwaterFog, float dlFactor, float dlOffset, const osg::Vec4f &color);
+        void configure(float viewDistance, float fogDepth, float underwaterFog, float dlFactor, float dlOffset, const vsg::vec4 &color);
 
-        osg::Vec4f getFogColor(bool isUnderwater) const;
+        vsg::vec4 getFogColor(bool isUnderwater) const;
         float getFogStart(bool isUnderwater) const;
         float getFogEnd(bool isUnderwater) const;
 
@@ -27,10 +27,10 @@ namespace MWRender
         float mLandFogEnd;
         float mUnderwaterFogStart;
         float mUnderwaterFogEnd;
-        osg::Vec4f mFogColor;
+        vsg::vec4 mFogColor;
         bool mDistantFog;
 
-        osg::Vec4f mUnderwaterColor;
+        vsg::vec4 mUnderwaterColor;
         float mUnderwaterWeight;
         float mUnderwaterIndoorFog;
     };

@@ -46,7 +46,8 @@ namespace ESMTerrain
     const float defaultHeight = ESM::Land::DEFAULT_HEIGHT;
 
     Storage::Storage(const VFS::Manager *vfs, const std::string& normalMapPattern, const std::string& normalHeightMapPattern, bool autoUseNormalMaps, const std::string& specularMapPattern, bool autoUseSpecularMaps)
-        : mVFS(vfs)
+        : Terrain::Storage(static_cast<float>(ESM::Land::REAL_SIZE), static_cast<unsigned int>(ESM::Land::LAND_SIZE))
+        , mVFS(vfs)
         , mNormalMapPattern(normalMapPattern)
         , mNormalHeightMapPattern(normalHeightMapPattern)
         , mAutoUseNormalMaps(autoUseNormalMaps)
@@ -434,9 +435,6 @@ namespace ESMTerrain
                 pData[((realY+1)*blendmapImageSize + realX + 1)] = 255;
             }
         }
-
-        if (blendmaps.size() == 1)
-            blendmaps.clear(); // If a single texture fills the whole terrain, there is no need to blend
     }
 
     float Storage::getHeightAt(const osg::Vec3f &worldPos)
@@ -591,20 +589,4 @@ namespace ESMTerrain
 
         return info;
     }
-
-    float Storage::getCellWorldSize()
-    {
-        return static_cast<float>(ESM::Land::REAL_SIZE);
-    }
-
-    int Storage::getCellVertices()
-    {
-        return ESM::Land::LAND_SIZE;
-    }
-
-    int Storage::getBlendmapScale(float chunkSize)
-    {
-        return ESM::Land::LAND_TEXTURE_SIZE*chunkSize;
-    }
-
 }

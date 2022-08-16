@@ -230,6 +230,9 @@ find_package(OpenGL REQUIRED)
 
 find_package(LZ4 REQUIRED)
 
+find_package(vsg REQUIRED)
+find_package(vsgXchange REQUIRED)
+
 if (USE_QT)
     find_package(Qt5Core 5.12 REQUIRED)
     find_package(Qt5Widgets REQUIRED)
@@ -408,23 +411,13 @@ if(NOT HAVE_STDINT_H)
 endif()
 
 if(OPENMW_USE_SYSTEM_OSG)
-    find_package(OpenSceneGraph 3.6.5 REQUIRED ${USED_OSG_COMPONENTS})  # Bump to 3.6.6 when released
-
+    find_package(OpenSceneGraph 3.4.0 REQUIRED ${USED_OSG_COMPONENTS})
     if(OSG_STATIC)
         find_package(OSGPlugins REQUIRED COMPONENTS ${USED_OSG_PLUGINS})
     endif()
 endif()
 
 include_directories(BEFORE SYSTEM ${OPENSCENEGRAPH_INCLUDE_DIRS})
-
-if(OSG_STATIC)
-    add_definitions(-DOSG_LIBRARY_STATIC)
-endif()
-
-include(cmake/CheckOsgMultiview.cmake)
-if(HAVE_MULTIVIEW)
-    add_definitions(-DOSG_HAS_MULTIVIEW)
-endif(HAVE_MULTIVIEW)
 
 set(BOOST_COMPONENTS system filesystem program_options iostreams)
 if(WIN32)
@@ -519,8 +512,8 @@ endif (APPLE)
 
 # Other files
 
-pack_resource_file(${OpenMW_SOURCE_DIR}/files/settings-default.cfg
-    "${OpenMW_BINARY_DIR}" "defaults.bin")
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/settings-default.cfg
+    "${OpenMW_BINARY_DIR}" "defaults.cfg")
 
 configure_resource_file(${OpenMW_SOURCE_DIR}/files/openmw.appdata.xml
     "${OpenMW_BINARY_DIR}" "openmw.appdata.xml")
@@ -535,8 +528,8 @@ else ()
         "${OpenMW_BINARY_DIR}/openmw.cfg")
 endif ()
 
-pack_resource_file(${OpenMW_SOURCE_DIR}/files/openmw-cs.cfg
-    "${OpenMW_BINARY_DIR}" "defaults-cs.bin")
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/openmw-cs.cfg
+    "${OpenMW_BINARY_DIR}" "defaults-cs.cfg")
 
 # Needs the copy version because the configure version assumes the end of the file has been reached when a null character is reached and there are no CMake expressions to evaluate.
 copy_resource_file(${OpenMW_SOURCE_DIR}/files/opencs/defaultfilters
@@ -572,9 +565,8 @@ if(OPENMW_LTO_BUILD)
     endif()
 endif()
 
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wundef -Wno-unused-parameter -pedantic -Wno-long-long ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wundef -Wno-unused-parameter -pedantic -Wno-long-long -Wno-mismatched-tags ${CMAKE_CXX_FLAGS}")
     add_definitions( -DBOOST_NO_CXX11_SCOPED_ENUMS=ON )
 
     if (APPLE)
@@ -597,7 +589,6 @@ endif (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clan
 
 add_subdirectory (extern/osg-ffmpeg-videoplayer)
 add_subdirectory (extern/oics)
-add_subdirectory (extern/Base64)
 if (BUILD_OPENCS)
     add_subdirectory (extern/osgQt)
 endif()

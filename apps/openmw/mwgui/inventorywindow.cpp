@@ -10,11 +10,9 @@
 #include <MyGUI_Button.h>
 #include <MyGUI_EditBox.h>
 
-#include <osg/Texture2D>
-
 #include <components/misc/strings/algorithm.hpp>
 
-#include <components/myguiplatform/myguitexture.hpp>
+#include <components/vsgadapters/mygui/texture.hpp>
 
 #include <components/settings/settings.hpp>
 
@@ -29,6 +27,8 @@
 
 #include "../mwmechanics/npcstats.hpp"
 #include "../mwmechanics/actorutil.hpp"
+
+#include "../mwrender/preview.hpp"
 
 #include "itemview.hpp"
 #include "inventoryitemmodel.hpp"
@@ -54,8 +54,7 @@ namespace
 
 namespace MWGui
 {
-
-    InventoryWindow::InventoryWindow(DragAndDrop* dragAndDrop, osg::Group* parent, Resource::ResourceSystem* resourceSystem)
+    InventoryWindow::InventoryWindow(MWRender::Preview *preview, DragAndDrop* dragAndDrop)
         : WindowPinnableBase("openmw_inventory_window.layout")
         , mDragAndDrop(dragAndDrop)
         , mSelectedItem(-1)
@@ -64,12 +63,12 @@ namespace MWGui
         , mGuiMode(GM_Inventory)
         , mLastXSize(0)
         , mLastYSize(0)
-        , mPreview(std::make_unique<MWRender::InventoryPreview>(parent, resourceSystem, MWMechanics::getPlayer()))
+        , mPreview(std::make_unique<MWRender::Inventory>(preview, MWMechanics::getPlayer()))
         , mTrading(false)
         , mUpdateTimer(0.f)
     {
-        mPreviewTexture = std::make_unique<osgMyGUI::OSGTexture>(mPreview->getTexture(), mPreview->getTextureStateSet());
-        mPreview->rebuild();
+        mPreviewTexture = std::make_unique<vsgAdapters::mygui::Texture>(preview->getTexture());
+        mPreviewTexture->setShader("premult_alpha");
 
         mMainWidget->castType<MyGUI::Window>()->eventWindowChangeCoord += MyGUI::newDelegate(this, &InventoryWindow::onWindowResize);
 
@@ -139,8 +138,7 @@ namespace MWGui
         mFilterMagic->setStateSelected(false);
         mFilterMisc->setStateSelected(false);
 
-        mPreview->updatePtr(mPtr);
-        mPreview->rebuild();
+        mPreview->rebuild(mPtr);
         mPreview->update();
 
         dirtyPreview();
@@ -461,9 +459,9 @@ namespace MWGui
     void InventoryWindow::updatePreviewSize()
     {
         const MyGUI::IntSize viewport = getPreviewViewportSize();
-        mPreview->setViewport(viewport.width, viewport.height);
-        mAvatarImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f,
-                                                                     viewport.width / float(mPreview->getTextureWidth()), viewport.height / float(mPreview->getTextureHeight())));
+        auto preview = mPreview->preview;
+        preview->setViewport(viewport.width, viewport.height);
+        mAvatarImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, viewport.width / float(preview->textureWidth), viewport.height / float(preview->textureHeight)));
     }
 
     void InventoryWindow::onNameFilterChanged(MyGUI::EditBox* _sender)
@@ -824,7 +822,7 @@ namespace MWGui
 
     void InventoryWindow::rebuildAvatar()
     {
-        mPreview->rebuild();
+        mPreview->rebuild(mPtr);
     }
 
     MyGUI::IntSize InventoryWindow::getPreviewViewportSize() const
@@ -832,8 +830,9 @@ namespace MWGui
         const MyGUI::IntSize previewWindowSize = mAvatarImage->getSize();
         const float scale = MWBase::Environment::get().getWindowManager()->getScalingFactor();
 
-        return MyGUI::IntSize(std::min<int>(mPreview->getTextureWidth(), previewWindowSize.width * scale),
-                              std::min<int>(mPreview->getTextureHeight(), previewWindowSize.height * scale));
+        auto preview = mPreview->preview;
+        return MyGUI::IntSize(std::min<int>(preview->textureWidth, previewWindowSize.width * scale),
+                              std::min<int>(preview->textureHeight, previewWindowSize.height * scale));
     }
 
     osg::Vec2f InventoryWindow::mapPreviewWindowToViewport(int x, int y) const
@@ -845,7 +844,7 @@ namespace MWGui
         const MyGUI::IntSize viewport = getPreviewViewportSize();
         return osg::Vec2f(
             normalisedX * float(viewport.width - 1),
-            (1.0 - normalisedY) * float(viewport.height - 1)
+            normalisedY * float(viewport.height - 1)
         );
     }
 }

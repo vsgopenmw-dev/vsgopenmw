@@ -2,6 +2,7 @@
 
 set(CMAKE_CXX_CLANG_TIDY "")
 
+#[[
 # Like `FetchContent_MakeAvailable` but passes EXCLUDE_FROM_ALL to `add_subdirectory`.
 macro(FetchContent_MakeAvailableExcludeFromAll)
     foreach(contentName IN ITEMS ${ARGV})
@@ -319,3 +320,4 @@ if (BUILD_UNITTESTS AND NOT OPENMW_USE_SYSTEM_GOOGLETEST)
     add_library(GTest::GTest ALIAS gtest)
     add_library(GMock::GMock ALIAS gmock)
 endif()
+]]

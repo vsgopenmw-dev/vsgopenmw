@@ -1,7 +1,8 @@
 #include "luabindings.hpp"
 
+/*
 #include "../mwbase/environment.hpp"
-#include "../mwrender/postprocessor.hpp"
+//#include "../mwrender/postprocessor.hpp"
 
 #include "luamanagerimp.hpp"
 
@@ -42,9 +43,10 @@ namespace sol
     template <>
     struct is_automagical<MWLua::Shader> : std::false_type {};
 }
-
+*/
 namespace MWLua
 {
+    /*
     struct Shader
     {
         std::shared_ptr<fx::Technique> mShader;
@@ -97,10 +99,11 @@ namespace MWLua
         };
     }
 
+*/
     sol::table initPostprocessingPackage(const Context& context)
     {
         sol::table api(context.mLua->sol(), sol::create);
-
+/*
         sol::usertype<Shader> shader = context.mLua->sol().new_usertype<Shader>("Shader");
         shader[sol::meta_function::to_string] = [](const Shader& shader) { return shader.toString(); };
 
@@ -171,8 +174,8 @@ namespace MWLua
 
             return shader;
         };
-
+*/
         return LuaUtil::makeReadOnly(api);
     }
-
 }
+

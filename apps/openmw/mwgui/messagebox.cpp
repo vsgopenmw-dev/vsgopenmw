@@ -165,6 +165,8 @@ namespace MWGui
 
     int MessageBoxManager::readPressedButton (bool reset)
     {
+        if (mInterMessageBoxe)
+            mLastButtonPressed = mInterMessageBoxe->readPressedButton();
         int pressed = mLastButtonPressed;
         if (reset)
             mLastButtonPressed = -1;

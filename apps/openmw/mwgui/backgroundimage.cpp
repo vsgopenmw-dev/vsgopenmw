@@ -1,6 +1,7 @@
 #include "backgroundimage.hpp"
 
 #include <MyGUI_Gui.h>
+#include <MyGUI_ITexture.h>
 
 namespace MWGui
 {
@@ -31,6 +32,34 @@ void BackgroundImage::setBackgroundImage (const std::string& image, bool fixedRa
     {
         mAspect = 0;
         setImageTexture(image);
+    }
+}
+
+void BackgroundImage::setBackgroundImage (MyGUI::ITexture *tex, bool stretch)
+{
+    if (mChild)
+    {
+        MyGUI::Gui::getInstance().destroyWidget(mChild);
+        mChild = nullptr;
+    }
+    if (!stretch)
+    {
+        setImageTexture("black");
+
+        mAspect = static_cast<float>(tex->getWidth())/tex->getHeight();
+        mChild = createWidgetReal<MyGUI::ImageBox>("ImageBox",
+            MyGUI::FloatCoord(0,0,1,1), MyGUI::Align::Default);
+        mChild->setRenderItemTexture(tex);
+        mChild->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
+        mChild->setNeedKeyFocus(false);
+        mChild->setNeedMouseFocus(false);
+        adjustSize();
+    }
+    else
+    {
+        mAspect = 0;
+        setRenderItemTexture(tex);
+        getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
     }
 }
 

@@ -17,10 +17,9 @@
 
 namespace MWRender
 {
-    class GlobalMap;
-    class LocalMap;
+    class WorldMap;
+    class Map;
 }
-
 namespace ESM
 {
     class ESMReader;
@@ -75,7 +74,7 @@ namespace MWGui
     class LocalMapBase
     {
     public:
-        LocalMapBase(CustomMarkerCollection& markers, MWRender::LocalMap* localMapRender, bool fogOfWarEnabled = true);
+        LocalMapBase(CustomMarkerCollection& markers, MWRender::Map* localMapRender, bool fogOfWarEnabled = true);
         virtual ~LocalMapBase();
         void init(MyGUI::ScrollView* widget, MyGUI::ImageBox* compass, int cellDistance = Constants::CellGridRadius);
 
@@ -91,7 +90,7 @@ namespace MWGui
 
         struct MarkerUserData
         {
-            MarkerUserData(MWRender::LocalMap* map)
+            MarkerUserData(MWRender::Map* map)
                 : mLocalMapRender(map)
                 , cellX(0)
                 , cellY(0)
@@ -102,7 +101,7 @@ namespace MWGui
 
             bool isPositionExplored() const;
 
-            MWRender::LocalMap* mLocalMapRender;
+            MWRender::Map* mLocalMapRender;
             int cellX;
             int cellY;
             float nX;
@@ -115,7 +114,7 @@ namespace MWGui
         void updateLocalMap();
 
         float mLocalMapZoom = 1.f;
-        MWRender::LocalMap* mLocalMapRender;
+        MWRender::Map* mLocalMapRender;
 
         int mCurX, mCurY;   //the position of the active cell on the global map (in cell coords)
         bool mHasALastActiveCell = false;
@@ -228,15 +227,13 @@ namespace MWGui
     class MapWindow : public MWGui::WindowPinnableBase, public LocalMapBase, public NoDrop
     {
     public:
-        MapWindow(CustomMarkerCollection& customMarkers, DragAndDrop* drag, MWRender::LocalMap* localMapRender, SceneUtil::WorkQueue* workQueue);
+        MapWindow(CustomMarkerCollection& customMarkers, DragAndDrop* drag, MWRender::Map* localMap, MWRender::WorldMap *worldMap);
         virtual ~MapWindow();
 
         void setCellName(const std::string& cellName);
 
         void setAlpha(float alpha) override;
         void setVisible(bool visible) override;
-
-        void renderGlobalMap();
 
         /// adds the marker to the global map
         /// @param name The ESM::Cell::mName
@@ -262,8 +259,6 @@ namespace MWGui
         void write (ESM::ESMWriter& writer, Loading::Listener& progress);
         void readRecord (ESM::ESMReader& reader, uint32_t type);
 
-        void asyncPrepareSaveMap();
-
     private:
         void onDragStart(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
         void onMouseDrag(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
@@ -288,7 +283,7 @@ namespace MWGui
 
 
         MyGUI::ScrollView* mGlobalMap;
-        std::unique_ptr<MyGUI::ITexture> mGlobalMapTexture;
+        MyGUI::ITexture *mGlobalMapTexture = nullptr;
         std::unique_ptr<MyGUI::ITexture> mGlobalMapOverlayTexture;
         MyGUI::ImageBox* mGlobalMapImage;
         MyGUI::ImageBox* mGlobalMapOverlay;
@@ -308,7 +303,7 @@ namespace MWGui
         MyGUI::Button* mEventBoxLocal;
 
         float mGlobalMapZoom = 1.0f;
-        std::unique_ptr<MWRender::GlobalMap> mGlobalMapRender;
+        MWRender::WorldMap *mGlobalMapRender;
 
         struct MapMarkerType
         {

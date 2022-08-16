@@ -21,7 +21,7 @@ void Manager::clear()
     mChangedSettings.clear();
 }
 
-std::string Manager::load(const Files::ConfigurationManager& cfgMgr, bool loadEditorSettings)
+std::string Manager::load(const Files::ConfigurationManager& cfgMgr, bool /*vsgopenmw-fixme(dependency-policy)*/loadEditorSettings)
 {
     SettingsFileParser parser;
     const std::vector<boost::filesystem::path>& paths = cfgMgr.getActiveConfigPaths();
@@ -34,7 +34,7 @@ std::string Manager::load(const Files::ConfigurationManager& cfgMgr, bool loadEd
 
     if (!loadEditorSettings)
     {
-        defaultSettingsFile = "defaults.bin";
+        defaultSettingsFile = "defaults.cfg";
         userSettingsFile = "settings.cfg";
     }
     else

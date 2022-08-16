@@ -1,8 +1,8 @@
 #include "spellcasting.hpp"
 
+#include <components/mwanimation/object.hpp>
 #include <components/misc/constants.hpp>
 #include <components/misc/rng.hpp>
-#include <components/misc/resourcehelpers.hpp>
 #include <components/misc/strings/format.hpp>
 
 #include "../mwbase/windowmanager.hpp"
@@ -19,7 +19,7 @@
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/inventorystore.hpp"
 
-#include "../mwrender/animation.hpp"
+#include "../mwrender/effect.hpp"
 
 #include "actorutil.hpp"
 #include "aifollow.hpp"
@@ -454,32 +454,23 @@ namespace MWMechanics
     {
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
         std::vector<std::string> addedEffects;
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
 
         for (const ESM::ENAMstruct& effectData : effects)
         {
             const auto effect = store.get<ESM::MagicEffect>().find(effectData.mEffectID);
 
-            const ESM::Static* castStatic;
-
-            if (!effect->mCasting.empty())
-                castStatic = store.get<ESM::Static>().find (effect->mCasting);
-            else
-                castStatic = store.get<ESM::Static>().find ("VFX_DefaultCast");
+            std::string effectRefId = effect->mCasting;
+            if (effectRefId.empty())
+                effectRefId = "VFX_DefaultCast";
 
             // check if the effect was already added
-            if (std::find(addedEffects.begin(), addedEffects.end(),
-                Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs))
-                != addedEffects.end())
+            if (std::find(addedEffects.begin(), addedEffects.end(), effectRefId) != addedEffects.end())
                 continue;
 
-            MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(mCaster);
-            if (animation)
-            {
-                animation->addEffect(
-                    Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs),
-                    effect->mIndex, false, "", effect->mParticle);
-            }
+            auto anim = MWBase::Environment::get().getWorld()->getAnimation(mCaster);
+            if (anim && anim->animation) //if (hasCharacterController)
+                MWRender::addEffect(mCaster, effectRefId, effect->mIndex, false, {}, effect->mParticle);
+        /*
             else
             {
                 // If the caster has no animation, add the effect directly to the effectManager
@@ -507,19 +498,20 @@ namespace MWMechanics
                     scale *= npcScaleVec.z();
                 }
                 scale = std::max(scale, 1.f);
-                MWBase::Environment::get().getWorld()->spawnEffect(
-                    Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs),
-                    effect->mParticle, pos, scale);
+                MWBase::Environment::get().getWorld()->spawnEffect(castStatic->mModel, effect->mParticle, pos, scale);
             }
+            */
 
+            /*
             if (animation && !mCaster.getClass().isActor())
                 animation->addSpellCastGlow(effect);
+                */
 
             static const std::string schools[] = {
                 "alteration", "conjuration", "destruction", "illusion", "mysticism", "restoration"
             };
 
-            addedEffects.push_back(Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs));
+            addedEffects.push_back(effectRefId);
 
             MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
             if(!effect->mCastSound.empty())
@@ -545,24 +537,13 @@ namespace MWMechanics
         }
 
         // Add VFX
-        const ESM::Static* castStatic;
-        if (!magicEffect.mHit.empty())
-            castStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find (magicEffect.mHit);
-        else
-            castStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find ("VFX_DefaultHit");
+        std::string effectRefId = magicEffect.mHit;
+        if (effectRefId.empty())
+            effectRefId = "VFX_DefaultHit";
 
         bool loop = (magicEffect.mData.mFlags & ESM::MagicEffect::ContinuousVfx) != 0;
-        MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(target);
-        if(anim && !castStatic->mModel.empty())
-        {
-            // Don't play particle VFX unless the effect is new or it should be looping.
-            if (playNonLooping || loop)
-            {
-                const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                anim->addEffect(
-                    Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs),
-                    magicEffect.mIndex, loop, "", magicEffect.mParticle);
-            }
-        }
+        // Don't play particle VFX unless the effect is new or it should be looping.
+        if (playNonLooping || loop)
+            MWRender::addEffect(target, effectRefId, magicEffect.mIndex, loop);
     }
 }

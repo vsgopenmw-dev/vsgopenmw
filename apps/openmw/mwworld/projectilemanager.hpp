@@ -2,13 +2,13 @@
 #define OPENMW_MWWORLD_PROJECTILEMANAGER_H
 
 #include <string>
+#include <set>
 
-#include <osg/ref_ptr>
-#include <osg/PositionAttitudeTransform>
+#include <osg/Vec4>
+#include <vsg/maths/vec4.h>
+#include <vsg/maths/quat.h>
 
 #include <components/esm3/effectlist.hpp>
-
-#include "../mwbase/soundmanager.hpp"
 
 #include "ptr.hpp"
 
@@ -24,19 +24,17 @@ namespace Loading
 
 namespace osg
 {
-    class Group;
     class Quat;
-}
-
-namespace Resource
-{
-    class ResourceSystem;
 }
 
 namespace MWRender
 {
-    class EffectAnimationTime;
-    class RenderingManager;
+    class RenderManager;
+    class ProjectileHandle;
+}
+namespace MWSound
+{
+    class Sound;
 }
 
 namespace MWWorld
@@ -45,8 +43,7 @@ namespace MWWorld
     class ProjectileManager
     {
     public:
-        ProjectileManager (osg::Group* parent, Resource::ResourceSystem* resourceSystem,
-                MWRender::RenderingManager* rendering, MWPhysics::PhysicsSystem* physics);
+        ProjectileManager (MWRender::RenderManager* rendering, MWPhysics::PhysicsSystem* physics);
 
         /// If caster is an actor, the actor's facing orientation is used. Otherwise fallbackDirection is used.
         void launchMagicBolt (const std::string &spellId, const MWWorld::Ptr& caster, const osg::Vec3f& fallbackDirection, int slot);
@@ -68,17 +65,13 @@ namespace MWWorld
         int countSavedGameRecords() const;
 
     private:
-        osg::ref_ptr<osg::Group> mParent;
-        Resource::ResourceSystem* mResourceSystem;
-        MWRender::RenderingManager* mRendering;
+        MWRender::RenderManager* mRender;
         MWPhysics::PhysicsSystem* mPhysics;
         float mCleanupTimer;
 
         struct State
         {
-            osg::ref_ptr<osg::PositionAttitudeTransform> mNode;
-            std::shared_ptr<MWRender::EffectAnimationTime> mEffectAnimationTime;
-
+            std::shared_ptr<MWRender::ProjectileHandle> handle;
             int mActorId;
             int mProjectileId;
 
@@ -109,7 +102,7 @@ namespace MWWorld
             float mSpeed;
             int mSlot;
 
-            std::vector<MWBase::Sound*> mSounds;
+            std::vector<MWSound::Sound*> mSounds;
             std::set<std::string> mSoundIds;
         };
 
@@ -133,9 +126,7 @@ namespace MWWorld
         void moveProjectiles(float dt);
         void moveMagicBolts(float dt);
 
-        void createModel (State& state, const std::string& model, const osg::Vec3f& pos, const osg::Quat& orient,
-                            bool rotate, bool createLight, osg::Vec4 lightDiffuseColor, std::string texture = "");
-        void update (State& state, float duration);
+        void createModel (State& state, const std::string& model, const vsg::vec3 &pos, const vsg::quat &orient, bool rotate, std::optional<vsg::vec3> lightDiffuseColor = {}, std::optional<vsg::vec4> glowColor = {}, std::string texture = "");
 
         void operator=(const ProjectileManager&);
         ProjectileManager(const ProjectileManager&);

@@ -51,8 +51,8 @@ LinuxPath::LinuxPath(const std::string& application_name)
     : mName(application_name)
 {
     boost::filesystem::path localPath = getLocalPath();
-    if (chdir(localPath.string().c_str()) != 0)
-        Log(Debug::Warning) << "Error " << errno << " when changing current directory";
+    //if (chdir(localPath.string().c_str()) != 0)
+       // Log(Debug::Warning) << "Error " << errno << " when changing current directory";
 }
 
 boost::filesystem::path LinuxPath::getUserConfigPath() const
@@ -79,6 +79,7 @@ boost::filesystem::path LinuxPath::getGlobalConfigPath() const
 boost::filesystem::path LinuxPath::getLocalPath() const
 {
     boost::filesystem::path localPath("./");
+    /*
     const char *statusPaths[] = {"/proc/self/exe", "/proc/self/file", "/proc/curproc/exe", "/proc/curproc/file"};
 
     for(const char *path : statusPaths)
@@ -93,6 +94,7 @@ boost::filesystem::path LinuxPath::getLocalPath() const
             break;
         }
     }
+    */
 
     return localPath;
 }

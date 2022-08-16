@@ -4,8 +4,9 @@
 
 #include <components/esm3/loadcell.hpp>
 #include <components/fallback/fallback.hpp>
-#include <components/sceneutil/util.hpp>
 #include <components/settings/settings.hpp>
+#include <components/mwanimation/color.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 namespace
 {
@@ -24,9 +25,8 @@ namespace MWRender
         , mLandFogEnd(std::numeric_limits<float>::max())
         , mUnderwaterFogStart(0.f)
         , mUnderwaterFogEnd(std::numeric_limits<float>::max())
-        , mFogColor(osg::Vec4f())
         , mDistantFog(Settings::Manager::getBool("use distant fog", "Fog"))
-        , mUnderwaterColor(Fallback::Map::getColour("Water_UnderwaterColor"))
+        , mUnderwaterColor(toVsg(Fallback::Map::getColour("Water_UnderwaterColor")))
         , mUnderwaterWeight(Fallback::Map::getFloat("Water_UnderwaterColorWeight"))
         , mUnderwaterIndoorFog(Fallback::Map::getFloat("Water_UnderwaterIndoorFog"))
     {
@@ -40,7 +40,7 @@ namespace MWRender
 
     void FogManager::configure(float viewDistance, const ESM::Cell *cell)
     {
-        osg::Vec4f color = SceneUtil::colourFromRGB(cell->mAmbi.mFog);
+        auto color = vsg::vec4(MWAnim::rgbColor(cell->mAmbi.mFog),1);
 
         if (mDistantFog)
         {
@@ -55,7 +55,7 @@ namespace MWRender
             configure(viewDistance, cell->mAmbi.mFogDensity, mUnderwaterIndoorFog, 1.0f, 0.0f, color);
     }
 
-    void FogManager::configure(float viewDistance, float fogDepth, float underwaterFog, float dlFactor, float dlOffset, const osg::Vec4f &color)
+    void FogManager::configure(float viewDistance, float fogDepth, float underwaterFog, float dlFactor, float dlOffset, const vsg::vec4 &color)
     {
         if (mDistantFog)
         {
@@ -92,7 +92,7 @@ namespace MWRender
         return isUnderwater ? mUnderwaterFogEnd : mLandFogEnd;
     }
 
-    osg::Vec4f FogManager::getFogColor(bool isUnderwater) const
+    vsg::vec4 FogManager::getFogColor(bool isUnderwater) const
     {
         if (isUnderwater)
         {

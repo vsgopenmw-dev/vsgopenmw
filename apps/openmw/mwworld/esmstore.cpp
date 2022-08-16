@@ -6,13 +6,12 @@
 #include <components/debug/debuglog.hpp>
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
-#include <components/loadinglistener/loadinglistener.hpp>
 #include <components/lua/configuration.hpp>
 #include <components/misc/algorithm.hpp>
 #include <components/esm3/readerscache.hpp>
-#include <components/esmloader/load.hpp>
 
 #include "../mwmechanics/spelllist.hpp"
+#include "../mwstate/loading.hpp"
 
 namespace
 {
@@ -144,18 +143,15 @@ static bool isCacheableRecord(int id)
     return false;
 }
 
-void ESMStore::load(ESM::ESMReader &esm, Loading::Listener* listener, ESM::Dialogue*& dialogue)
+void ESMStore::load(ESM::ESMReader &esm, MWState::Loading &state, ESM::Dialogue*& dialogue)
 {
-    if (listener != nullptr)
-        listener->setProgressRange(::EsmLoader::fileProgress);
-
     // Land texture loading needs to use a separate internal store for each plugin.
     // We set the number of plugins here so we can properly verify if valid plugin
     // indices are being passed to the LandTexture Store retrieval methods.
     mLandTextures.resize(esm.getIndex()+1);
 
     // Loop through all records
-    while(esm.hasMoreRecs())
+    while(esm.hasMoreRecs() && !state.abort)
     {
         ESM::NAME n = esm.getRecName();
         esm.getRecHeader();
@@ -213,8 +209,7 @@ void ESMStore::load(ESM::ESMReader &esm, Loading::Listener* listener, ESM::Dialo
                 dialogue = nullptr;
             }
         }
-        if (listener != nullptr)
-            listener->setProgress(::EsmLoader::fileProgress * esm.getFileOffset() / esm.getFileSize());
+        state.setComplete(esm.getFileOffset() / static_cast<float>(esm.getFileSize()));
     }
 }
 
@@ -282,8 +277,8 @@ void ESMStore::countAllCellRefs(ESM::ReadersCache& readers)
 {
     // TODO: We currently need to read entire files here again.
     // We should consider consolidating or deferring this reading.
-    if(!mRefCount.empty())
-        return;
+    if(1)//!mRefCount.empty())
+        return; //vsgopenmw-testing-fast-startup
     std::vector<Ref> refs;
     std::vector<std::string> refIDs;
     for(auto it = mCells.intBegin(); it != mCells.intEnd(); ++it)

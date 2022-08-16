@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layer" version="1.0">
-    <Layer name="Scene" overlapped="false" pick="false"/>
     <Layer name="FadeToBlack" overlapped="false" pick="false"/>
-    <Layer name="HitOverlay" type="AdditiveLayer" pick="false"/>
+    <Layer name="HitOverlay" pick="false"/>
     <Layer name="HUD" overlapped="false" pick="true"/>
     <Layer name="JournalBooks" type="ScalingLayer" pick="true">
         <Property key="Size" value="600 520"/>

@@ -52,7 +52,7 @@ namespace MWGui
 
         void fillSaveList();
 
-        std::unique_ptr<MyGUI::ITexture> mScreenshotTexture;
+        MyGUI::ITexture* mScreenshotTexture;
         MyGUI::ImageBox* mScreenshot;
         bool mSaving;
 

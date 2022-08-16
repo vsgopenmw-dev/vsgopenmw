@@ -3,11 +3,13 @@
 
 #include <list>
 #include <string>
+#include <memory>
 
 namespace MWState
 {
     struct Slot;
     class Character;
+    class GameState;
 }
 
 namespace MWBase
@@ -47,6 +49,9 @@ namespace MWBase
             virtual void askLoadRecent() = 0;
 
             virtual State getState() const = 0;
+
+            virtual void pushGameState(std::shared_ptr<MWState::GameState> gameState) = 0;
+            virtual void popGameState(std::shared_ptr<MWState::GameState>) = 0;
 
             virtual void newGame (bool bypass = false) = 0;
             ///< Start a new game.

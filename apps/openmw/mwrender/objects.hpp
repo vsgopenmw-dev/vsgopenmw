@@ -1,4 +1,5 @@
-#ifndef GAME_RENDER_OBJECTS_H
+#if 0
+//ifndef GAME_RENDER_OBJECTS_H
 #define GAME_RENDER_OBJECTS_H
 
 #include <map>

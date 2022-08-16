@@ -456,6 +456,8 @@ namespace MWWorld
     // this method *must* be called right after esm3.loadCell()
     void Store<ESM::Cell>::handleMovedCellRefs(ESM::ESMReader& esm, ESM::Cell* cell)
     {
+        //vsgopenmw-testing-fast-startup
+        return;
         ESM::CellRef ref;
         ESM::MovedCellRef cMRef;
         bool deleted = false;

@@ -10,7 +10,7 @@
 #include <stack>
 #include <vector>
 
-#include <osg/ref_ptr>
+#include <vsg/core/ref_ptr.h>
 
 #include "../mwbase/windowmanager.hpp"
 
@@ -50,13 +50,12 @@ namespace Translation
     class Storage;
 }
 
-namespace osg
+namespace vsg
 {
+    class Node;
     class Group;
-}
-namespace osgViewer
-{
-    class Viewer;
+    class Context;
+    class CompileManager;
 }
 
 namespace Resource
@@ -64,18 +63,13 @@ namespace Resource
     class ResourceSystem;
 }
 
-namespace SceneUtil
-{
-    class WorkQueue;
-}
-
 namespace SDLUtil
 {
-    class SDLCursorManager;
+    class CursorManager;
     class VideoWrapper;
 }
 
-namespace osgMyGUI
+namespace MyGUIPlatform
 {
     class Platform;
 }
@@ -87,7 +81,9 @@ namespace Gui
 
 namespace MWRender
 {
-    class LocalMap;
+    class Map;
+    class WorldMap;
+    class Preview;
 }
 
 namespace MWGui
@@ -119,11 +115,10 @@ namespace MWGui
   class SoulgemDialog;
   class Recharge;
   class CompanionWindow;
-  class VideoWidget;
+  class VideoWindow;
   class WindowModal;
   class ScreenFader;
   class DebugWindow;
-  class PostProcessorHud;
   class JailScreen;
   class KeyboardNavigation;
 
@@ -134,21 +129,20 @@ namespace MWGui
     typedef std::pair<std::string, int> Faction;
     typedef std::vector<Faction> FactionList;
 
-    WindowManager(SDL_Window* window, osgViewer::Viewer* viewer, osg::Group* guiRoot, Resource::ResourceSystem* resourceSystem, SceneUtil::WorkQueue* workQueue,
-                  const std::string& logpath, bool consoleOnlyScripts, Translation::Storage& translationDataStorage,
-                  ToUTF8::FromType encoding, const std::string& versionDescription, bool useShaders);
+    WindowManager(SDL_Window* window, vsg::Context *context, vsg::CompileManager *compile, Resource::ResourceSystem* resourceSystem, const std::string& logpath, const std::string &shaderPath, bool consoleOnlyScripts, Translation::Storage& translationDataStorage, ToUTF8::FromType encoding, const std::string& versionDescription);
     virtual ~WindowManager();
+
+    vsg::ref_ptr<vsg::Node> node();
+    vsg::ref_ptr<vsg::Node> getRenderTextures();
 
     /// Set the ESMStore to use for retrieving of GUI-related strings.
     void setStore (const MWWorld::ESMStore& store);
 
-    void initUI();
+    void initUI(vsg::ref_ptr<vsg::Node> mapScene);
 
-    Loading::Listener* getLoadingScreen() override;
+    MWGui::LoadingScreen* getLoadingScreen() override;
 
-    /// @note This method will block until the video finishes playing
-    /// (and will continually update the window while doing so)
-    void playVideo(const std::string& name, bool allowSkipping, bool overrideSounds = true) override;
+    void playVideo(const std::string& name, bool allowSkipping, bool pauseSound=true) override;
 
     /// Warning: do not use MyGUI::InputManager::setKeyFocusWidget directly. Instead use this.
     void setKeyFocusWidget (MyGUI::Widget* widget) override;
@@ -188,7 +182,6 @@ namespace MWGui
     MWGui::ConfirmationDialog* getConfirmationDialog() override;
     MWGui::TradeWindow* getTradeWindow() override;
     const std::vector<MWGui::MessageBox*> getActiveMessageBoxes() override;
-    MWGui::PostProcessorHud* getPostProcessorHud() override;
 
     /// Make the player use an item, while updating GUI state accordingly
     void useItem(const MWWorld::Ptr& item, bool bypassBeastRestrictions=false) override;
@@ -273,8 +266,7 @@ namespace MWGui
     void scheduleMessageBox (std::string message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) override;
     void staticMessageBox(const std::string& message) override;
     void removeStaticMessageBox() override;
-    void interactiveMessageBox (const std::string& message,
-                                        const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false) override;
+    void interactiveMessageBox (const std::string& message, const std::vector<std::string>& buttons = std::vector<std::string>()) override;
 
     int readPressedButton () override; ///< returns the index of the pressed button or -1 if no button was pressed (->MessageBoxmanager->InteractiveMessageBox)
 
@@ -328,6 +320,8 @@ namespace MWGui
     /// Call when mouse cursor or buttons are used.
     void setCursorActive(bool active) override;
 
+    void setCursorVisible(bool visible);
+
     /// Clear all savegame-specific data
     void clear() override;
 
@@ -367,7 +361,6 @@ namespace MWGui
 
     void toggleConsole() override;
     void toggleDebugWindow() override;
-    void togglePostProcessorHud() override;
 
     /// Cycle to next or previous spell
     void cycleSpell(bool next) override;
@@ -393,14 +386,13 @@ namespace MWGui
     void asyncPrepareSaveMap() override;
 
   private:
-    unsigned int mOldUpdateMask; unsigned int mOldCullMask;
+    vsg::ref_ptr<vsg::Group> mRenderTextures;
+    vsg::ref_ptr<vsg::Context> mContext;
 
     const MWWorld::ESMStore* mStore;
     Resource::ResourceSystem* mResourceSystem;
-    osg::ref_ptr<SceneUtil::WorkQueue> mWorkQueue;
 
-    osgMyGUI::Platform* mGuiPlatform;
-    osgViewer::Viewer* mViewer;
+    MyGUIPlatform::Platform* mGuiPlatform;
 
     std::unique_ptr<Gui::FontLoader> mFontLoader;
     std::unique_ptr<StatsWatcher> mStatsWatcher;
@@ -422,7 +414,9 @@ namespace MWGui
 
     HUD *mHud;
     MapWindow *mMap;
-    MWRender::LocalMap* mLocalMapRender;
+    std::unique_ptr<MWRender::Map> mLocalMapRender;
+    std::unique_ptr<MWRender::WorldMap> mWorldMapRender;
+    std::unique_ptr<MWRender::Preview> mPreview;
     ToolTips *mToolTips;
     StatsWindow *mStatsWindow;
     MessageBoxManager *mMessageBoxManager;
@@ -441,14 +435,12 @@ namespace MWGui
     LoadingScreen* mLoadingScreen;
     WaitDialog* mWaitDialog;
     SoulgemDialog* mSoulgemDialog;
-    MyGUI::ImageBox* mVideoBackground;
-    VideoWidget* mVideoWidget;
+    VideoWindow* mVideoWindow{};
     ScreenFader* mWerewolfFader;
     ScreenFader* mBlindnessFader;
     ScreenFader* mHitFader;
     ScreenFader* mScreenFader;
     DebugWindow* mDebugWindow;
-    PostProcessorHud* mPostProcessorHud;
     JailScreen* mJailScreen;
     ContainerWindow* mContainerWindow;
 
@@ -470,7 +462,6 @@ namespace MWGui
 
     int mPlayerBounty;
 
-    void setCursorVisible(bool visible) override;
 
     MyGUI::Gui *mGui; // Gui
 
@@ -496,7 +487,7 @@ namespace MWGui
     // The currently active stack of GUI modes (top mode is the one we are in).
     std::vector<GuiMode> mGuiModes;
 
-    SDLUtil::SDLCursorManager* mCursorManager;
+    SDLUtil::CursorManager* mCursorManager;
 
     std::vector<Layout*> mGarbageDialogs;
     void cleanupGarbage();
@@ -560,28 +551,19 @@ namespace MWGui
     void onCursorChange(const std::string& name);
     void onKeyFocusChanged(MyGUI::Widget* widget);
 
-    // Key pressed while playing a video
-    void onVideoKeyPressed(MyGUI::Widget *_sender, MyGUI::KeyCode _key, MyGUI::Char _char);
-
-    void sizeVideo(int screenWidth, int screenHeight);
+    void sizeVideo();
 
     void onClipboardChanged(const std::string& _type, const std::string& _data);
     void onClipboardRequested(const std::string& _type, std::string& _data);
 
     void createTextures();
-    void createCursors();
     void setMenuTransparency(float value);
 
     void updatePinnedWindows();
 
-    void enableScene(bool enable);
-
     void handleScheduledMessageBoxes();
 
     void pushGuiMode(GuiMode mode, const MWWorld::Ptr& arg, bool force);
-
-    void setCullMask(uint32_t mask) override;
-    uint32_t getCullMask() override;
   };
 }
 

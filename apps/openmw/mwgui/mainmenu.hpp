@@ -15,7 +15,6 @@ namespace VFS
 
 namespace MWGui
 {
-
     class BackgroundImage;
     class SaveGameDialog;
     class VideoWidget;
@@ -39,6 +38,7 @@ namespace MWGui
             void onFrame(float dt) override;
 
             bool exit() override;
+            bool stretch{};
 
         private:
             const VFS::Manager* mVFS;
@@ -47,8 +47,6 @@ namespace MWGui
             MyGUI::TextBox* mVersionText;
 
             BackgroundImage* mBackground;
-
-            MyGUI::ImageBox* mVideoBackground;
             VideoWidget* mVideo; // For animated main menus
 
             std::map<std::string, Gui::ImageButton*> mButtons;

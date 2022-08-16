@@ -1,11 +1,11 @@
 #include "camera.hpp"
 
-#include <osg/Camera>
-
+#include <vsg/viewer/ViewMatrix.h>
+#include <components/vsgadapters/osgcompat.hpp>
 #include <components/misc/mathutil.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 #include <components/settings/settings.hpp>
-#include <components/sceneutil/nodecallback.hpp>
+#include <components/vsgutil/computetransform.hpp>
+#include <components/animation/transform.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -21,40 +21,14 @@
 
 #include "../mwphysics/raycasting.hpp"
 
-#include "npcanimation.hpp"
-
-namespace
-{
-
-class UpdateRenderCameraCallback : public SceneUtil::NodeCallback<UpdateRenderCameraCallback, osg::Camera*>
-{
-public:
-    UpdateRenderCameraCallback(MWRender::Camera* cam)
-        : mCamera(cam)
-    {
-    }
-
-    void operator()(osg::Camera* cam, osg::NodeVisitor* nv)
-    {
-        // traverse first to update animations, in case the camera is attached to an animated node
-        traverse(cam, nv);
-
-        mCamera->updateCamera(cam);
-    }
-
-private:
-    MWRender::Camera* mCamera;
-};
-
-}
+#include "player.hpp"
 
 namespace MWRender
 {
 
-    Camera::Camera (osg::Camera* camera)
+    Camera::Camera ()
     : mHeightScale(1.f),
       mCollisionType((MWPhysics::CollisionType::CollisionType_Default & ~MWPhysics::CollisionType::CollisionType_Actor) | MWPhysics::CollisionType_CameraOnly),
-      mCamera(camera),
       mAnimation(nullptr),
       mFirstPersonView(true),
       mMode(Mode::FirstPerson),
@@ -76,27 +50,21 @@ namespace MWRender
       mDeferredRotation(osg::Vec3f()),
       mDeferredRotationDisabled(false)
     {
-        mUpdateCallback = new UpdateRenderCameraCallback(this);
-        mCamera->addUpdateCallback(mUpdateCallback);
     }
 
     Camera::~Camera()
     {
-        mCamera->removeUpdateCallback(mUpdateCallback);
     }
 
     osg::Vec3d Camera::calculateTrackedPosition() const
     {
-        if (!mTrackingNode)
+        if (mTrackingPtr.isEmpty())
             return osg::Vec3d();
-        osg::NodePathList nodepaths = mTrackingNode->getParentalNodePaths();
-        if (nodepaths.empty())
-            return osg::Vec3d();
-        osg::Matrix worldMat = osg::computeLocalToWorld(nodepaths[0]);
-        osg::Vec3d res = worldMat.getTrans();
+        //if (usingDoubleTransformInMwrenderObject) vsg::computeTransform(
+        auto res = vsgUtil::computePosition(mTrackingPath);
         if (mMode != Mode::FirstPerson)
-            res.z() += mHeight * mHeightScale;
-        return res;
+            res.z += mHeight * mHeightScale;
+        return {res.x,res.y,res.z};
     }
 
     osg::Vec3d Camera::getFocalPointOffset() const
@@ -108,33 +76,22 @@ namespace MWRender
         return offset;
     }
 
-    void Camera::updateCamera(osg::Camera *cam)
+    void Camera::updateCamera(vsg::LookAt &lookAt)
     {
-        osg::Quat orient = osg::Quat(mRoll + mExtraRoll, osg::Vec3d(0, 1, 0)) *
-                           osg::Quat(mPitch + mExtraPitch, osg::Vec3d(1, 0, 0)) *
-                           osg::Quat(mYaw + mExtraYaw, osg::Vec3d(0, 0, 1));
-        osg::Vec3d forward = orient * osg::Vec3d(0,1,0);
-        osg::Vec3d up = orient * osg::Vec3d(0,0,1);
-
-        osg::Vec3d pos = mPosition;
-        if (mMode == Mode::FirstPerson)
-        {
-            // It is a hack. Camera position depends on neck animation.
-            // Animations are updated in OSG cull traversal and in order to avoid 1 frame delay we
-            // recalculate the position here. Note that it becomes different from mPosition that
-            // is used in other parts of the code.
-            // TODO: detach camera from OSG animation and get rid of this hack.
-            osg::Vec3d recalculatedTrackedPosition = calculateTrackedPosition();
-            pos = calculateFirstPersonPosition(recalculatedTrackedPosition);
-        }
-        cam->setViewMatrixAsLookAt(pos, pos + forward, up);
-        mViewMatrix = cam->getViewMatrix();
+        auto orient = vsg::quat(mRoll + mExtraRoll, vsg::vec3(0,1,0)) *
+                           vsg::quat(mPitch + mExtraPitch, vsg::vec3(1,0,0)) *
+                           vsg::quat(mYaw + mExtraYaw, vsg::vec3(0,0,1));
+        auto forward = orient * vsg::vec3(0,1,0);
+        auto up = orient * vsg::vec3(0,0,1);
+        lookAt.eye = toVsg(mPosition);
+        lookAt.center = toVsg(mPosition) + vsg::dvec3(forward);
+        lookAt.up = vsg::dvec3(up);
     }
 
     void Camera::update(float duration, bool paused)
     {
         mLockPitch = mLockYaw = false;
-        if (mQueuedMode && mAnimation->upperBodyReady())
+        if (mQueuedMode && !(mAnimation && mAnimation->busy))
             setMode(*mQueuedMode);
         if (mProcessViewChange)
             processViewChange();
@@ -212,7 +169,7 @@ namespace MWRender
         if (mMode == newMode)
             return;
         Mode oldMode = mMode;
-        if (!force && (newMode == Mode::FirstPerson || oldMode == Mode::FirstPerson) && mAnimation && !mAnimation->upperBodyReady())
+        if (!force && (newMode == Mode::FirstPerson || oldMode == Mode::FirstPerson) && !(mAnimation && mAnimation->busy))
         {
             // Changing the view will stop all playing animations, so if we are playing
             // anything important, queue the view change for later
@@ -297,7 +254,8 @@ namespace MWRender
 
     void Camera::setSneakOffset(float offset)
     {
-        mAnimation->setFirstPersonOffset(osg::Vec3f(0,0,-offset));
+        if (mAnimation)
+            mAnimation->firstPersonOffset = {0,0,-offset};
     }
 
     void Camera::setYaw(float angle, bool force)
@@ -325,7 +283,7 @@ namespace MWRender
         mPosition = pos;
     }
 
-    void Camera::setAnimation(NpcAnimation *anim)
+    void Camera::setAnimation(Player *anim)
     {
         mAnimation = anim;
         mProcessViewChange = true;
@@ -333,26 +291,26 @@ namespace MWRender
 
     void Camera::processViewChange()
     {
-        if (mTrackingPtr.isEmpty())
+        mTrackingPath = {};
+        if (mTrackingPtr.isEmpty() || !mAnimation)
             return;
         if (mMode == Mode::FirstPerson)
         {
-            mAnimation->setViewMode(NpcAnimation::VM_FirstPerson);
-            mTrackingNode = mAnimation->getNode("Camera");
-            if (!mTrackingNode)
-                mTrackingNode = mAnimation->getNode("Head");
+            mAnimation->setViewMode(Npc::ViewMode::FirstPerson);
+            auto path = mAnimation->worldTransform("Camera");
+            if (path.empty())
+                path = mAnimation->worldTransform("Head");
+            for (auto &n : path)
+                mTrackingPath.emplace_back(n);
             mHeightScale = 1.f;
         }
         else
         {
-            mAnimation->setViewMode(NpcAnimation::VM_Normal);
-            SceneUtil::PositionAttitudeTransform* transform = mTrackingPtr.getRefData().getBaseNode();
-            mTrackingNode = transform;
-            if (transform)
-                mHeightScale = transform->getScale().z();
-            else
-                mHeightScale = 1.f;
+            mAnimation->setViewMode(Npc::ViewMode::Normal);
+            mHeightScale = mAnimation->transform()->scale.z;
         }
+        if (mTrackingPath.empty())
+            mTrackingPath = {vsg::ref_ptr{mAnimation->transform()}};
         mProcessViewChange = false;
     }
 

@@ -325,7 +325,7 @@ namespace MWPhysics
             std::unique_ptr<btCollisionObject> mWaterCollisionObject;
             std::unique_ptr<btCollisionShape> mWaterCollisionShape;
 
-            std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
+            //std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
 
             osg::ref_ptr<osg::Group> mParentNode;
 

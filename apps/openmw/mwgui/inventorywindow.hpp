@@ -1,22 +1,28 @@
 #ifndef MGUI_Inventory_H
 #define MGUI_Inventory_H
 
+#include <vsg/core/ref_ptr.h>
+
 #include "windowpinnablebase.hpp"
 #include "mode.hpp"
 
 #include "../mwworld/ptr.hpp"
-#include "../mwrender/characterpreview.hpp"
 
-namespace osg
+namespace vsg
 {
-    class Group;
+    class Context;
+    class Node;
 }
 
 namespace Resource
 {
     class ResourceSystem;
 }
-
+namespace MWRender
+{
+    class Inventory;
+    class Preview;
+}
 namespace MWGui
 {
     namespace Widgets
@@ -33,7 +39,7 @@ namespace MWGui
     class InventoryWindow : public WindowPinnableBase
     {
         public:
-            InventoryWindow(DragAndDrop* dragAndDrop, osg::Group* parent, Resource::ResourceSystem* resourceSystem);
+            InventoryWindow(MWRender::Preview *p, DragAndDrop* dragAndDrop);
 
             void onOpen() override;
 
@@ -101,7 +107,7 @@ namespace MWGui
             int mLastYSize;
 
             std::unique_ptr<MyGUI::ITexture> mPreviewTexture;
-            std::unique_ptr<MWRender::InventoryPreview> mPreview;
+            std::unique_ptr<MWRender::Inventory> mPreview;
 
             bool mTrading;
             float mUpdateTimer;

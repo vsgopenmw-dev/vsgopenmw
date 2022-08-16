@@ -3,11 +3,10 @@
 
 #include <boost/filesystem/path.hpp>
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
-
 namespace MWWorld
 {
 
@@ -15,7 +14,7 @@ struct ContentLoader
 {
     virtual ~ContentLoader() = default;
 
-    virtual void load(const boost::filesystem::path& filepath, int& index, Loading::Listener* listener) = 0;
+    virtual void load(const boost::filesystem::path& filepath, int& index, MWState::Loading &state) = 0;
 };
 
 } /* namespace MWWorld */

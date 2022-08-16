@@ -1,6 +1,6 @@
 #include "mechanicsmanagerimp.hpp"
 
-#include <osg/Stats>
+//#include <osg/Stats>
 
 #include <components/misc/rng.hpp>
 
@@ -9,7 +9,8 @@
 
 #include <components/detournavigator/navigator.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
+#include <components/mwanimation/position.hpp>
 
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/inventorystore.hpp"
@@ -1566,17 +1567,14 @@ namespace MWMechanics
         static float fSneakNoViewMult = store.find("fSneakNoViewMult")->mValue.getFloat();
         static float fSneakViewMult = store.find("fSneakViewMult")->mValue.getFloat();
         float y = 0;
-        osg::Vec3f vec = pos1 - pos2;
-        if (observer.getRefData().getBaseNode())
-        {
-            osg::Vec3f observerDir = (observer.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0,1,0));
+        auto vec = toVsg(pos1 - pos2);
+        auto observerDir = MWAnim::forward(observer.getRefData().getPosition());
 
-            float angleRadians = std::acos(observerDir * vec / (observerDir.length() * vec.length()));
-            if (angleRadians > osg::DegreesToRadians(90.f))
-                y = obsTerm * observerStats.getFatigueTerm() * fSneakNoViewMult;
-            else
-                y = obsTerm * observerStats.getFatigueTerm() * fSneakViewMult;
-        }
+        float angleRadians = std::acos(vsg::dot(observerDir, vec) / (vsg::length(observerDir) * vsg::length(vec)));
+        if (angleRadians > osg::DegreesToRadians(90.f))
+            y = obsTerm * observerStats.getFatigueTerm() * fSneakNoViewMult;
+        else
+            y = obsTerm * observerStats.getFatigueTerm() * fSneakViewMult;
 
         float target = x - y;
         auto& prng = MWBase::Environment::get().getWorld()->getPrng();
@@ -1885,8 +1883,10 @@ namespace MWMechanics
 
     void MechanicsManager::reportStats(unsigned int frameNumber, osg::Stats& stats) const
     {
+        /*
         stats.setAttribute(frameNumber, "Mechanics Actors", mActors.size());
         stats.setAttribute(frameNumber, "Mechanics Objects", mObjects.size());
+        */
     }
 
     int MechanicsManager::getGreetingTimer(const MWWorld::Ptr &ptr) const

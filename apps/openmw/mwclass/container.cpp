@@ -78,13 +78,15 @@ namespace MWClass
 
     bool Container::canBeHarvested(const MWWorld::ConstPtr& ptr) const
     {
-        if (!mHarvestEnabled)
+        //if (!mHarvestEnabled)
             return false;
+            /*
         const MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(ptr);
         if (animation == nullptr)
             return false;
 
         return animation->canBeHarvested();
+        */
     }
 
     void Container::respawn(const MWWorld::Ptr &ptr) const

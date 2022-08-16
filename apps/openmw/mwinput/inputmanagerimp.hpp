@@ -3,9 +3,6 @@
 
 #include <memory>
 
-#include <osg/ref_ptr>
-#include <osgViewer/ViewerEventHandlers>
-
 #include <components/settings/settings.hpp>
 #include <components/sdlutil/events.hpp>
 
@@ -51,9 +48,6 @@ namespace MWInput
     public:
         InputManager(
             SDL_Window* window,
-            osg::ref_ptr<osgViewer::Viewer> viewer,
-            osg::ref_ptr<osgViewer::ScreenCaptureHandler> screenCaptureHandler,
-            osgViewer::ScreenCaptureHandler::CaptureOperation *screenCaptureOperation,
             const std::string& userFile, bool userFileExists,
             const std::string& userControllerBindingsFile,
             const std::string& controllerBindingsFile, bool grab);
@@ -107,6 +101,11 @@ namespace MWInput
         void executeAction(int action) override;
 
         bool controlsDisabled() override { return mControlsDisabled; }
+        bool shouldShowCursor{};
+        void setWindowListener(SDLUtil::WindowListener *listener);
+        void enableMouse(bool enable);
+
+        bool getScreenshotRequest();
 
     private:
         void convertMousePosForMyGUI(int& x, int& y);

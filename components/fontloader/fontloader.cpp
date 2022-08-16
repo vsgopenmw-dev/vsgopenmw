@@ -4,15 +4,12 @@
 #include <string_view>
 #include <array>
 
-#include <osg/Image>
-
-#include <osgDB/WriteFile>
-
 #include <MyGUI_ResourceManager.h>
 #include <MyGUI_ResourceManualFont.h>
 #include <MyGUI_XmlDocument.h>
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_RenderManager.h>
+#include <MyGUI_DataManager.h>
 
 #include <components/debug/debuglog.hpp>
 
@@ -22,8 +19,6 @@
 
 #include <components/misc/pathhelpers.hpp>
 #include <components/misc/strings/algorithm.hpp>
-
-#include <components/myguiplatform/myguitexture.hpp>
 
 #include <components/settings/settings.hpp>
 
@@ -177,23 +172,11 @@ namespace Gui
 
     void FontLoader::loadTrueTypeFonts()
     {
-        osgMyGUI::DataManager* dataManager = dynamic_cast<osgMyGUI::DataManager*>(&osgMyGUI::DataManager::getInstance());
-        if (!dataManager)
-        {
-            Log(Debug::Error) << "Can not load TrueType fonts: osgMyGUI::DataManager is not available.";
-            return;
-        }
-
-        std::string oldDataPath = dataManager->getDataPath("");
-        dataManager->setResourcePath("fonts");
-
         for (const auto& path : mVFS->getRecursiveDirectoryIterator("Fonts/"))
         {
             if (Misc::getFileExtension(path) == "omwfont")
-                MyGUI::ResourceManager::getInstance().load(std::string(Misc::getFileName(path)));
+                MyGUI::ResourceManager::getInstance().load(std::string(path));
         }
-
-        dataManager->setResourcePath(oldDataPath);
     }
 
     typedef struct
@@ -465,7 +448,7 @@ namespace Gui
             if (name.empty())
                 continue;
 
-            if (Misc::StringUtils::ciEqual(type, "ResourceTrueTypeFont"))
+            if (type == "ResourceTrueTypeFont")
             {
                 createCopy = true;
 
@@ -485,8 +468,7 @@ namespace Gui
 
                 resourceNode->setAttribute("name", getInternalFontName(name));
             }
-            else if (Misc::StringUtils::ciEqual(type, "ResourceSkin") ||
-                     Misc::StringUtils::ciEqual(type, "AutoSizedResourceSkin"))
+            else if (type == "ResourceSkin" || type == "AutoSizedResourceSkin")
             {
                 // We should adjust line height for MyGUI widgets depending on font size
                 MyGUI::xml::ElementPtr heightNode = resourceNode->createChild("Property");
@@ -511,7 +493,7 @@ namespace Gui
                 if (name.empty())
                     continue;
 
-                if (Misc::StringUtils::ciEqual(type, "ResourceTrueTypeFont"))
+                if (type == "ResourceTrueTypeFont")
                 {
                     // Since the journal and books use the custom scaling factor depending on resolution,
                     // setup separate fonts with different Resolution to fit these windows.

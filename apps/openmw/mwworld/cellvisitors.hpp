@@ -2,7 +2,6 @@
 #define GAME_MWWORLD_CELLVISITORS_H
 
 #include <vector>
-#include <string>
 
 #include "ptr.hpp"
 
@@ -15,10 +14,6 @@ namespace MWWorld
 
         bool operator() (const MWWorld::Ptr& ptr)
         {
-            if (ptr.getRefData().getBaseNode())
-            {
-                ptr.getRefData().setBaseNode(nullptr);
-            }
             mObjects.push_back (ptr);
 
             return true;

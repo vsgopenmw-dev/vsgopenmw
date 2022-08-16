@@ -73,8 +73,6 @@ namespace MWInput
         A_ZoomIn,
         A_ZoomOut,
 
-        A_TogglePostProcessorHUD,
-
         A_Last                      // Marker for the last item
     };
 }

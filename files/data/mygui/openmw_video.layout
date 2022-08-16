@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MyGUI type="Layout">
+    <Widget type="Widget" layer="Video" position="0 0 300 300" name="_Main" align="Stretch">
+        <Widget name="Video" type="VideoWidget" skin="ImageBox" position="0 0 300 300" align="Stretch">
+            <Property key="NeedKey" value="true"/>
+        </Widget>
+    </Widget>
+</MyGUI>

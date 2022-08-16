@@ -23,6 +23,7 @@
 #include "../mwmechanics/actorutil.hpp"
 
 #include "../mwgui/messagebox.hpp"
+#include "../mwstate/menu.hpp"
 
 #include "actions.hpp"
 #include "bindingsmanager.hpp"
@@ -30,14 +31,8 @@
 namespace MWInput
 {
 
-    ActionManager::ActionManager(BindingsManager* bindingsManager,
-            osgViewer::ScreenCaptureHandler::CaptureOperation* screenCaptureOperation,
-            osg::ref_ptr<osgViewer::Viewer> viewer,
-            osg::ref_ptr<osgViewer::ScreenCaptureHandler> screenCaptureHandler)
+    ActionManager::ActionManager(BindingsManager* bindingsManager)
         : mBindingsManager(bindingsManager)
-        , mViewer(viewer)
-        , mScreenCaptureHandler(screenCaptureHandler)
-        , mScreenCaptureOperation(screenCaptureOperation)
         , mAlwaysRunActive(Settings::Manager::getBool("always run", "Input"))
         , mSneaking(false)
         , mAttemptJump(false)
@@ -241,9 +236,6 @@ namespace MWInput
         case A_ToggleDebug:
             windowManager->toggleDebugWindow();
             break;
-        case A_TogglePostProcessorHUD:
-            windowManager->togglePostProcessorHud();
-            break;
         case A_QuickSave:
             quickSave();
             break;
@@ -290,24 +282,7 @@ namespace MWInput
 
     void ActionManager::screenshot()
     {
-        const std::string& settingStr = Settings::Manager::getString("screenshot type", "Video");
-        bool regularScreenshot = settingStr.size() == 0 || settingStr.compare("regular") == 0;
-
-        if (regularScreenshot)
-        {
-            mScreenCaptureHandler->setFramesToCapture(1);
-            mScreenCaptureHandler->captureNextFrame(*mViewer);
-        }
-        else
-        {
-            osg::ref_ptr<osg::Image> screenshot (new osg::Image);
-
-            if (MWBase::Environment::get().getWorld()->screenshot360(screenshot.get()))
-            {
-                (*mScreenCaptureOperation) (*(screenshot.get()), 0);
-                // FIXME: mScreenCaptureHandler->getCaptureOperation() causes crash for some reason
-            }
-        }
+        screenshotRequest = true;
     }
 
     void ActionManager::toggleMainMenu()
@@ -325,13 +300,9 @@ namespace MWInput
         }
 
         if (!MWBase::Environment::get().getWindowManager()->isGuiMode()) //No open GUIs, open up the MainMenu
-        {
-            MWBase::Environment::get().getWindowManager()->pushGuiMode (MWGui::GM_MainMenu);
-        }
+            MWBase::Environment::get().getStateManager()->pushGameState (std::make_shared<MWState::Menu>());
         else //Close current GUI
-        {
             MWBase::Environment::get().getWindowManager()->exitCurrentGuiMode();
-        }
     }
 
     void ActionManager::toggleSpell()

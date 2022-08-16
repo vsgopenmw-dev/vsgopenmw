@@ -17,9 +17,9 @@ namespace ESM
     struct RefNum;
 }
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
 
 namespace MWWorld
@@ -86,7 +86,7 @@ namespace MWWorld
 
             int countSavedGameRecords() const;
 
-            void write (ESM::ESMWriter& writer, Loading::Listener& progress) const;
+            void write (ESM::ESMWriter& writer, MWState::Loading &atate) const;
 
             bool readRecord (ESM::ESMReader& reader, uint32_t type,
                 const std::map<int, int>& contentFileMap);

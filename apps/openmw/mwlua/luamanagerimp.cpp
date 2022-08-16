@@ -91,7 +91,7 @@ namespace MWLua
         mGlobalScripts.addPackage("openmw.world", initWorldPackage(context));
         mGlobalScripts.addPackage("openmw.storage", initGlobalStoragePackage(context, &mGlobalStorage));
 
-        mCameraPackage = initCameraPackage(localContext);
+        mCameraPackage = initCameraPackage(localContext, mRenderManager);
         mUserInterfacePackage = initUserInterfacePackage(localContext);
         mInputPackage = initInputPackage(localContext);
         mNearbyPackage = initNearbyPackage(localContext);
@@ -277,7 +277,7 @@ namespace MWLua
         LuaUi::clearUserInterface();
         mUiResourceManager.clear();
         MWBase::Environment::get().getWindowManager()->setConsoleMode("");
-        MWBase::Environment::get().getWorld()->getPostProcessor()->disableDynamicShaders();
+        //MWBase::Environment::get().getWorld()->getPostProcessor()->disableDynamicShaders();
         mActiveLocalScripts.clear();
         mLocalEvents.clear();
         mGlobalEvents.clear();

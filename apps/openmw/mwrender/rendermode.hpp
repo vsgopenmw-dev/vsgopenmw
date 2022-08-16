@@ -14,6 +14,14 @@ namespace MWRender
         Render_NavMesh,
         Render_ActorsPaths,
         Render_RecastMesh,
+        Render_Sky,
+        Render_Count
+    };
+
+    enum class ViewMode
+    {
+        Gui,
+        Scene
     };
 
 }

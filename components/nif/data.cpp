@@ -31,7 +31,7 @@ void NiSkinInstance::post(NIFFile *nif)
     {
         if(bones[i].empty())
             nif->fail("Oops: Missing bone! Don't know how to handle this.");
-        bones[i]->setBone();
+        bones[i]->useFlags |= Nif::Node::Bone;
     }
 }
 
@@ -98,14 +98,7 @@ void NiGeometryData::read(NIFStream *nif)
     {
         uvlist.resize(numUVs);
         for (unsigned int i = 0; i < numUVs; i++)
-        {
             nif->getVector2s(uvlist[i], verts);
-            // flip the texture coordinates to convert them to the OpenGL convention of bottom-left image origin
-            for (unsigned int uv=0; uv<uvlist[i].size(); ++uv)
-            {
-                uvlist[i][uv] = osg::Vec2f(uvlist[i][uv].x(), 1.f - uvlist[i][uv].y());
-            }
-        }
     }
 
     if (nif->getVersion() >= NIFStream::generateVersion(10,0,1,0))

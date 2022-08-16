@@ -1,3 +1,6 @@
+vsgopenmw-ci-policy(vsgopenmw-license)=0
+#[[
+
 default:
   interruptible: true
 

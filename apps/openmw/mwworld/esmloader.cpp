@@ -15,7 +15,7 @@ EsmLoader::EsmLoader(MWWorld::ESMStore& store, ESM::ReadersCache& readers, ToUTF
 {
 }
 
-void EsmLoader::load(const boost::filesystem::path& filepath, int& index, Loading::Listener* listener)
+void EsmLoader::load(const boost::filesystem::path& filepath, int& index, MWState::Loading &state)
 {
     const ESM::ReadersCache::BusyItem reader = mReaders.get(static_cast<std::size_t>(index));
 
@@ -32,7 +32,7 @@ void EsmLoader::load(const boost::filesystem::path& filepath, int& index, Loadin
                 + ", but it is not available or has been loaded in the wrong order. "
                   "Please run the launcher to fix this issue.");
 
-    mStore.load(*reader, listener, mDialogue);
+    mStore.load(*reader, state, mDialogue);
 
     if (!mMasterFileFormat.has_value() && (Misc::StringUtils::ciEndsWith(reader->getName(), ".esm")
                                            || Misc::StringUtils::ciEndsWith(reader->getName(), ".omwgame")))

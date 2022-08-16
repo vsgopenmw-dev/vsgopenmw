@@ -1,8 +1,6 @@
 #ifndef GAME_BASE_ENVIRONMENT_H
 #define GAME_BASE_ENVIRONMENT_H
 
-#include <components/misc/notnullptr.hpp>
-
 #include <memory>
 
 namespace osg
@@ -47,8 +45,7 @@ namespace MWBase
             StateManager* mStateManager = nullptr;
             LuaManager* mLuaManager = nullptr;
             Resource::ResourceSystem* mResourceSystem = nullptr;
-            float mFrameRateLimit = 0;
-            float mFrameDuration = 0;
+            float mFrameDuration{};
 
         public:
 
@@ -82,40 +79,38 @@ namespace MWBase
 
             void setResourceSystem(Resource::ResourceSystem& value) { mResourceSystem = &value; }
 
-            Misc::NotNullPtr<World> getWorld() const { return mWorld; }
+            World *getWorld() const { return mWorld; }
 
-            Misc::NotNullPtr<SoundManager> getSoundManager() const { return mSoundManager; }
+            SoundManager *getSoundManager() const { return mSoundManager; }
 
-            Misc::NotNullPtr<ScriptManager> getScriptManager() const { return mScriptManager; }
+            ScriptManager *getScriptManager() const { return mScriptManager; }
 
-            Misc::NotNullPtr<WindowManager> getWindowManager() const { return mWindowManager; }
+            WindowManager *getWindowManager() const { return mWindowManager; }
 
-            Misc::NotNullPtr<MechanicsManager> getMechanicsManager() const { return mMechanicsManager; }
+            MechanicsManager *getMechanicsManager() const { return mMechanicsManager; }
 
-            Misc::NotNullPtr<DialogueManager> getDialogueManager() const { return mDialogueManager; }
+            DialogueManager *getDialogueManager() const { return mDialogueManager; }
 
-            Misc::NotNullPtr<Journal> getJournal() const { return mJournal; }
+            Journal *getJournal() const { return mJournal; }
 
-            Misc::NotNullPtr<InputManager> getInputManager() const { return mInputManager; }
+            InputManager *getInputManager() const { return mInputManager; }
 
-            Misc::NotNullPtr<StateManager> getStateManager() const { return mStateManager; }
+            StateManager *getStateManager() const { return mStateManager; }
 
-            Misc::NotNullPtr<LuaManager> getLuaManager() const { return mLuaManager; }
+            LuaManager *getLuaManager() const { return mLuaManager; }
 
-            Misc::NotNullPtr<Resource::ResourceSystem> getResourceSystem() const { return mResourceSystem; }
+            //vsgopenmw-fixme(global-state)
+            Resource::ResourceSystem *getResourceSystem() const { return mResourceSystem; }
 
-            float getFrameRateLimit() const { return mFrameRateLimit; }
-
-            void setFrameRateLimit(float value) { mFrameRateLimit = value; }
-
+            //vsgopenmw-fixme(global-state)
             float getFrameDuration() const { return mFrameDuration; }
 
+            //vsgopenmw-fixme(global-state)
             void setFrameDuration(float value) { mFrameDuration = value; }
 
             /// Return instance of this class.
             static const Environment& get()
             {
-                assert(sThis != nullptr);
                 return *sThis;
             }
 

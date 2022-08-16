@@ -96,14 +96,6 @@ namespace ESMTerrain
 
         float getHeightAt (const osg::Vec3f& worldPos) override;
 
-        /// Get the transformation factor for mapping cell units to world units.
-        float getCellWorldSize() override;
-
-        /// Get the number of vertices on one side for each cell. Should be (power of two)+1
-        int getCellVertices() override;
-
-        int getBlendmapScale(float chunkSize) override;
-
         float getVertexHeight (const ESM::Land::LandData* data, int x, int y)
         {
             assert(x < ESM::Land::LAND_SIZE);

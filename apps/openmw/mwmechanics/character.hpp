@@ -4,9 +4,9 @@
 #include <deque>
 
 #include "../mwworld/ptr.hpp"
-#include "../mwworld/containerstore.hpp"
 
-#include "../mwrender/animation.hpp"
+#include <components/mwanimation/groups.hpp>
+#include <components/animation/tags.hpp>
 
 #include "weapontype.hpp"
 
@@ -14,12 +14,22 @@ namespace MWWorld
 {
     class InventoryStore;
 }
-
+namespace MWSound
+{
+    class Sound;
+}
+namespace MWAnim
+{
+    class Play;
+    class Object;
+    class Actor;
+    class Wielding;
+}
 namespace MWRender
 {
-    class Animation;
+    class Npc;
+    class Player;
 }
-
 namespace MWMechanics
 {
 
@@ -123,12 +133,21 @@ enum JumpingState {
 
 struct WeaponInfo;
 
-class CharacterController : public MWRender::Animation::TextKeyListener
+/*
+ * Controls playing animations.
+ */
+class CharacterController
 {
     MWWorld::Ptr mPtr;
     MWWorld::Ptr mWeapon;
-    MWRender::Animation *mAnimation;
+    MWAnim::Play *mAnimation;
+    MWAnim::Object *mObject;
+    MWAnim::Actor *mActor{};
+    MWAnim::Wielding *mWielding{};
+    MWRender::Npc *mNpc{};
+    MWRender::Player *mPlayer{};
     
+    std::map<std::string, MWSound::Sound*> mPlayingSounds;
     struct AnimationQueueEntry
     {
         std::string mGroup;
@@ -229,7 +248,7 @@ class CharacterController : public MWRender::Animation::TextKeyListener
 
     bool updateCarriedLeftVisible(int weaptype) const;
 
-    std::string fallbackShortWeaponGroup(const std::string& baseGroupName, MWRender::Animation::BlendMask* blendMask = nullptr) const;
+    std::string fallbackShortWeaponGroup(const std::string& baseGroupName, MWAnim::BlendMask* blendMask = nullptr) const;
 
     std::string_view getWeaponAnimation(int weaponType) const;
     std::string_view getWeaponShortGroup(int weaponType) const;
@@ -237,8 +256,13 @@ class CharacterController : public MWRender::Animation::TextKeyListener
     bool getAttackingOrSpell() const;
     void setAttackingOrSpell(bool attackingOrSpell) const;
 
+    void showWeapons(bool show);
+    void showCarriedLeft(bool show);
+    void showAmmo(bool show);
+    void releaseShot();
+
 public:
-    CharacterController(const MWWorld::Ptr &ptr, MWRender::Animation *anim);
+    CharacterController(const MWWorld::Ptr &ptr, MWAnim::Object *anim);
     virtual ~CharacterController();
 
     CharacterController(const CharacterController&) = delete;
@@ -246,7 +270,7 @@ public:
 
     const MWWorld::Ptr& getPtr() const { return mPtr; }
 
-    void handleTextKey(std::string_view groupname, SceneUtil::TextKeyMap::ConstIterator key, const SceneUtil::TextKeyMap& map) override;
+    void handleTextKey(std::string_view groupname, Anim::Tags::ConstIterator key, const Anim::Tags &map);
 
     // Be careful when to call this, see comment in Actors
     void updateContinuousVfx() const;
@@ -278,7 +302,7 @@ public:
     bool isDead() const
     { return mDeathState != CharState_None; }
 
-    void forceStateUpdate();
+    void forceStateUpdate(MWAnim::Object *obj);
     
     bool isAttackPreparing() const;
     bool isCastingSpell() const;
@@ -303,9 +327,6 @@ public:
 
     float getAttackStrength() const;
 
-    /// @see Animation::setActive
-    void setActive(int active) const;
-
     /// Make this character turn its head towards \a target. To turn off head tracking, pass an empty Ptr.
     void setHeadTrackTarget(const MWWorld::ConstPtr& target);
 
@@ -313,4 +334,4 @@ public:
 };
 }
 
-#endif /* GAME_MWMECHANICS_CHARACTER_HPP */
+#endif

@@ -1,16 +1,18 @@
 #ifndef GAME_RENDERING_INTERFACE_H
 #define GAME_RENDERING_INTERFACE_H
 
+#include "scene.hpp"
+
 namespace MWRender
 {
-    class Objects;
-    class Actors;
-      
+    using Objects = Scene;
+
     class RenderingInterface
     {
     public:
-        virtual MWRender::Objects& getObjects() = 0;
+        virtual Scene &getObjects() = 0;
         virtual ~RenderingInterface(){}
     };
 }
+
 #endif

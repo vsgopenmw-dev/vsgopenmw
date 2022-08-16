@@ -93,8 +93,6 @@ namespace Nif
             collision.read(nif);
 
         parents.clear();
-
-        isBone = false;
     }
 
     void Node::post(NIFFile *nif)
@@ -102,11 +100,6 @@ namespace Nif
         Named::post(nif);
         props.post(nif);
         collision.post(nif);
-    }
-
-    void Node::setBone()
-    {
-        isBone = true;
     }
 
     void NiNode::read(NIFStream *nif)

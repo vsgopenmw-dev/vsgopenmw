@@ -26,8 +26,7 @@
 #include <components/esm3/loadgmst.hpp>
 #include <components/sceneutil/positionattitudetransform.hpp>
 #include <components/misc/convert.hpp>
-#include <components/settings/settings.hpp>
-#include <components/nifosg/particle.hpp> // FindRecIndexVisitor
+#include <components/settings/settings.hpp> //vsgopenmw-fixme(dependency-policy)
 
 #include "../mwbase/world.hpp"
 #include "../mwbase/environment.hpp"
@@ -40,7 +39,7 @@
 #include "../mwworld/cellstore.hpp"
 #include "../mwworld/player.hpp"
 
-#include "../mwrender/bulletdebugdraw.hpp"
+//#include "../mwrender/bulletdebugdraw.hpp"
 
 #include "../mwworld/class.hpp"
 
@@ -130,8 +129,8 @@ namespace MWPhysics
             }
         }
 
-        mDebugDrawer = std::make_unique<MWRender::DebugDrawer>(mParentNode, mCollisionWorld.get(), mDebugDrawEnabled);
-        mTaskScheduler = std::make_unique<PhysicsTaskScheduler>(mPhysicsDt, mCollisionWorld.get(), mDebugDrawer.get());
+        //mDebugDrawer = std::make_unique<MWRender::DebugDrawer>(mParentNode, mCollisionWorld.get(), mDebugDrawEnabled);
+        mTaskScheduler = std::make_unique<PhysicsTaskScheduler>(mPhysicsDt, mCollisionWorld.get(),nullptr);// mDebugDrawer.get());
     }
 
     PhysicsSystem::~PhysicsSystem()
@@ -157,8 +156,8 @@ namespace MWPhysics
     {
         mDebugDrawEnabled = !mDebugDrawEnabled;
 
-        mCollisionWorld->setDebugDrawer(mDebugDrawEnabled ? mDebugDrawer.get() : nullptr);
-        mDebugDrawer->setDebugMode(mDebugDrawEnabled);
+        //mCollisionWorld->setDebugDrawer(mDebugDrawEnabled ? mDebugDrawer.get() : nullptr);
+       // mDebugDrawer->setDebugMode(mDebugDrawEnabled);
         return mDebugDrawEnabled;
     }
 
@@ -948,8 +947,8 @@ namespace MWPhysics
 
     void PhysicsSystem::reportCollision(const btVector3& position, const btVector3& normal)
     {
-        if (mDebugDrawEnabled)
-            mDebugDrawer->addCollision(position, normal);
+        //if (mDebugDrawEnabled)
+          //  mDebugDrawer->addCollision(position, normal);
     }
 
     ActorFrameData::ActorFrameData(Actor& actor, bool inert, bool waterCollision, float slowFall, float waterlevel)

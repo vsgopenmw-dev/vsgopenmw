@@ -5,6 +5,7 @@
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/weatherstate.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"
@@ -14,8 +15,8 @@
 
 #include "../mwsound/sound.hpp"
 
-#include "../mwrender/renderingmanager.hpp"
-#include "../mwrender/sky.hpp"
+#include "../mwrender/rendermanager.hpp"
+#include "../mwrender/weather.hpp"
 
 #include "player.hpp"
 #include "esmstore.hpp"
@@ -43,7 +44,7 @@ namespace
     osg::Vec3f calculateStormDirection(const std::string& particleEffect)
     {
         osg::Vec3f stormDirection = MWWorld::Weather::defaultDirection();
-        if (particleEffect == "meshes\\ashcloud.nif" || particleEffect == "meshes\\blightcloud.nif")
+        if (particleEffect == "ashcloud.nif" || particleEffect == "blightcloud.nif")
         {
             osg::Vec3f playerPos = MWMechanics::getPlayer().getRefData().getPosition().asVec3();
             playerPos.z() = 0;
@@ -173,7 +174,7 @@ namespace
         , mRainMinHeight(Fallback::Map::getFloat("Weather_" + name + "_Rain_Height_Min"))
         , mRainMaxHeight(Fallback::Map::getFloat("Weather_" + name + "_Rain_Height_Max"))
         , mParticleEffect(particleEffect)
-        , mRainEffect(Fallback::Map::getBool("Weather_" + name + "_Using_Precip") ? "meshes\\raindrop.nif" : "")
+        , mRainEffect(Fallback::Map::getBool("Weather_" + name + "_Using_Precip") ? "raindrop.nif" : "")
         , mStormDirection(Weather::defaultDirection())
         , mTransitionDelta(Fallback::Map::getFloat("Weather_" + name + "_Transition_Delta"))
         , mCloudsMaximumPercent(Fallback::Map::getFloat("Weather_" + name + "_Clouds_Maximum_Percent"))
@@ -275,19 +276,8 @@ namespace
 
     RegionWeather::RegionWeather(const ESM::Region& region)
         : mWeather(invalidWeatherID)
-        , mChances()
     {
-        mChances.reserve(10);
-        mChances.push_back(region.mData.mClear);
-        mChances.push_back(region.mData.mCloudy);
-        mChances.push_back(region.mData.mFoggy);
-        mChances.push_back(region.mData.mOvercast);
-        mChances.push_back(region.mData.mRain);
-        mChances.push_back(region.mData.mThunder);
-        mChances.push_back(region.mData.mAsh);
-        mChances.push_back(region.mData.mBlight);
-        mChances.push_back(region.mData.mSnow);
-        mChances.push_back(region.mData.mBlizzard);
+        mChances = {region.mData.mClear, region.mData.mCloudy, region.mData.mFoggy, region.mData.mOvercast, region.mData.mRain, region.mData.mThunder, region.mData.mAsh, region.mData.mBlight, region.mData.mSnow, region.mData.mBlizzard};
     }
 
     RegionWeather::RegionWeather(const ESM::RegionWeatherState& state)
@@ -298,13 +288,7 @@ namespace
 
     RegionWeather::operator ESM::RegionWeatherState() const
     {
-        ESM::RegionWeatherState state =
-            {
-                mWeather,
-                mChances
-            };
-
-        return state;
+        return {mWeather, mChances};
     }
 
     void RegionWeather::setChances(const std::vector<char>& chances)
@@ -535,7 +519,7 @@ namespace
             return 0.0f;
     }
 
-    WeatherManager::WeatherManager(MWRender::RenderingManager& rendering, MWWorld::ESMStore& store)
+    WeatherManager::WeatherManager(MWRender::RenderManager& rendering, MWWorld::ESMStore& store)
         : mStore(store)
         , mRendering(rendering)
         , mSunriseTime(Fallback::Map::getFloat("Weather_Sunrise_Time"))
@@ -606,10 +590,20 @@ namespace
         addWeather("Overcast", 0.7f, 0.0f); // 3
         addWeather("Rain", 0.5f, 10.0f); // 4
         addWeather("Thunderstorm", 0.5f, 20.0f); // 5
-        addWeather("Ashstorm", 0.2f, 50.0f, "meshes\\ashcloud.nif"); // 6
-        addWeather("Blight", 0.2f, 60.0f, "meshes\\blightcloud.nif"); // 7
-        addWeather("Snow", 0.5f, 40.0f, "meshes\\snow.nif"); // 8
-        addWeather("Blizzard", 0.16f, 70.0f, "meshes\\blizzard.nif"); // 9
+        addWeather("Ashstorm", 0.2f, 50.0f, "ashcloud.nif"); // 6
+        addWeather("Blight", 0.2f, 60.0f, "blightcloud.nif"); // 7
+        addWeather("Snow", 0.5f, 40.0f, "snow.nif"); // 8
+        addWeather("Blizzard", 0.16f, 70.0f, "blizzard.nif"); // 9
+
+        std::vector<std::string> cloudTextures;
+        std::vector<std::string> particleEffects;
+        for (auto &w : mWeatherSettings)
+        {
+            cloudTextures.push_back(w.mCloudTexture);
+            if (!w.mParticleEffect.empty())
+                particleEffects.push_back(w.mParticleEffect);
+        }
+        mRendering.getSky()->setResources(cloudTextures, particleEffects);
 
         Store<ESM::Region>::iterator it = store.get<ESM::Region>().begin();
         for(; it != store.get<ESM::Region>().end(); ++it)
@@ -742,22 +736,25 @@ namespace
             mWindSpeed = mResult.mWindSpeed;
             mCurrentWindSpeed = mResult.mCurrentWindSpeed;
             mNextWindSpeed = mResult.mNextWindSpeed;
+            // rotate the stars by 360 degrees every 4 days
+            mAtmosphereNightRoll += MWBase::Environment::get().getWorld()->getTimeScaleFactor()*duration*osg::DegreesToRadians(360.f) / (3600*96.f);
+            mRendering.getSky()->setAtmosphereNightRoll(mAtmosphereNightRoll);
         }
 
         mIsStorm = mResult.mIsStorm;
 
         // For some reason Ash Storm is not considered as a precipitation weather in game
         mPrecipitation = !(mResult.mParticleEffect.empty() && mResult.mRainEffect.empty())
-                                        && mResult.mParticleEffect != "meshes\\ashcloud.nif";
+                                        && mResult.mParticleEffect != "ashcloud.nif";
 
         mStormDirection = calculateStormDirection(mResult.mParticleEffect);
-        mRendering.getSkyManager()->setStormParticleDirection(mStormDirection);
+        mRendering.getSky()->setStormParticleDirection(mStormDirection);
 
         // disable sun during night
         if (time.getHour() >= mTimeSettings.mNightStart || time.getHour() <= mSunriseTime)
-            mRendering.getSkyManager()->sunDisable();
+            mRendering.getSky()->sunDisable();
         else
-            mRendering.getSkyManager()->sunEnable();
+            mRendering.getSky()->sunEnable();
 
         // Update the sun direction.  Run it east to west at a fixed angle from overhead.
         // The sun's speed at day and night may differ, since mSunriseTime and mNightStart
@@ -790,7 +787,7 @@ namespace
                 -0.268f, // approx tan( -15 degrees )
                 static_cast<float>(sin(theta)));
             mRendering.setSunDirection( final * -1 );
-            mRendering.setNight(is_night);
+            //mRendering.setNight(is_night);
         }
 
         float underwaterFog = mUnderwaterFog.getValue(time.getHour(), mTimeSettings, "Fog");
@@ -804,17 +801,17 @@ namespace
         else
             glareFade = 1.f - (time.getHour() - peakHour) / (mTimeSettings.mNightStart - peakHour);
 
-        mRendering.getSkyManager()->setGlareTimeOfDayFade(glareFade);
+        mRendering.getSky()->setGlareTimeOfDayFade(glareFade);
 
-        mRendering.getSkyManager()->setMasserState(mMasser.calculateState(time));
-        mRendering.getSkyManager()->setSecundaState(mSecunda.calculateState(time));
+        mRendering.getSky()->setMasserState(mMasser.calculateState(time));
+        mRendering.getSky()->setSecundaState(mSecunda.calculateState(time));
 
         mRendering.configureFog(mResult.mFogDepth, underwaterFog, mResult.mDLFogFactor,
-                                mResult.mDLFogOffset/100.0f, mResult.mFogColor);
-        mRendering.setAmbientColour(mResult.mAmbientColor);
-        mRendering.setSunColour(mResult.mSunColor, mResult.mSunColor * mResult.mGlareView * glareFade, mResult.mGlareView * glareFade);
+                                mResult.mDLFogOffset/100.0f, toVsg(mResult.mFogColor));
+        mRendering.setAmbientColour(toVsg(mResult.mAmbientColor));
+        mRendering.setSunColour(mResult.mSunColor, mResult.mSunColor * mResult.mGlareView * glareFade);
 
-        mRendering.getSkyManager()->setWeather(mResult);
+        mRendering.getSky()->setWeather(mResult);
 
         // Play sounds
         if (mPlayingSoundID != mResult.mAmbientLoopSoundID)
@@ -961,6 +958,7 @@ namespace
 
         Weather weather(name, fStromWindSpeed, mRainSpeed, dlFactor, dlOffset, particleEffect);
 
+        weather.mCloudTextureIndex = mWeatherSettings.size();
         mWeatherSettings.push_back(weather);
     }
 
@@ -1126,7 +1124,7 @@ namespace
     {
         const Weather& current = mWeatherSettings[weatherID];
 
-        mResult.mCloudTexture = current.mCloudTexture;
+        mResult.mCloudTexture = current.mCloudTextureIndex;
         mResult.mCloudBlendFactor = 0;
         mResult.mNextWindSpeed = 0;
         mResult.mWindSpeed = mResult.mCurrentWindSpeed = calculateWindSpeed(weatherID, mWindSpeed);

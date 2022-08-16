@@ -11,9 +11,9 @@
 
 #include <components/misc/timer.hpp>
 
-namespace MWRender
+namespace MWAnim
 {
-    class Animation;
+    class Object;
 }
 namespace MWWorld
 {
@@ -26,7 +26,7 @@ namespace MWMechanics
     class Actor
     {
     public:
-        Actor(const MWWorld::Ptr& ptr, MWRender::Animation* animation)
+        Actor(const MWWorld::Ptr& ptr, MWAnim::Object* animation)
             : mCharacterController(ptr, animation)
             , mPositionAdjusted(false)
         {}

@@ -14,21 +14,11 @@ namespace MWState
     class StateManager : public MWBase::StateManager
     {
             bool mQuitRequest;
-            bool mAskLoadRecent;
             State mState;
             CharacterManager mCharacterManager;
             double mTimePlayed;
 
-        private:
-
-            void cleanup (bool force = false);
-
-            bool verifyProfile (const ESM::SavedGame& profile) const;
-
-            void writeScreenshot (std::vector<char>& imageData) const;
-
-            std::map<int, int> buildContentFileIndexMap (const ESM::ESMReader& reader) const;
-
+            std::vector<std::shared_ptr<GameState>> mGameStates;
         public:
 
             StateManager (const boost::filesystem::path& saves, const std::vector<std::string>& contentFiles);
@@ -40,6 +30,12 @@ namespace MWState
             void askLoadRecent() override;
 
             State getState() const override;
+
+            std::shared_ptr<GameState> getGameState();
+            void pushGameState(std::shared_ptr<GameState> gameState) override;
+            void popGameState(std::shared_ptr<GameState> gameState) override;
+
+            void cleanup (bool force = false);
 
             void newGame (bool bypass = false) override;
             ///< Start a new game.

@@ -2,15 +2,17 @@
 
 #include <optional>
 
+#include <osg/Vec2>
+
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/wielding.hpp>
+#include <components/mwanimation/position.hpp>
 #include <components/debug/debuglog.hpp>
 #include <components/misc/rng.hpp>
 #include <components/misc/mathutil.hpp>
 #include <components/settings/settings.hpp>
-#include <components/misc/resourcehelpers.hpp>
 
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/class.hpp"
@@ -29,7 +31,7 @@
 
 #include "../mwmechanics/aibreathe.hpp"
 
-#include "../mwrender/vismask.hpp"
+#include "../mwrender/effect.hpp"
 
 #include "spellcasting.hpp"
 #include "steering.hpp"
@@ -203,14 +205,8 @@ void soulTrap(const MWWorld::Ptr& creature)
             if (caster == MWMechanics::getPlayer())
                 MWBase::Environment::get().getWindowManager()->messageBox("#{sSoultrapSuccess}");
 
-            const ESM::Static* const fx = world->getStore().get<ESM::Static>().search("VFX_Soul_Trap");
-            if (fx != nullptr)
-            {
-                const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                world->spawnEffect(
-                    Misc::ResourceHelpers::correctMeshPath(fx->mModel, vfs),
-                    "", creature.getRefData().getPosition().asVec3());
-            }
+            if (const ESM::Static* fx = world->getStore().get<ESM::Static>().search("VFX_Soul_Trap"))
+                world->spawnEffect(fx->mModel, "", creature.getRefData().getPosition().asVec3());
 
             MWBase::Environment::get().getSoundManager()->playSound3D(creature.getRefData().getPosition().asVec3(), "conjuration hit", 1.f, 1.f);
             return; //remove to get vanilla behaviour
@@ -247,8 +243,6 @@ namespace MWMechanics
             MWWorld::Ptr& headTrackTarget, float& sqrHeadTrackDistance, bool inCombatOrPursue)
         {
             const auto& actorRefData = actor.getRefData();
-            if (!actorRefData.getBaseNode())
-                return;
 
             if (targetActor.getClass().getCreatureStats(targetActor).isDead())
                 return;
@@ -273,7 +267,8 @@ namespace MWMechanics
                 return;
 
             // stop tracking when target is behind the actor
-            osg::Vec3f actorDirection = actorRefData.getBaseNode()->getAttitude() * osg::Vec3f(0,1,0);
+            auto actorDir = MWAnim::forward(actorRefData.getPosition());
+            osg::Vec3f actorDirection = {actorDir.x,actorDir.y,actorDir.z};
             osg::Vec3f targetDirection(actor2Pos - actor1Pos);
             actorDirection.z() = 0;
             targetDirection.z() = 0;
@@ -286,7 +281,6 @@ namespace MWMechanics
                 headTrackTarget = targetActor;
             }
         }
-
         void updateHeadTracking(const MWWorld::Ptr& ptr, const std::list<Actor>& actors, bool isPlayer, CharacterController& ctrl)
         {
             float sqrHeadTrackDistance = std::numeric_limits<float>::max();
@@ -995,8 +989,8 @@ namespace MWMechanics
 
         //If holding a light...
         const auto world = MWBase::Environment::get().getWorld();
-        MWRender::Animation *anim = world->getAnimation(ptr);
-        if (heldIter.getType() == MWWorld::ContainerStore::Type_Light && anim && anim->getCarriedLeftShown())
+        auto *anim = world->getAnimation(ptr);
+        if (heldIter.getType() == MWWorld::ContainerStore::Type_Light && anim && static_cast<MWAnim::Wielding&>(*anim).isShown(MWAnim::Wielding::Wield::CarriedLeft))
         {
             // Use time from the player's light
             if(isPlayer)
@@ -1124,7 +1118,7 @@ namespace MWMechanics
     {
         removeActor(ptr, true);
 
-        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        auto *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
         if (!anim)
             return;
         const auto it = mActors.emplace(mActors.end(), ptr, anim);
@@ -1151,11 +1145,11 @@ namespace MWMechanics
         const float dist = (player.getRefData().getPosition().asVec3() - ptr.getRefData().getPosition().asVec3()).length();
         if (dist > mActorsProcessingRange)
         {
-            ptr.getRefData().getBaseNode()->setNodeMask(0);
+            //ptr.getRefData().getBaseNode()->setNodeMask(0);
             return;
         }
         else
-            ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Actor);
+            ;//ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Actor);
 
         // Fade away actors on large distance (>90% of actor's processing distance)
         float visibilityRatio = 1.0;
@@ -1597,15 +1591,11 @@ namespace MWMechanics
                     alwaysActive = !seq.isEmpty() && seq.getActivePackage().alwaysActive();
                 }
                 const bool inRange = isPlayer || dist <= mActorsProcessingRange || alwaysActive;
-                const int activeFlag = isPlayer ? 2 : 1; // Can be changed back to '2' to keep updating bounding boxes off screen (more accurate, but slower)
-                const int active = inRange ? activeFlag : 0;
 
                 CharacterController& ctrl = actor.getCharacterController();
-                ctrl.setActive(active);
-
                 if (!inRange)
                 {
-                    actor.getPtr().getRefData().getBaseNode()->setNodeMask(0);
+                    //actor.getPtr().getRefData().getBaseNode()->setNodeMask(0);
                     world->setActorActive(actor.getPtr(), false);
                     continue;
                 }
@@ -1624,7 +1614,7 @@ namespace MWMechanics
                     continue;
                 }
 
-                actor.getPtr().getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Actor);
+                //actor.getPtr().getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Actor);
                 world->setActorCollisionMode(actor.getPtr(), true, !actor.getPtr().getClass().getCreatureStats(actor.getPtr()).isDeathAnimationFinished());
 
                 if (!actor.getPositionAdjusted())
@@ -1758,12 +1748,7 @@ namespace MWMechanics
             const ESM::Static* fx = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>()
                     .search("VFX_Summon_End");
             if (fx)
-            {
-                const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                MWBase::Environment::get().getWorld()->spawnEffect(
-                    Misc::ResourceHelpers::correctMeshPath(fx->mModel, vfs),
-                    "", ptr.getRefData().getPosition().asVec3());
-            }
+                MWBase::Environment::get().getWorld()->spawnEffect(fx->mModel, "", ptr.getRefData().getPosition().asVec3());
 
             // Remove the summoned creature's summoned creatures as well
             MWMechanics::CreatureStats& stats = ptr.getClass().getCreatureStats(ptr);
@@ -1813,18 +1798,12 @@ namespace MWMechanics
             if (!sleep || actor.getPtr() == player)
                 restoreDynamicStats(actor.getPtr(), hours, sleep);
 
-            if ((!actor.getPtr().getRefData().getBaseNode()) ||
-                    (playerPos - actor.getPtr().getRefData().getPosition().asVec3()).length2() > mActorsProcessingRange*mActorsProcessingRange)
+            if ((playerPos - actor.getPtr().getRefData().getPosition().asVec3()).length2() > mActorsProcessingRange*mActorsProcessingRange)
                 continue;
 
             adjustMagicEffects (actor.getPtr(), duration);
-
-            MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(actor.getPtr());
-            if (animation)
-            {
-                animation->removeEffects();
-                MWBase::Environment::get().getWorld()->applyLoopingParticles(actor.getPtr());
-            }
+            MWRender::removeEffect(actor.getPtr());
+            MWBase::Environment::get().getWorld()->applyLoopingParticles(actor.getPtr());
         }
 
         fastForwardAi();
@@ -1935,7 +1914,7 @@ namespace MWMechanics
     {
         const auto iter = mIndex.find(ptr.mRef);
         if (iter != mIndex.end())
-            iter->second->getCharacterController().forceStateUpdate();
+            iter->second->getCharacterController().forceStateUpdate(MWBase::Environment::get().getWorld()->getAnimation(ptr));
     }
 
     bool Actors::playAnimationGroup(const MWWorld::Ptr& ptr, const std::string& groupName, int mode, int number, bool persist) const

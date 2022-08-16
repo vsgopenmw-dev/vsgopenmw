@@ -4,7 +4,8 @@
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
-#include "../mwrender/renderingmanager.hpp"
+//#include "../mwrender/renderingmanager.hpp"
+#include "../mwrender/navmeshmode.hpp"
 
 #include <components/lua/luastate.hpp>
 
@@ -32,7 +33,6 @@ namespace MWLua
                 MWBase::Environment::get().getWorld()->toggleRenderMode(value);
             });
         };
-
         api["NAV_MESH_RENDER_MODE"] = LuaUtil::makeStrictReadOnly(context.mLua->tableFromPairs<std::string_view, MWRender::NavMeshMode>({
             {"AreaType", MWRender::NavMeshMode::AreaType},
             {"UpdateFrequency", MWRender::NavMeshMode::UpdateFrequency},
@@ -42,10 +42,9 @@ namespace MWLua
         {
             context.mLuaManager->addAction([value]
             {
-                MWBase::Environment::get().getWorld()->getRenderingManager()->setNavMeshMode(value);
+                //MWBase::Environment::get().getWorld()->getRenderingManager()->setNavMeshMode(value);
             });
         };
-
         return LuaUtil::makeReadOnly(api);
     }
 }

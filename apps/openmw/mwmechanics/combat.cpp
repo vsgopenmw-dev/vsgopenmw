@@ -4,7 +4,8 @@
 #include <components/misc/rng.hpp>
 #include <components/settings/settings.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
+#include <components/mwanimation/position.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
@@ -27,15 +28,32 @@
 namespace
 {
 
-float signedAngleRadians (const osg::Vec3f& v1, const osg::Vec3f& v2, const osg::Vec3f& normal)
+float signedAngleRadians (const vsg::vec3 &v1, const vsg::vec3 &v2, const vsg::vec3 &normal)
 {
-    return std::atan2((normal * (v1 ^ v2)), (v1 * v2));
+    return std::atan2(vsg::dot(normal, vsg::cross(v1, v2)), vsg::dot(v1, v2));
 }
 
 }
 
 namespace MWMechanics
 {
+    void throwWeapon(MWWorld::Ptr actor, MWWorld::Ptr weapon, float attackStrength, const osg::Vec3f &launchPos, const osg::Quat &orient)
+    {
+        auto &gmst = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
+        float fThrownWeaponMinSpeed = gmst.find("fThrownWeaponMinSpeed")->mValue.getFloat();
+        float fThrownWeaponMaxSpeed = gmst.find("fThrownWeaponMaxSpeed")->mValue.getFloat();
+        float speed = fThrownWeaponMinSpeed + (fThrownWeaponMaxSpeed - fThrownWeaponMinSpeed) * attackStrength;
+        MWBase::Environment::get().getWorld()->launchProjectile(actor, weapon, launchPos, orient, weapon, speed, attackStrength);
+    }
+
+    void shoot(MWWorld::Ptr actor, MWWorld::Ptr ammo, MWWorld::Ptr weapon, float attackStrength, const osg::Vec3f launchPos, const osg::Quat &orient)
+    {
+        auto &gmst = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
+        float fProjectileMinSpeed = gmst.find("fProjectileMinSpeed")->mValue.getFloat();
+        float fProjectileMaxSpeed = gmst.find("fProjectileMaxSpeed")->mValue.getFloat();
+        float speed = fProjectileMinSpeed + (fProjectileMaxSpeed - fProjectileMinSpeed) * attackStrength;
+        MWBase::Environment::get().getWorld()->launchProjectile(actor, ammo, launchPos, orient, weapon, speed, attackStrength);
+    }
 
     bool applyOnStrikeEnchantment(const MWWorld::Ptr& attacker, const MWWorld::Ptr& victim, const MWWorld::Ptr& object, const osg::Vec3f& hitPosition, const bool fromProjectile)
     {
@@ -78,14 +96,11 @@ namespace MWMechanics
         if (shield == inv.end() || shield->getType() != ESM::Armor::sRecordId)
             return false;
 
-        if (!blocker.getRefData().getBaseNode())
-            return false; // shouldn't happen
-
         float angleDegrees = osg::RadiansToDegrees(
                     signedAngleRadians (
-                    (attacker.getRefData().getPosition().asVec3() - blocker.getRefData().getPosition().asVec3()),
-                    blocker.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0,1,0),
-                    osg::Vec3f(0,0,1)));
+                    toVsg(attacker.getRefData().getPosition().asVec3() - blocker.getRefData().getPosition().asVec3()),
+                    MWAnim::forward(blocker.getRefData().getPosition()),
+                    {0,0,1}));
 
         const MWWorld::Store<ESM::GameSetting>& gmst = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
         static const float fCombatBlockLeftAngle = gmst.find("fCombatBlockLeftAngle")->mValue.getFloat();

@@ -13,6 +13,10 @@ namespace Loading
 {
     class Listener;
 }
+namespace MWState
+{
+    class Loading;
+}
 
 namespace MWMechanics
 {
@@ -200,7 +204,7 @@ namespace MWWorld
         /// Validate entries in store after loading a save
         void validateDynamic();
 
-        void load(ESM::ESMReader &esm, Loading::Listener* listener, ESM::Dialogue*& dialogue);
+        void load(ESM::ESMReader &esm, MWState::Loading &state, ESM::Dialogue*& dialogue);
 
         template <class T>
         const Store<T> &get() const {

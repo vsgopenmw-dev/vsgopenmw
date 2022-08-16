@@ -19,7 +19,7 @@ namespace MWGui
     class HUD : public WindowBase, public LocalMapBase, public StatsListener
     {
     public:
-        HUD(CustomMarkerCollection& customMarkers, DragAndDrop* dragAndDrop, MWRender::LocalMap* localMapRender);
+        HUD(CustomMarkerCollection& customMarkers, DragAndDrop* dragAndDrop, MWRender::Map* localMapRender);
         virtual ~HUD();
         void setValue (const std::string& id, const MWMechanics::DynamicStat<float>& value) override;
 

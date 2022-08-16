@@ -36,9 +36,92 @@ add_component_dir (l10n
     messagebundles
     )
 
+#vsgopenmw-fixme(rewrite-me)
 add_component_dir (settings
     settings parser
     )
+
+#<vsgopenmw-code-style>
+# Adapts nif to vsg::Node and kf to Anim::ControllerMap.
+# Depends on nif, pipeline, animation.
+add_component_dir (vsgadapters/nif
+    nif anim particle kf
+    )
+add_component_dir (vsgadapters
+    # Encapsulates vfs component within vsg::ReaderWriter.
+    vfs
+    # Temporarily converts types.
+    osgcompat
+    )
+add_component_dir (vsgadapters/sdl
+    window surface
+    )
+add_component_dir (vsgadapters/mygui
+    render texture manualtexture
+    )
+# Assembles vulkan pipelines.
+add_component_dir (pipeline
+    builder options override graphics particle particledata terrain descriptorvalue layout scenedata sets bindings material descriptorimagecache descriptorbuffercache lightgrid fogofwar worldoverlay
+    )
+# Implements algorithms.
+add_component_dir (render
+    engine download screenshot headless limitframerate rendertexture cascade computeimage
+    depth attachmentformat
+    )
+# Renders pipelines.
+# Depends on pipeline, render.
+add_component_dir (view
+    descriptors collectlights defaultstate lightgrid shadow
+    )
+# Provides dynamic scene graph objects.
+add_component_dir (animation
+    # Channels map time to value.
+    channel interpolate extrapolate path range reset
+    # Controllers modify objects.
+    controller tcontroller tmutable copydata rotate roll skin morph transformcontroller texmat switch stateswitch color cullparticles
+    # Nodes may be placed in the scene graph.
+    transform billboard
+    # Tools support nodes.
+    softwareskin clone attachbone
+    # Logic plays animations.
+    visitor context update transformupdate tags bones controllermap contents meta
+    )
+# Creates animation scene graph.
+# Depends on esm, animation.
+add_component_dir (mwanimation
+    context play groups clone decorate attach rotate
+    color position light lighteffect effect effects
+    object auto objectanim actor wielding creature face
+    )
+# Conveniently extends vsg.
+# vsgutil must not depend on other components.
+# vsgutil may be implicitely depended on.
+#add_base_dir(vsgutil
+add_component_dir (vsgutil
+    # Object extensions.
+    attachable name id cloneable
+    # Nodes.
+    setviewportstate viewrelative externalbin nullbin
+    # Algorithms.
+    computetransform intersectnormal traverse toggle group cullnode searchbyname searchbytype box
+    # IO.
+    cache virtualfile readimage readnode readshader
+    # Temporary workarounds.
+    setbin sharedview
+    )
+# Supports MyGUI.
+# Depends on vfs, vsgadapters/mygui.
+add_component_dir (myguiplatform #(mygui
+    # Backends.
+    vfs platform loglistener
+    # Layers.
+    scalinglayer #additivelayer
+    ## Widgets.
+    #
+    ## Loaders.
+    #fontloader
+    )
+#</vsgopenmw-code-style>
 
 add_component_dir (bsa
     bsa_file compressedbsafile
@@ -48,11 +131,17 @@ add_component_dir (vfs
     manager archive bsaarchive filesystemarchive registerarchives
     )
 
+#vsgopenmw-fixme(find-my-purpose)
 add_component_dir (resource
-    scenemanager keyframemanager imagemanager bulletshapemanager bulletshape niffilemanager objectcache multiobjectcache resourcesystem
-    resourcemanager stats animation foreachbulletobject
+    #scenemanager keyframemanager animation imagemanager
+    bulletshapemanager bulletshape niffilemanager objectcache multiobjectcache 
+    resourcesystem resourcemanager stats foreachbulletobject
+
+    shadersettings
     )
 
+#vsgopenmw-delete-me
+#[[
 add_component_dir (shader
     shadermanager shadervisitor removedalphafunc
     )
@@ -63,13 +152,16 @@ add_component_dir (sceneutil
     actorutil detourdebugdraw navmesh agentpath shadow mwshadowtechnique recastmesh shadowsbin osgacontroller rtt
     screencapture depth color riggeometryosgaextension extradata unrefqueue
     )
+]]
+
+#vsgopenmw-fixme(find-my-place)
+#vsg/OperationThreads
+add_component_dir (sceneutil
+    workqueue 
+    )
 
 add_component_dir (nif
     controlled effect niftypes record controller extra node record_ptr data niffile property nifkey base nifstream physics
-    )
-
-add_component_dir (nifosg
-    nifloader controller particle matrixtransform
     )
 
 add_component_dir (nifbullet
@@ -82,9 +174,12 @@ add_component_dir (to_utf8
 
 add_component_dir(esm attr common defs esmcommon reader records util luascripts format)
 
+#vsgopenmw-delete-me
+#[[
 add_component_dir(fx pass technique lexer widgets stateupdater)
 
 add_component_dir(std140 ubo)
+]]
 
 add_component_dir (esm3
     esmreader esmwriter loadacti loadalch loadappa loadarmo loadbody loadbook loadbsgn loadcell
@@ -102,6 +197,8 @@ add_component_dir (esm3terrain
     storage
     )
 
+#vsgopenmw-fixme(find-my-place)
+#[[
 add_component_dir (esm4
     acti
     actor
@@ -194,18 +291,36 @@ add_component_dir (esm4
     reference
     script
 )
+#]]
 
+#add_base_dir(stl
 add_component_dir (misc
-    constants utf8stream resourcehelpers rng messageformatparser weakcache thread
-    compression osguservalues errorMarker color
+    # Conveniently extends STL.
+    # misc must not depend on other components.
+    # misc may be implicitely depended on.
+    utf8stream rng messageformatparser weakcache thread compression
+    # vsgopenmw-fixme(find-my-place)
+    constants resourcehelpers osguservalues color #errorMarker
     )
 
+#vsgopenmw-delete-me
+#[[
 add_component_dir (stereo
     frustum multiview stereomanager types
     )
+]]
 
+#vsgopenmw-delete-me
 add_component_dir (debug
-    debugging debuglog gldebug
+    debugging
+    #vsgopenmw-deprecated
+    #vsgopenmw-fixme(global-state)
+    #vsgopenmw-fixme(escape-pipe)
+    #vsgopenmw-fixme(stdio-newlines)
+    #vsgopenmw-fixme(out-syntax)
+    debuglog
+    #vsgopenmw-delete-me
+    #gldebug
     )
 
 IF(NOT WIN32 AND NOT APPLE)
@@ -213,6 +328,7 @@ IF(NOT WIN32 AND NOT APPLE)
     add_definitions(-DGLOBAL_CONFIG_PATH="${GLOBAL_CONFIG_PATH}")
 ENDIF()
 add_component_dir (files
+    #vsgopenmw-move-me(xdgpath)
     linuxpath androidpath windowspath macospath fixedpath multidircollection collections configurationmanager
     constrainedfilestream memorystream hash configfileparser openfile constrainedfilestreambuf
     )
@@ -233,30 +349,37 @@ add_component_dir (translation
     translation
     )
 
+#<vsgopenmw-code-style="pending">
 add_component_dir (terrain
-    storage world buffercache defs terraingrid material terraindrawable texturemanager chunkmanager compositemaprenderer
-    quadtreeworld quadtreenode viewdata cellborder view heightcull
+    storage group grid cachebuffer geometry createlayers
+    # world buffercache defs terraingrid material terraindrawable texturemanager chunkmanager compositemaprenderer quadtreeworld quadtreenode viewdata cellborder
     )
+#</vsgopenmw-code-style>
 
+#vsgopenmw-delete-me
 add_component_dir (loadinglistener
     loadinglistener
     )
 
-add_component_dir (myguiplatform
-    myguirendermanager myguidatamanager myguiplatform myguitexture myguiloglistener additivelayer scalinglayer
-    )
-
+#vsgopenmw-move-me(components/mygui)
 add_component_dir (widgets
     box fontwrapper imagebutton tags list numericeditbox sharedstatebutton windowcaption widgets
     )
 
+#vsgopenmw-move-me(components/mygui)
 add_component_dir (fontloader
     fontloader
     )
 
+#<vgopenmw-code-style="pending">
+#vsgopenmw-move-me(components/sdl)
+# Wraps SDL.
 add_component_dir (sdlutil
-    gl4es_init sdlgraphicswindow imagetosurface sdlinputwrapper sdlvideowrapper events sdlcursormanager sdlmappings
+    inputwrapper videowrapper events cursormanager sdlmappings
+    #vsgopenmw-delete-me
+    #imagetosurface sdlvideowrapper
     )
+#</vsgopenmw-code-style>
 
 add_component_dir (version
     version
@@ -273,6 +396,7 @@ add_component_dir (lua_ui
     )
 
 
+#vsgopenmw-delete-me
 if(WIN32)
     add_component_dir (crashcatcher
         windows_crashcatcher
@@ -318,6 +442,7 @@ add_component_dir(detournavigator
     collisionshapetype
     )
 
+#vsgopenmw-fixme(find-my-place)
 add_component_dir(loadinglistener
     reporter
     )
@@ -333,6 +458,7 @@ add_component_dir(esmloader
     esmdata
 )
 
+#vsgopenmw-delete-me
 add_component_dir(navmeshtool
     protocol
     )
@@ -343,10 +469,12 @@ add_component_dir(platform
     )
 
 if (WIN32)
+#vsgopenmw-cleanup-platform-support
     add_component_dir(platform
         file.win32
         )
 elseif (UNIX)
+#vsgopenmw-cleanup-platform-support
     add_component_dir(platform
         file.posix
         )
@@ -396,26 +524,11 @@ find_package(SQLite3 REQUIRED)
 add_library(components STATIC ${COMPONENT_FILES})
 
 target_link_libraries(components
-    # CMake's built-in OSG finder does not use pkgconfig, so we have to
-    # manually ensure the order is correct for inter-library dependencies.
-    # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21701
-    ${OSGPARTICLE_LIBRARIES}
-    ${OSGVIEWER_LIBRARIES}
-    ${OSGSHADOW_LIBRARIES}
-    ${OSGANIMATION_LIBRARIES}
-    ${OSGGA_LIBRARIES}
-    ${OSGTEXT_LIBRARIES}
-    ${OSGDB_LIBRARIES}
-    ${OSGUTIL_LIBRARIES}
-    ${OSG_LIBRARIES}
-    ${OPENTHREADS_LIBRARIES}
-
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
-
+    vsg::vsg
     ${SDL2_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
     ${MyGUI_LIBRARIES}
@@ -424,10 +537,8 @@ target_link_libraries(components
     RecastNavigation::DebugUtils
     RecastNavigation::Detour
     RecastNavigation::Recast
-
-    Base64
     SQLite::SQLite3
-    smhasher
+    #smhasher
     ${ICU_LIBRARIES}
     yaml-cpp
     )

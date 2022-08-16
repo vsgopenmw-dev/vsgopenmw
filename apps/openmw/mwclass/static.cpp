@@ -1,7 +1,6 @@
 #include "static.hpp"
 
 #include <components/esm3/loadstat.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 
 #include "../mwworld/ptr.hpp"
 #include "../mwphysics/physicssystem.hpp"
@@ -25,7 +24,6 @@ namespace MWClass
         if (!model.empty())
         {
             renderingInterface.getObjects().insertModel(ptr, model);
-            ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Static);
         }
     }
 

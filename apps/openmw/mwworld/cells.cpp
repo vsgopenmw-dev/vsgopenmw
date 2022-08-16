@@ -6,11 +6,11 @@
 #include <components/esm/defs.hpp>
 #include <components/esm3/cellstate.hpp>
 #include <components/esm3/cellref.hpp>
-#include <components/loadinglistener/loadinglistener.hpp>
 #include <components/settings/settings.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
+#include "../mwstate/loading.hpp"
 
 #include "esmstore.hpp"
 #include "containerstore.hpp"
@@ -395,14 +395,14 @@ int MWWorld::Cells::countSavedGameRecords() const
     return count;
 }
 
-void MWWorld::Cells::write (ESM::ESMWriter& writer, Loading::Listener& progress) const
+void MWWorld::Cells::write (ESM::ESMWriter& writer,MWState::Loading& state) const
 {
     for (std::map<std::pair<int, int>, CellStore>::iterator iter (mExteriors.begin());
         iter!=mExteriors.end(); ++iter)
         if (iter->second.hasState())
         {
             writeCell (writer, iter->second);
-            progress.increaseProgress();
+            state.advance();
         }
 
     for (std::map<std::string, CellStore>::iterator iter (mInteriors.begin());
@@ -410,7 +410,7 @@ void MWWorld::Cells::write (ESM::ESMWriter& writer, Loading::Listener& progress)
         if (iter->second.hasState())
         {
             writeCell (writer, iter->second);
-            progress.increaseProgress();
+            state.advance();
         }
 }
 

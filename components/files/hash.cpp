@@ -1,6 +1,6 @@
 #include "hash.hpp"
 
-#include <extern/smhasher/MurmurHash3.h>
+//#include <extern/smhasher/MurmurHash3.h>
 
 #include <array>
 #include <cstdint>
@@ -12,6 +12,7 @@ namespace Files
     std::array<std::uint64_t, 2> getHash(const std::string& fileName, std::istream& stream)
     {
         std::array<std::uint64_t, 2> hash {0, 0};
+        /*
         try
         {
             const auto start = stream.tellg();
@@ -36,6 +37,7 @@ namespace Files
         {
             throw std::runtime_error("Error while reading \"" + fileName + "\" to get hash: " + std::string(e.what()));
         }
+        */
         return hash;
     }
 }

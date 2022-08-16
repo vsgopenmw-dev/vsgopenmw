@@ -1,8 +1,6 @@
 #ifndef GAME_MWWORLD_WORLDIMP_H
 #define GAME_MWWORLD_WORLDIMP_H
 
-#include <osg/ref_ptr>
-
 #include <components/settings/settings.hpp>
 #include <components/misc/rng.hpp>
 #include <components/esm3/readerscache.hpp>
@@ -22,24 +20,12 @@
 
 namespace osg
 {
-    class Group;
     class Stats;
-}
-
-namespace osgViewer
-{
-    class Viewer;
 }
 
 namespace Resource
 {
     class ResourceSystem;
-}
-
-namespace SceneUtil
-{
-    class WorkQueue;
-    class UnrefQueue;
 }
 
 namespace ESM
@@ -54,12 +40,13 @@ namespace Files
 
 namespace MWRender
 {
-    class SkyManager;
-    class Animation;
     class Camera;
-    class PostProcessor;
+    class RenderManager;
 }
-
+namespace MWState
+{
+    class Loading;
+}
 namespace ToUTF8
 {
     class Utf8Encoder;
@@ -97,13 +84,12 @@ namespace MWWorld
             std::unique_ptr<MWWorld::Player> mPlayer;
             std::unique_ptr<MWPhysics::PhysicsSystem> mPhysics;
             std::unique_ptr<DetourNavigator::Navigator> mNavigator;
-            std::unique_ptr<MWRender::RenderingManager> mRendering;
+            MWRender::RenderManager *mRendering;
             std::unique_ptr<MWWorld::Scene> mWorldScene;
             std::unique_ptr<MWWorld::WeatherManager> mWeatherManager;
             std::unique_ptr<MWWorld::DateTimeManager> mCurrentDate;
             std::unique_ptr<ProjectileManager> mProjectileManager;
 
-            bool mSky;
             bool mGodMode;
             bool mScriptsEnabled;
             bool mDiscardMovements;
@@ -173,8 +159,7 @@ namespace MWWorld
 
             void updateSkyDate();
 
-            void loadContentFiles(const Files::Collections& fileCollections, const std::vector<std::string>& content,
-                ToUTF8::Utf8Encoder* encoder, Loading::Listener* listener);
+            void loadContentFiles(const Files::Collections& fileCollections, const std::vector<std::string>& content, ToUTF8::Utf8Encoder* encoder, MWState::Loading &state);
 
             void loadGroundcoverFiles(const Files::Collections& fileCollections,
                 const std::vector<std::string>& groundcoverFiles, ToUTF8::Utf8Encoder* encoder,
@@ -192,18 +177,18 @@ namespace MWWorld
             void removeContainerScripts(const Ptr& reference) override;
 
             World (
-                osgViewer::Viewer* viewer,
-                osg::ref_ptr<osg::Group> rootNode,
-                Resource::ResourceSystem* resourceSystem, SceneUtil::WorkQueue* workQueue,
-                SceneUtil::UnrefQueue& unrefQueue,
-                const Files::Collections& fileCollections,
-                const std::vector<std::string>& contentFiles,
-                const std::vector<std::string>& groundcoverFiles,
-                ToUTF8::Utf8Encoder* encoder, int activationDistanceOverride,
+                MWRender::RenderManager &render,
+                Resource::ResourceSystem* resourceSystem,
+                int activationDistanceOverride,
                 const std::string& startCell, const std::string& startupScript,
-                const std::string& resourcePath, const std::string& userDataPath);
+                const std::string& userDataPath);
 
             virtual ~World();
+
+            void loadContent(const Files::Collections& fileCollections,
+                const std::vector<std::string>& contentFiles,
+                const std::vector<std::string>& groundcoverFiles,
+                ToUTF8::Utf8Encoder* encoder, MWState::Loading &state);
 
             void setRandomSeed(uint32_t seed) override;
 
@@ -215,7 +200,7 @@ namespace MWWorld
             int countSavedGameRecords() const override;
             int countSavedGameCells() const override;
 
-            void write (ESM::ESMWriter& writer, Loading::Listener& progress) const override;
+            void write (ESM::ESMWriter& writer, MWState::Loading &state) const override;
 
             void readRecord (ESM::ESMReader& reader, uint32_t type,
                 const std::map<int, int>& contentFileMap) override;
@@ -551,7 +536,6 @@ namespace MWWorld
 
             bool toggleVanityMode(bool enable) override;
 
-            MWRender::Camera* getCamera() override;
             bool vanityRotateCamera(float * rot) override;
 
             void applyDeferredPreviewRotationToPlayer(float dt) override;
@@ -603,8 +587,8 @@ namespace MWWorld
             void rechargeItems(double duration, bool activeOnly);
 
             /// \todo Probably shouldn't be here
-            MWRender::Animation* getAnimation(const MWWorld::Ptr &ptr) override;
-            const MWRender::Animation* getAnimation(const MWWorld::ConstPtr &ptr) const override;
+            MWAnim::Object* getAnimation(const MWWorld::Ptr &ptr) override;
+            const MWAnim::Object* getAnimation(const MWWorld::ConstPtr &ptr) const override;
             void reattachPlayerCamera() override;
 
             /// \todo this does not belong here
@@ -758,10 +742,7 @@ namespace MWWorld
 
             Misc::Rng::Generator& getPrng() override;
 
-            MWRender::RenderingManager* getRenderingManager() override { return mRendering.get(); }
-
-            MWRender::PostProcessor* getPostProcessor() override;
-
+            //MWRender::RenderingManager* getRenderingManager() override { return mRendering.get(); }
             void setActorActive(const MWWorld::Ptr& ptr, bool value) override;
     };
 }

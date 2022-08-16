@@ -27,7 +27,6 @@ MWBase::Environment::~Environment()
 {
     sThis = nullptr;
 }
-
 void MWBase::Environment::reportStats(unsigned int frameNumber, osg::Stats& stats) const
 {
     mMechanicsManager->reportStats(frameNumber, stats);

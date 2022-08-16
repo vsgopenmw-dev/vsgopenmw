@@ -17,7 +17,7 @@
 #include <components/nifbullet/bulletnifloader.hpp>
 
 #include "bulletshape.hpp"
-#include "scenemanager.hpp"
+//#include "scenemanager.hpp"
 #include "niffilemanager.hpp"
 #include "objectcache.hpp"
 #include "multiobjectcache.hpp"
@@ -121,7 +121,7 @@ BulletShapeManager::~BulletShapeManager()
 
 osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &name)
 {
-    const std::string normalized = mVFS->normalizeFilename(name);
+    const std::string normalized = mVFS->normalizeFilename(std::string("meshes/") + name);
 
     osg::ref_ptr<BulletShape> shape;
     osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(normalized);
@@ -129,11 +129,12 @@ osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &
         shape = osg::ref_ptr<BulletShape>(static_cast<BulletShape*>(obj.get()));
     else
     {
-        if (Misc::getFileExtension(normalized) == "nif")
+        //if (Misc::getFileExtension(normalized) == "nif")
         {
             NifBullet::BulletNifLoader loader;
             shape = loader.load(*mNifFileManager->get(normalized));
         }
+            /*
         else
         {
             // TODO: support .bullet shape files
@@ -172,6 +173,7 @@ osg::ref_ptr<const BulletShape> BulletShapeManager::getShape(const std::string &
                 constNode->getUserValue(Misc::OsgUserValues::sFileHash, shape->mFileHash);
             }
         }
+            */
 
         mCache->addEntryToObjectCache(normalized, shape);
     }

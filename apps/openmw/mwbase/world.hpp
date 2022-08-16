@@ -30,9 +30,9 @@ namespace osg
     class Stats;
 }
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
 
 namespace ESM
@@ -64,9 +64,12 @@ namespace MWPhysics
     class RayCastingInterface;
 }
 
+namespace MWAnim
+{
+    class Object;
+}
 namespace MWRender
 {
-    class Animation;
     class Camera;
     class RenderingManager;
     class PostProcessor;
@@ -130,7 +133,7 @@ namespace MWBase
             virtual int countSavedGameRecords() const = 0;
             virtual int countSavedGameCells() const = 0;
 
-            virtual void write (ESM::ESMWriter& writer, Loading::Listener& listener) const = 0;
+            virtual void write (ESM::ESMWriter& writer, MWState::Loading &state) const = 0;
 
             virtual void readRecord (ESM::ESMReader& reader, uint32_t type,
                 const std::map<int, int>& contentFileMap) = 0;
@@ -444,7 +447,6 @@ namespace MWBase
 
             virtual osg::Matrixf getActorHeadTransform(const MWWorld::ConstPtr& actor) const = 0;
 
-            virtual MWRender::Camera* getCamera() = 0;
             virtual void togglePOV(bool force = false) = 0;
             virtual bool isFirstPerson() const = 0;
             virtual bool isPreviewModeEnabled() const = 0;
@@ -504,8 +506,8 @@ namespace MWBase
             virtual RestPermitted canRest() const = 0;
 
             /// \todo Probably shouldn't be here
-            virtual MWRender::Animation* getAnimation(const MWWorld::Ptr &ptr) = 0;
-            virtual const MWRender::Animation* getAnimation(const MWWorld::ConstPtr &ptr) const = 0;
+            virtual MWAnim::Object* getAnimation(const MWWorld::Ptr &ptr) = 0;
+            virtual const MWAnim::Object* getAnimation(const MWWorld::ConstPtr &ptr) const = 0;
             virtual void reattachPlayerCamera() = 0;
 
             /// \todo this does not belong here
@@ -669,9 +671,7 @@ namespace MWBase
 
             virtual Misc::Rng::Generator& getPrng() = 0;
 
-            virtual MWRender::RenderingManager* getRenderingManager() = 0;
-
-            virtual MWRender::PostProcessor* getPostProcessor() = 0;
+            //virtual MWRender::RenderingManager* getRenderingManager() = 0;
 
             virtual void setActorActive(const MWWorld::Ptr& ptr, bool value) = 0;
     };

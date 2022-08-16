@@ -2,6 +2,7 @@
 
 #include <components/debug/debuglog.hpp>
 #include <components/esm3/loadcont.hpp>
+#include <components/mwanimation/object.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -17,8 +18,8 @@ void Objects::addObject(const MWWorld::Ptr& ptr)
 {
     removeObject(ptr);
 
-    MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
-    if (anim == nullptr)
+    auto *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+    if (!anim || !anim->animation.get())
         return;
 
     const auto it = mObjects.emplace(mObjects.end(), ptr, anim);

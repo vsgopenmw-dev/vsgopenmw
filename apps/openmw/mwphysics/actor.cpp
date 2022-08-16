@@ -3,7 +3,7 @@
 #include <BulletCollision/CollisionShapes/btCylinderShape.h>
 #include <BulletCollision/CollisionDispatch/btCollisionWorld.h>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
 #include <components/resource/bulletshape.hpp>
 #include <components/debug/debuglog.hpp>
 #include <components/misc/convert.hpp>
@@ -97,7 +97,10 @@ Actor::Actor(const MWWorld::Ptr& ptr, const Resource::BulletShape* shape, Physic
     updateScale();
 
     if(!mRotationallyInvariant)
-        setRotation(mPtr.getRefData().getBaseNode()->getAttitude());
+    {
+        auto q = MWAnim::zQuat(mPtr.getRefData().getPosition());
+        setRotation({q.x,q.y,q.z,q.w});
+    }
 
     updatePosition();
     addCollisionMask(getCollisionMask());

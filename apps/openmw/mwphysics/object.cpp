@@ -2,7 +2,6 @@
 #include "mtphysics.hpp"
 
 #include <components/debug/debuglog.hpp>
-#include <components/nifosg/particle.hpp>
 #include <components/resource/bulletshape.hpp>
 #include <components/sceneutil/positionattitudetransform.hpp>
 #include <components/misc/convert.hpp>
@@ -110,6 +109,7 @@ namespace MWPhysics
 
         assert (mShapeInstance->mCollisionShape->isCompound());
 
+        /*
         btCompoundShape* compound = static_cast<btCompoundShape*>(mShapeInstance->mCollisionShape.get());
         bool result = false;
         for (const auto& [recIndex, shapeIndex] : mShapeInstance->mAnimatedShapes)
@@ -151,5 +151,7 @@ namespace MWPhysics
             }
         }
         return result;
+        */
+        return true;
     }
 }

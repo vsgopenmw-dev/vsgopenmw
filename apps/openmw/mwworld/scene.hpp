@@ -44,7 +44,7 @@ namespace DetourNavigator
 namespace MWRender
 {
     class SkyManager;
-    class RenderingManager;
+    class RenderManager;
 }
 
 namespace MWPhysics
@@ -88,9 +88,9 @@ namespace MWWorld
             bool mCellChanged;
             MWWorld::World& mWorld;
             MWPhysics::PhysicsSystem *mPhysics;
-            MWRender::RenderingManager& mRendering;
+            MWRender::RenderManager& mRendering;
             DetourNavigator::Navigator& mNavigator;
-            std::unique_ptr<CellPreloader> mPreloader;
+            //std::unique_ptr<CellPreloader> mPreloader;
             float mCellLoadingThreshold;
             float mPreloadDistance;
             bool mPreloadEnabled;
@@ -106,7 +106,7 @@ namespace MWWorld
 
             std::vector<ESM::RefNum> mPagedRefs;
 
-            std::vector<osg::ref_ptr<SceneUtil::WorkItem>> mWorkItems;
+            //std::vector<osg::ref_ptr<SceneUtil::WorkItem>> mWorkItems;
 
             std::optional<ChangeCellGridRequest> mChangeCellGridRequest;
 
@@ -133,7 +133,7 @@ namespace MWWorld
 
         public:
 
-            Scene(MWWorld::World& world, MWRender::RenderingManager& rendering, MWPhysics::PhysicsSystem *physics,
+            Scene(MWWorld::World& world, MWRender::RenderManager& rendering, MWPhysics::PhysicsSystem *physics,
                    DetourNavigator::Navigator& navigator);
 
             ~Scene();

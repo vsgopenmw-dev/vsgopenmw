@@ -1,8 +1,15 @@
 #ifndef OPENMW_COMPONENTS_RESOURCE_RESOURCESYSTEM_H
 #define OPENMW_COMPONENTS_RESOURCE_RESOURCESYSTEM_H
 
+#include <vsg/core/ref_ptr.h>
+
 #include <memory>
 #include <vector>
+
+namespace vsg
+{
+    class Options;
+}
 
 namespace VFS
 {
@@ -14,6 +21,10 @@ namespace osg
     class Stats;
     class State;
 }
+namespace Pipeline
+{
+    class Builder;
+}
 
 namespace Resource
 {
@@ -24,13 +35,18 @@ namespace Resource
     class KeyframeManager;
     class BaseResourceManager;
 
+    /*
+     * Assembles vsg::Options for reading files.
+     */
+    ///(
     /// @brief Wrapper class that constructs and provides access to the most commonly used resource subsystems.
     /// @par Resource subsystems can be used with multiple OpenGL contexts, just like the OSG equivalents, but
     ///     are built around the use of a single virtual file system.
+    ///)
     class ResourceSystem
     {
     public:
-        ResourceSystem(const VFS::Manager* vfs);
+        ResourceSystem(const VFS::Manager* vfs, const std::string &shaderPath);
         ~ResourceSystem();
 
         SceneManager* getSceneManager();
@@ -65,10 +81,10 @@ namespace Resource
         void releaseGLObjects(osg::State* state);
 
     private:
-        std::unique_ptr<SceneManager> mSceneManager;
+        //std::unique_ptr<SceneManager> mSceneManager;
         std::unique_ptr<ImageManager> mImageManager;
         std::unique_ptr<NifFileManager> mNifFileManager;
-        std::unique_ptr<KeyframeManager> mKeyframeManager;
+        //std::unique_ptr<KeyframeManager> mKeyframeManager;
 
         // Store the base classes separately to get convenient access to the common interface
         // Here users can register their own resourcemanager as well
@@ -78,6 +94,14 @@ namespace Resource
 
         ResourceSystem(const ResourceSystem&);
         void operator = (const ResourceSystem&);
+
+    public:
+        const vsg::ref_ptr<const vsg::Options> shaderOptions;
+        const std::unique_ptr<const Pipeline::Builder> builder;
+        const vsg::ref_ptr<const vsg::Options> imageOptions;
+        const vsg::ref_ptr<const vsg::Options> textureOptions;
+        const vsg::ref_ptr<const vsg::Options> nodeOptions;
+        const vsg::ref_ptr<const vsg::Options> animationOptions;
     };
 
 }

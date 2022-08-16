@@ -1,6 +1,7 @@
 #include <components/debug/debuglog.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include <components/esm3/loadcell.hpp>
 
@@ -669,25 +670,26 @@ namespace MWScript
                     Interpreter::Type_Float rotation = osg::DegreesToRadians(runtime[0].mFloat*MWBase::Environment::get().getFrameDuration());
                     runtime.pop();
 
-                    if (!ptr.getRefData().getBaseNode())
-                        return;
-
                     // We can rotate actors only around Z axis
                     if (ptr.getClass().isActor() && (axis == "x" || axis == "y"))
                         return;
 
-                    osg::Quat rot;
+                    vsg::quat rot;
                     if (axis == "x")
-                        rot = osg::Quat(rotation, -osg::X_AXIS);
+                        rot = {rotation, vsg::vec3(-1,0,0)};
                     else if (axis == "y")
-                        rot = osg::Quat(rotation, -osg::Y_AXIS);
+                        rot = {rotation, vsg::vec3(0,-1,0)};
                     else if (axis == "z")
-                        rot = osg::Quat(rotation, -osg::Z_AXIS);
+                        rot = {rotation, vsg::vec3(0,0,-1)};
                     else
                         return;
 
-                    osg::Quat attitude = ptr.getRefData().getBaseNode()->getAttitude();
-                    MWBase::Environment::get().getWorld()->rotateWorldObject(ptr, attitude * rot);
+                    vsg::quat q;
+                    if (ptr.getClass().isActor())
+                        q = MWAnim::zQuat(ptr.getRefData().getPosition());
+                    else
+                        q = MWAnim::quat(ptr.getRefData().getPosition());
+                    MWBase::Environment::get().getWorld()->rotateWorldObject(ptr, toOsg(q * rot));
                 }
         };
 
@@ -744,11 +746,12 @@ namespace MWScript
                     else
                         return;
 
-                    // is it correct that disabled objects can't be Move-d?
-                    if (!ptr.getRefData().getBaseNode())
-                        return;
-
-                    osg::Vec3f diff = ptr.getRefData().getBaseNode()->getAttitude() * posChange;
+                    vsg::quat q;
+                    if (ptr.getClass().isActor())
+                        q = MWAnim::zQuat(ptr.getRefData().getPosition());
+                    else
+                        q = MWAnim::quat(ptr.getRefData().getPosition());
+                    auto diff = toOsg(q) * posChange;
 
                     // We should move actors, standing on moving object, too.
                     // This approach can be used to create elevators.

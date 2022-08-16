@@ -5,16 +5,13 @@
 #include <MyGUI_Gui.h>
 #include <MyGUI_ScrollBar.h>
 
-#include <osg/Texture2D>
-
-#include <components/debug/debuglog.hpp>
-#include <components/myguiplatform/myguitexture.hpp>
+#include <components/vsgadapters/mygui/texture.hpp>
 
 #include "../mwworld/esmstore.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
 #include "../mwbase/windowmanager.hpp"
-#include "../mwrender/characterpreview.hpp"
+#include "../mwrender/preview.hpp"
 
 #include "tooltips.hpp"
 
@@ -34,27 +31,27 @@ namespace
     {
         return left.second.compare(right.second) < 0;
     }
-
 }
 
 namespace MWGui
 {
-
-    RaceDialog::RaceDialog(osg::Group* parent, Resource::ResourceSystem* resourceSystem)
+    RaceDialog::RaceDialog(MWRender::Preview *preview)
       : WindowModal("openmw_chargen_race.layout")
-      , mParent(parent)
-      , mResourceSystem(resourceSystem)
       , mGenderIndex(0)
       , mFaceIndex(0)
       , mHairIndex(0)
       , mCurrentAngle(0)
-      , mPreviewDirty(true)
     {
+        mPreview = std::make_unique<MWRender::RaceSelection>(preview);
+        mPreviewTexture = std::make_unique<vsgAdapters::mygui::Texture>(preview->getTexture());
+        mPreviewTexture->setShader("premult_alpha");
+
         // Centre dialog
         center();
 
         setText("AppearanceT", MWBase::Environment::get().getWindowManager()->getGameSettingString("sRaceMenu1", "Appearance"));
         getWidget(mPreviewImage, "PreviewImage");
+        mPreviewImage->setRenderItemTexture(mPreviewTexture.get());
 
         mPreviewImage->eventMouseWheel += MyGUI::newDelegate(this, &RaceDialog::onPreviewScroll);
 
@@ -113,6 +110,10 @@ namespace MWGui
         updateSpellPowers();
     }
 
+    RaceDialog::~RaceDialog()
+    {
+    }
+
     void RaceDialog::setNextButtonShow(bool shown)
     {
         MyGUI::Button* okButton;
@@ -132,37 +133,25 @@ namespace MWGui
         updateSkills();
         updateSpellPowers();
 
-        mPreviewImage->setRenderItemTexture(nullptr);
-
-        mPreview.reset(nullptr);
-        mPreviewTexture.reset(nullptr);
-
-        mPreview = std::make_unique<MWRender::RaceSelectionPreview>(mParent, mResourceSystem);
-        mPreview->rebuild();
-        mPreview->setAngle (mCurrentAngle);
-
-        mPreviewTexture = std::make_unique<osgMyGUI::OSGTexture>(mPreview->getTexture(), mPreview->getTextureStateSet());
-        mPreviewImage->setRenderItemTexture(mPreviewTexture.get());
-        mPreviewImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
-
-        const ESM::NPC& proto = mPreview->getPrototype();
-        setRaceId(proto.mRace);
-        setGender(proto.isMale() ? GM_Male : GM_Female);
+        mProto = *MWBase::Environment::get().getWorld()->getPlayerPtr().get<ESM::NPC>()->mBase;
+        setRaceId(mProto.mRace);
+        setGender(mProto.isMale() ? GM_Male : GM_Female);
         recountParts();
 
         for (unsigned int i=0; i<mAvailableHeads.size(); ++i)
         {
-            if (Misc::StringUtils::ciEqual(mAvailableHeads[i], proto.mHead))
+            if (Misc::StringUtils::ciEqual(mAvailableHeads[i], mProto.mHead))
                 mFaceIndex = i;
         }
 
         for (unsigned int i=0; i<mAvailableHairs.size(); ++i)
         {
-            if (Misc::StringUtils::ciEqual(mAvailableHairs[i], proto.mHair))
+            if (Misc::StringUtils::ciEqual(mAvailableHairs[i], mProto.mHair))
                 mHairIndex = i;
         }
 
-        mPreviewDirty = true;
+        updatePreview();
+        mPreview->setAngle (mCurrentAngle);
 
         size_t initialPos = mHeadRotate->getScrollRange()/2+mHeadRotate->getScrollRange()/10;
         mHeadRotate->setScrollPosition(initialPos);
@@ -173,7 +162,7 @@ namespace MWGui
 
     void RaceDialog::setRaceId(const std::string &raceId)
     {
-        mCurrentRaceId = raceId;
+        mProto.mRace = raceId;
         mRaceList->setIndexSelected(MyGUI::ITEM_NONE);
         size_t count = mRaceList->getItemCount();
         for (size_t i = 0; i < count; ++i)
@@ -192,11 +181,6 @@ namespace MWGui
     void RaceDialog::onClose()
     {
         WindowModal::onClose();
-
-        mPreviewImage->setRenderItemTexture(nullptr);
-
-        mPreviewTexture.reset(nullptr);
-        mPreview.reset(nullptr);
     }
 
     // widget controls
@@ -280,10 +264,10 @@ namespace MWGui
             return;
 
         const std::string *raceId = mRaceList->getItemDataAt<std::string>(_index);
-        if (Misc::StringUtils::ciEqual(mCurrentRaceId, *raceId))
+        if (Misc::StringUtils::ciEqual(mProto.mRace, *raceId))
             return;
 
-        mCurrentRaceId = *raceId;
+        mProto.mRace = *raceId;
 
         recountParts();
 
@@ -322,7 +306,7 @@ namespace MWGui
                     && bodypart.mId[bodypart.mId.size()-1] == 't';
             if (firstPerson)
                 continue;
-            if (Misc::StringUtils::ciEqual(bodypart.mRace, mCurrentRaceId))
+            if (Misc::StringUtils::ciEqual(bodypart.mRace, mProto.mRace))
                 out.push_back(bodypart.mId);
         }
     }
@@ -340,24 +324,22 @@ namespace MWGui
 
     void RaceDialog::updatePreview()
     {
-        ESM::NPC record = mPreview->getPrototype();
-        record.mRace = mCurrentRaceId;
-        record.setIsMale(mGenderIndex == 0);
+        mProto.setIsMale(mGenderIndex == 0);
 
         if (mFaceIndex >= 0 && mFaceIndex < int(mAvailableHeads.size()))
-            record.mHead = mAvailableHeads[mFaceIndex];
+            mProto.mHead = mAvailableHeads[mFaceIndex];
 
         if (mHairIndex >= 0 && mHairIndex < int(mAvailableHairs.size()))
-            record.mHair = mAvailableHairs[mHairIndex];
+            mProto.mHair = mAvailableHairs[mHairIndex];
 
-        try
-        {
-            mPreview->setPrototype(record);
-        }
-        catch (std::exception& e)
-        {
-            Log(Debug::Error) << "Error creating preview: " << e.what();
-        }
+        mPreview->setPrototype(mProto);
+
+        //MWGui::PreviewWidget
+        auto w = mPreviewImage->getCoord().width;
+        auto h = mPreviewImage->getCoord().height;
+        auto preview = mPreview->preview;
+        preview->setViewport(w, h);
+        mPreviewImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, w / float(preview->textureWidth), h / float(preview->textureHeight)));
     }
 
     void RaceDialog::updateRaces()
@@ -382,7 +364,7 @@ namespace MWGui
         for (auto& item : items)
         {
             mRaceList->addItem(item.second, item.first);
-            if (Misc::StringUtils::ciEqual(item.first, mCurrentRaceId))
+            if (Misc::StringUtils::ciEqual(item.first, mProto.mRace))
                 mRaceList->setIndexSelected(index);
             ++index;
         }
@@ -396,7 +378,7 @@ namespace MWGui
         }
         mSkillItems.clear();
 
-        if (mCurrentRaceId.empty())
+        if (mProto.mRace.empty())
             return;
 
         Widgets::MWSkillPtr skillWidget;
@@ -404,7 +386,7 @@ namespace MWGui
         MyGUI::IntCoord coord1(0, 0, mSkillList->getWidth(), 18);
 
         const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
-        const ESM::Race *race = store.get<ESM::Race>().find(mCurrentRaceId);
+        const ESM::Race *race = store.get<ESM::Race>().find(mProto.mRace);
         int count = sizeof(race->mData.mBonus)/sizeof(race->mData.mBonus[0]); // TODO: Find a portable macro for this ARRAYSIZE?
         for (int i = 0; i < count; ++i)
         {
@@ -433,14 +415,14 @@ namespace MWGui
         }
         mSpellPowerItems.clear();
 
-        if (mCurrentRaceId.empty())
+        if (mProto.mRace.empty())
             return;
 
         const int lineHeight = 18;
         MyGUI::IntCoord coord(0, 0, mSpellPowerList->getWidth(), 18);
 
         const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
-        const ESM::Race *race = store.get<ESM::Race>().find(mCurrentRaceId);
+        const ESM::Race *race = store.get<ESM::Race>().find(mProto.mRace);
 
         int i = 0;
         for (const std::string& spellpower : race->mPowers.mList)
@@ -455,10 +437,5 @@ namespace MWGui
             coord.top += lineHeight;
             ++i;
         }
-    }
-
-    const ESM::NPC& RaceDialog::getResult() const
-    {
-        return mPreview->getPrototype();
     }
 }
