@@ -523,6 +523,7 @@ target_link_libraries(components
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
     vsg::vsg
+    ${OPENTHREADS_LIBRARIES}
     ${SDL2_LIBRARIES}
     ${MyGUI_LIBRARIES}
     ${LUA_LIBRARIES}
