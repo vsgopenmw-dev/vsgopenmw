@@ -1,0 +1,8 @@
+# Defines the preference of British or American English spelling.
+vsgopenmw-spelling-policy = {
+    "policy" : "USE_SHORTEST", # Use the shortest spelling.
+    "examples" : {
+        "color_colour" : "color",
+        "minimise_minimize" : "reduce" # When in doubt, use another word.
+    }
+}

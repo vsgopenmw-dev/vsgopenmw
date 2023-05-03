@@ -1,0 +1,54 @@
+vsgopenmw-roadmap={
+"vsgopenmw-alpha" : {},
+"vsgopenmw-feature-parity" : {
+    "vsgopenmw-water-ripples",
+    "vsgopenmw-invisibility-effect",
+    "vsgopenmw-particle-pipeline",
+    "vsgopenmw-weather-particles",
+    "vsgopenmw-paged-terrain",
+    "vsgopenmw-paged-instanced-objects",
+    "vsgopenmw-normal-maps",
+    "vsgopenmw-alpha-to-coverage",
+    "vsgopenmw-nif-nilodnode",
+    "vsgopenmw-nif-internaltexture",
+    "vsgopenmw-nif-builtin-switch-nodes"
+    "vsgopenmw-physics-debug-draw",
+    "vsgopenmw-navmesh-debug-draw"
+},
+"vsgopenmw-optimization" : {
+    "vsgopenmw-cull-particles",
+    "vsgopenmw-shader-settings",
+    "vsgopenmw-array-state-reuse-vertices",
+    "vsgopenmw-subload-light-data",
+    "vsgopenmw-actor-processing-range",
+    "vsgopenmw-test-me(manual-descriptor-poolsize)",
+    "vsgopenmw-profiling",
+    "vsgopenmw-vsg-shader-modules"
+},
+"vsgopenmw-cleanup" : {
+    "vsgopenmw-nif-istream",
+    "vsgopenmw-delete-me",
+    "vsgopenmw-move-me",
+    "vsgopenmw-fixme",
+    "vsgopenmw-cleanup-platform-support",
+    "vsgopenmw-cleanup-unused-settings"
+},
+"vsgopenmw-known-issues" : {
+    "vsgopenmw-apps", # Some applications don't build. Use 'make openmw' instead of 'make'.
+    "vsgopenmw-detournavigator" # detournavigator is untested. Use '[Navigator] enable = false'.
+},
+"vsgopenmw-openmw-resolved-tickets" : {
+    "openmw-3677-particle-system-active",
+    "openmw-7238-particle-system-time",
+    "openmw-6455-controller-random-phase",
+    "openmw-5280-skin-attachment-node",
+    "openmw-6294-skin-nitrishape-scale"
+    "openmw-4437-niskininstance-transformation",
+    "openmw-5310-hardware-skinning",
+    "openmw-6900-clustered-forward-rendering",
+    "openmw-6268-screen-space-reflection",
+    "openmw-3790-infinite-water-plane",
+    "openmw-6362-terrain-precision",
+    "openmw-7192-world-map-size",
+    "openmw-7140-map-update"
+}}
