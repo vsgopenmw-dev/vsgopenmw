@@ -3,8 +3,8 @@ if (NOT DEFINED OPENMW_RESOURCES_ROOT)
 endif()
 
 # Copy resource files into the build directory
-set(SDIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(DDIRRELATIVE resources/shaders)
+#[[
 
 set(SHADER_FILES
     lib/water/fresnel.glsl
@@ -62,6 +62,91 @@ set(SHADER_FILES
     compatibility/luminance/luminance.frag
     core/gui.frag
     core/gui.vert
+)
+
+copy_all_resource_files(${CMAKE_CURRENT_SOURCE_DIR} ${OPENMW_RESOURCES_ROOT}  ${DDIRRELATIVE} "${SHADER_FILES}")
+
+#]]
+
+set(SHADER_FILES
+    lib/pushconstants.glsl
+    lib/inout.glsl
+    lib/inout_texcoord.glsl
+    lib/sets.glsl
+    lib/attributes.glsl
+    lib/light/select.glsl
+    lib/light/grid.glsl
+    lib/light/gridsize.glsl
+    lib/light/equations.glsl
+    lib/light/maxlights.glsl
+    lib/light/pointlights.glsl
+    lib/light/pointspecular.glsl
+    lib/light/pointdiffuse.glsl
+    lib/light/directional.glsl
+    lib/particle/util.glsl
+    lib/particle/data.glsl
+    lib/material/terms.glsl
+    lib/material/bindings.glsl
+    lib/material/data.glsl
+    lib/material/descriptors_vert.glsl
+    lib/material/descriptors_frag.glsl
+    lib/material/alphatest.glsl
+    lib/object/object.glsl
+    lib/object/data.glsl
+    lib/view/bindings.glsl
+    lib/view/data.glsl
+    lib/view/shadow.glsl
+    lib/view/env.glsl
+    lib/view/depthbuffer.glsl
+    lib/view/depthrange.glsl
+    lib/view/screencoord.glsl
+    lib/view/scene.glsl
+    lib/view/raytrace.glsl
+    lib/view/reflect.glsl
+    lib/view/cascades.glsl
+    lib/view/fog.glsl
+    lib/math/rotate.glsl
+    lib/math/billboard.glsl
+    lib/math/projection.glsl
+    default/main.vert
+    default/main.frag
+    terrain/inout.glsl
+    terrain/attributes.glsl
+    terrain/bindings.glsl
+    terrain/data.glsl
+    terrain/main.vert
+    terrain/main.frag
+    water/main.vert
+    water/main.frag
+    water/fresnel.glsl
+    water/rainripples.glsl
+    gui/gui.vert
+    gui/gui.frag
+    sky/atmosphere/inout.glsl
+    sky/atmosphere/main.frag
+    sky/atmosphere/main.vert
+    sky/clouds/inout.glsl
+    sky/clouds/main.frag
+    sky/clouds/main.vert
+    sky/moon/main.frag
+    sky/moon/main.vert
+    sky/night/inout.glsl
+    sky/night/main.frag
+    sky/night/main.vert
+    sky/sun/main.frag
+    sky/sun/main.vert
+    sky/sunglare/main.frag
+    sky/sunglare/main.vert
+    comp/bindings.glsl
+    comp/worldoverlay/update.comp
+    comp/light/assign.comp
+    comp/particle/workgroupsize.glsl
+    comp/particle/particles.glsl
+    comp/particle/size.comp
+    comp/particle/color.comp
+    comp/particle/simulate.comp
+    comp/fogofwar/update.comp
+    comp/fogofwar/constants.glsl
 )
 
 copy_all_resource_files(${CMAKE_CURRENT_SOURCE_DIR} ${OPENMW_RESOURCES_ROOT} ${DDIRRELATIVE} "${SHADER_FILES}")

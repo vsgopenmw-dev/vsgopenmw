@@ -1,0 +1,54 @@
+#include "workgroupsize.glsl"
+#include "particles.glsl"
+#include "comp/bindings.glsl"
+#include "lib/math/rotate.glsl"
+
+layout(std140, set=COMPUTE_SET, binding=ARGS_BINDING) uniform Args {
+    EmitArgs args;
+};
+
+layout(std430, set=COMPUTE_SET, binding=STORAGE_ARGS_BINDING) buffer Frame {
+    FrameArgs frameArgs;
+};
+
+void main()
+{
+    uint gid = gl_GlobalInvocationID.x;
+    float dt = frameArgs.dt;
+    if (gid < particles.length() && frameArgs.dt > 0)
+    {
+        if (!isDead(particles[gid]))
+        {
+            Particle p = particles[gid];
+            p.positionSize.xyz += p.velocityAge.xyz * dt;
+            p.velocityAge.w += dt;
+            /*
+            if (isDead(p))
+            {
+                uint deadListIndex = atomicAdd(deadCount,1);
+                deadIndices[deadListIndex] = gid;
+            }
+            */
+            particles[gid] = p;
+        }
+        else
+        {
+            if (atomicAdd(frameArgs.emitCount, -1) >= 0) //>0
+            {
+                Particle p = particles[gid];
+                p.positionSize.xyz = (frameArgs.emitMatrix * vec4(args.offsetRandom.x * frameArgs.signedRandom[0],
+                    args.offsetRandom.y * frameArgs.signedRandom[1],
+                    args.offsetRandom.z * (frameArgs.signedRandom[2]), 0)).xyz;
+                float speed = args.velocity + args.velocityRandom * frameArgs.signedRandom[4];
+                float hAngle = args.horizontalDir + args.horizontalAngle * frameArgs.signedRandom[5];
+                float vAngle = args.verticalDir + args.verticalAngle * frameArgs.signedRandom[6];
+                mat4 rotateH = rotate(hAngle, vec3(0,0,1));
+                mat4 rotateV = rotate(vAngle, vec3(0,1,0));
+                mat4 emitNormalMatrix = inverse(transpose(frameArgs.emitMatrix * rotateV * rotateH)); //rotateH * rotateV
+                p.velocityAge = vec4(normalize((emitNormalMatrix * vec4(0,0,1,0)).xyz) * speed, 0);
+                p.maxAge = args.lifetime + args.lifetimeRandom * frameArgs.random[0];
+                particles[gid] = p;
+            }
+        }
+    }
+}
