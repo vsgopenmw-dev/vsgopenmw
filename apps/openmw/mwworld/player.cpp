@@ -27,7 +27,7 @@
 #include "../mwmechanics/spellutil.hpp"
 
 #include "../mwrender/camera.hpp"
-#include "../mwrender/renderingmanager.hpp"
+#include "../mwrender/rendermanager.hpp"
 
 #include "cellstore.hpp"
 #include "class.hpp"
@@ -461,11 +461,10 @@ namespace MWWorld
         MWBase::Environment::get().getWindowManager()->updateSpellWindow();
     }
 
-    void Player::update()
+    void Player::update(MWRender::RenderManager& rendering)
     {
         auto player = getPlayer();
         const auto world = MWBase::Environment::get().getWorld();
-        const auto rendering = world->getRenderingManager();
         auto& store = world->getStore();
         auto& playerClass = player.getClass();
         const auto windowMgr = MWBase::Environment::get().getWindowManager();
@@ -482,12 +481,12 @@ namespace MWWorld
         {
             float werewolfFov = Fallback::Map::getFloat("General_Werewolf_FOV");
             if (werewolfFov != 0)
-                rendering->overrideFieldOfView(werewolfFov);
+                rendering.overrideFieldOfView(werewolfFov);
             windowMgr->setWerewolfOverlay(true);
         }
         else
         {
-            rendering->resetFieldOfView();
+            rendering.resetFieldOfView();
             windowMgr->setWerewolfOverlay(false);
         }
 
@@ -499,9 +498,9 @@ namespace MWWorld
         static const float i1stPersonSneakDelta
             = store.get<ESM::GameSetting>().find("i1stPersonSneakDelta")->mValue.getFloat();
         if (sneaking && !swimming && !flying)
-            rendering->getCamera()->setSneakOffset(i1stPersonSneakDelta);
+            rendering.getCamera()->setSneakOffset(i1stPersonSneakDelta);
         else
-            rendering->getCamera()->setSneakOffset(0.f);
+            rendering.getCamera()->setSneakOffset(0.f);
 
         int blind = 0;
         const auto& magicEffects = playerClass.getCreatureStats(player).getMagicEffects();
@@ -510,7 +509,7 @@ namespace MWWorld
         windowMgr->setBlindness(std::clamp(blind, 0, 100));
 
         int nightEye = static_cast<int>(magicEffects.get(ESM::MagicEffect::NightEye).getMagnitude());
-        rendering->setNightEyeFactor(std::min(1.f, (nightEye / 100.f)));
+        rendering.setNightEyeFactor(std::min(1.f, (nightEye / 100.f)));
     }
 
 }

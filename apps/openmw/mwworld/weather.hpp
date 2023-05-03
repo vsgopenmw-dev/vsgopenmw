@@ -12,7 +12,7 @@
 
 #include "../mwbase/soundmanager.hpp"
 
-#include "../mwrender/skyutil.hpp"
+#include "../mwrender/weatherdata.hpp"
 
 namespace ESM
 {
@@ -24,7 +24,7 @@ namespace ESM
 
 namespace MWRender
 {
-    class RenderingManager;
+    class RenderManager;
 }
 
 namespace Loading
@@ -123,6 +123,7 @@ namespace MWWorld
             const std::string& particleEffect);
 
         std::string mCloudTexture;
+        size_t mCloudTextureIndex = 0;
 
         // Sky (atmosphere) color
         TimeOfDayInterpolator<osg::Vec4f> mSkyColor;
@@ -277,7 +278,7 @@ namespace MWWorld
     {
     public:
         // Have to pass fallback and Store, can't use singleton since World isn't fully constructed yet at the time
-        WeatherManager(MWRender::RenderingManager& rendering, MWWorld::ESMStore& store);
+        WeatherManager(MWRender::RenderManager& rendering, MWWorld::ESMStore& store);
         ~WeatherManager();
 
         /**
@@ -328,7 +329,8 @@ namespace MWWorld
 
     private:
         MWWorld::ESMStore& mStore;
-        MWRender::RenderingManager& mRendering;
+        MWRender::RenderManager& mRendering;
+        float mAtmosphereNightRoll = 0;
         float mSunriseTime;
         float mSunsetTime;
         float mSunriseDuration;

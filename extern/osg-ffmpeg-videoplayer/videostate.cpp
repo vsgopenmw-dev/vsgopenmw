@@ -7,8 +7,6 @@
 #include <memory>
 #include <thread>
 #include <chrono>
-
-#include <osg/Texture2D>
 #include <utility>
 
 #if defined(_MSC_VER)
@@ -281,21 +279,7 @@ void VideoState::video_display(VideoPicture *vp)
 {
     if(this->video_ctx->width != 0 && this->video_ctx->height != 0)
     {
-        if (!mTexture.get())
-        {
-            mTexture = new osg::Texture2D;
-            mTexture->setDataVariance(osg::Object::DYNAMIC);
-            mTexture->setResizeNonPowerOfTwoHint(false);
-            mTexture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-            mTexture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-        }
-
-        osg::ref_ptr<osg::Image> image = new osg::Image;
-
-        image->setImage(this->video_ctx->width, this->video_ctx->height,
-                        1, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, vp->rgbaFrame->data[0], osg::Image::NO_DELETE);
-
-        mTexture->setImage(image);
+        mDisplayData = vp->rgbaFrame->data[0];
     }
 }
 
@@ -843,13 +827,6 @@ void VideoState::deinit()
 #endif
         }
         avformat_close_input(&this->format_ctx);
-    }
-
-    if (mTexture)
-    {
-        // reset Image separately, it's pointing to *this and there might still be outside references to mTexture
-        mTexture->setImage(nullptr);
-        mTexture = nullptr;
     }
 
     // Deallocate RGBA frame queue.

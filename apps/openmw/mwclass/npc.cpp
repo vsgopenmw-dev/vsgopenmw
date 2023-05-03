@@ -5,7 +5,6 @@
 #include <memory>
 
 #include <components/misc/constants.hpp>
-#include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
 
 #include <components/debug/debuglog.hpp>
@@ -51,7 +50,6 @@
 #include "../mwworld/localscripts.hpp"
 #include "../mwworld/ptr.hpp"
 
-#include "../mwrender/npcanimation.hpp"
 #include "../mwrender/objects.hpp"
 #include "../mwrender/renderinginterface.hpp"
 
@@ -434,46 +432,35 @@ namespace MWClass
     {
         const MWWorld::LiveCellRef<ESM::NPC>* ref = ptr.get<ESM::NPC>();
 
-        std::string model = Settings::Manager::getString("baseanim", "Models");
+        static const std::string baseanim = Settings::Manager::getString("baseanim", "Models");
+        static const std::string baseanimkna = Settings::Manager::getString("baseanimkna", "Models");
         const ESM::Race* race
             = MWBase::Environment::get().getWorld()->getStore().get<ESM::Race>().find(ref->mBase->mRace);
         if (race->mData.mFlags & ESM::Race::Beast)
-            model = Settings::Manager::getString("baseanimkna", "Models");
-
-        return model;
+            return baseanimkna;
+        return baseanim;
     }
 
     void Npc::getModelsToPreload(const MWWorld::Ptr& ptr, std::vector<std::string>& models) const
     {
         const MWWorld::LiveCellRef<ESM::NPC>* npc = ptr.get<ESM::NPC>();
-        const ESM::Race* race
-            = MWBase::Environment::get().getWorld()->getStore().get<ESM::Race>().search(npc->mBase->mRace);
-        if (race && race->mData.mFlags & ESM::Race::Beast)
-            models.emplace_back(Settings::Manager::getString("baseanimkna", "Models"));
-
-        // keep these always loaded just in case
-        models.emplace_back(Settings::Manager::getString("xargonianswimkna", "Models"));
-        models.emplace_back(Settings::Manager::getString("xbaseanimfemale", "Models"));
-        models.emplace_back(Settings::Manager::getString("xbaseanim", "Models"));
-
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
 
         if (!npc->mBase->mModel.empty())
-            models.push_back(Misc::ResourceHelpers::correctMeshPath(npc->mBase->mModel, vfs));
+            models.push_back(npc->mBase->mModel);
 
         if (!npc->mBase->mHead.empty())
         {
             const ESM::BodyPart* head
                 = MWBase::Environment::get().getWorld()->getStore().get<ESM::BodyPart>().search(npc->mBase->mHead);
             if (head)
-                models.push_back(Misc::ResourceHelpers::correctMeshPath(head->mModel, vfs));
+                models.push_back(head->mModel);
         }
         if (!npc->mBase->mHair.empty())
         {
             const ESM::BodyPart* hair
                 = MWBase::Environment::get().getWorld()->getStore().get<ESM::BodyPart>().search(npc->mBase->mHair);
             if (hair)
-                models.push_back(Misc::ResourceHelpers::correctMeshPath(hair->mModel, vfs));
+                models.push_back(hair->mModel);
         }
 
         bool female = (npc->mBase->mFlags & ESM::NPC::Female);
@@ -512,12 +499,13 @@ namespace MWClass
                     const ESM::BodyPart* part
                         = MWBase::Environment::get().getWorld()->getStore().get<ESM::BodyPart>().search(partname);
                     if (part && !part->mModel.empty())
-                        models.push_back(Misc::ResourceHelpers::correctMeshPath(part->mModel, vfs));
+                        models.push_back(part->mModel);
                 }
             }
         }
 
         // preload body parts
+        /*
         if (race)
         {
             const std::vector<const ESM::BodyPart*>& parts
@@ -526,9 +514,10 @@ namespace MWClass
             {
                 const ESM::BodyPart* part = *it;
                 if (part && !part->mModel.empty())
-                    models.push_back(Misc::ResourceHelpers::correctMeshPath(part->mModel, vfs));
+                    models.push_back(part->mModel);
             }
         }
+        */
     }
 
     std::string_view Npc::getName(const MWWorld::ConstPtr& ptr) const

@@ -4,7 +4,6 @@
 #include <components/esm/refid.hpp>
 #include <components/esm3/loadmgef.hpp>
 #include <components/esm3/loadstat.hpp>
-#include <components/misc/resourcehelpers.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -14,7 +13,7 @@
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/manualref.hpp"
 
-#include "../mwrender/animation.hpp"
+#include "../mwrender/effect.hpp"
 
 #include "aifollow.hpp"
 #include "creaturestats.hpp"
@@ -105,17 +104,7 @@ namespace MWMechanics
 
                 MWWorld::Ptr placed = world->safePlaceObject(ref.getPtr(), summoner, summoner.getCell(), 0, 120.f);
 
-                MWRender::Animation* anim = world->getAnimation(placed);
-                if (anim)
-                {
-                    const ESM::Static* fx
-                        = world->getStore().get<ESM::Static>().search(ESM::RefId::stringRefId("VFX_Summon_Start"));
-                    if (fx)
-                    {
-                        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                        anim->addEffect(Misc::ResourceHelpers::correctMeshPath(fx->mModel, vfs), -1, false);
-                    }
-                }
+                MWRender::addEffect(placed, ESM::RefId::stringRefId("VFX_Summon_Start"));
             }
             catch (std::exception& e)
             {

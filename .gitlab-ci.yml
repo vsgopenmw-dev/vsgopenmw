@@ -1,3 +1,6 @@
+vsgopenmw-ci-policy(vsgopenmw-code-of-conduct)=0
+#[[
+
 default:
   interruptible: true
 

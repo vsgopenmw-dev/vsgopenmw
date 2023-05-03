@@ -18,6 +18,10 @@ namespace Loading
 {
     class Listener;
 }
+namespace MWState
+{
+    class Loading;
+}
 
 namespace MWMechanics
 {
@@ -103,9 +107,9 @@ namespace MWWorld
             Store<ESM::MagicEffect>, Store<ESM::Skill>,
 
             // Special entry which is hardcoded and not loaded from an ESM
-            Store<ESM::Attribute>,
+            Store<ESM::Attribute>>;
 
-            Store<ESM4::Static>, Store<ESM4::Cell>, Store<ESM4::Light>>;
+            //Store<ESM4::Static>, Store<ESM4::Cell>, Store<ESM4::Light>>;
 
     private:
         template <typename T>
@@ -172,7 +176,7 @@ namespace MWWorld
         /// Validate entries in store after loading a save
         void validateDynamic();
 
-        void load(ESM::ESMReader& esm, Loading::Listener* listener, ESM::Dialogue*& dialogue);
+        void load(ESM::ESMReader& esm, MWState::Loading& state, ESM::Dialogue*& dialogue);
         void loadESM4(ESM4::Reader& esm);
 
         template <class T>

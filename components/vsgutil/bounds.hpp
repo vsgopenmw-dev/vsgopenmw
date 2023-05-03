@@ -35,57 +35,6 @@ namespace vsgUtil
         auto radius = vsg::length(extent(box) / T(2));
         return { center(box), radius };
     }
-
-    template <typename T>
-    vsg::t_sphere<T> transformSphere(const vsg::t_mat4<T>& matrix, const vsg::t_sphere<T>& in_sphere)
-    {
-        auto bsphere = in_sphere;
-        auto xdash = bsphere.center;
-        xdash.x += bsphere.radius;
-        xdash = matrix * xdash;
-
-        auto ydash = bsphere.center;
-        ydash.y += bsphere.radius;
-        ydash = matrix * ydash;
-
-        auto zdash = bsphere.center;
-        zdash.z += bsphere.radius;
-        zdash = matrix * zdash;
-
-        bsphere.center = matrix * bsphere.center;
-
-        xdash -= bsphere.center;
-        auto sqrlen_xdash = vsg::length2(xdash);
-
-        ydash -= bsphere.center;
-        auto sqrlen_ydash = vsg::length2(ydash);
-
-        zdash -= bsphere.center;
-        auto sqrlen_zdash = vsg::length2(zdash);
-
-        bsphere.radius = sqrlen_xdash;
-        if (bsphere.radius < sqrlen_ydash)
-            bsphere.radius = sqrlen_ydash;
-        if (bsphere.radius < sqrlen_zdash)
-            bsphere.radius = sqrlen_zdash;
-        bsphere.radius = sqrtf(bsphere.radius);
-        return bsphere;
-    }
-
-    template<typename T>
-    void expandBoxBySphere(vsg::t_box<T>& box, const vsg::t_sphere<T>& sh)
-    {
-        if (!sh.valid()) return;
-
-        if(sh.center.x-sh.radius<box.min.x) box.min.x = sh.center.x-sh.radius;
-        if(sh.center.x+sh.radius>box.max.x) box.max.x = sh.center.x+sh.radius;
-
-        if(sh.center.y-sh.radius<box.min.y) box.min.y = sh.center.y-sh.radius;
-        if(sh.center.y+sh.radius>box.max.y) box.max.y = sh.center.y+sh.radius;
-
-        if(sh.center.z-sh.radius<box.min.z) box.min.z = sh.center.z-sh.radius;
-        if(sh.center.z+sh.radius>box.max.z) box.max.z = sh.center.z+sh.radius;
-    }
 }
 
 #endif

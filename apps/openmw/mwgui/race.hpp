@@ -5,24 +5,12 @@
 #include <components/esm/refid.hpp>
 #include <memory>
 
+#include <components/esm3/loadnpc.hpp>
+
 namespace MWRender
 {
-    class RaceSelectionPreview;
-}
-
-namespace ESM
-{
-    struct NPC;
-}
-
-namespace osg
-{
-    class Group;
-}
-
-namespace Resource
-{
-    class ResourceSystem;
+    class Preview;
+    class RaceSelection;
 }
 
 namespace MWGui
@@ -30,7 +18,8 @@ namespace MWGui
     class RaceDialog : public WindowModal
     {
     public:
-        RaceDialog(osg::Group* parent, Resource::ResourceSystem* resourceSystem);
+        RaceDialog(MWRender::Preview* p);
+        ~RaceDialog();
 
         enum Gender
         {
@@ -38,8 +27,8 @@ namespace MWGui
             GM_Female
         };
 
-        const ESM::NPC& getResult() const;
-        const ESM::RefId& getRaceId() const { return mCurrentRaceId; }
+        const ESM::NPC& getResult() const { return mProto; }
+        const ESM::RefId& getRaceId() const { return mProto.mRace; }
         Gender getGender() const { return mGenderIndex == 0 ? GM_Male : GM_Female; }
 
         void setRaceId(const ESM::RefId& raceId);
@@ -92,9 +81,6 @@ namespace MWGui
 
         void getBodyParts(int part, std::vector<ESM::RefId>& out);
 
-        osg::Group* mParent;
-        Resource::ResourceSystem* mResourceSystem;
-
         std::vector<ESM::RefId> mAvailableHeads;
         std::vector<ESM::RefId> mAvailableHairs;
 
@@ -110,14 +96,11 @@ namespace MWGui
 
         int mGenderIndex, mFaceIndex, mHairIndex;
 
-        ESM::RefId mCurrentRaceId;
-
         float mCurrentAngle;
 
-        std::unique_ptr<MWRender::RaceSelectionPreview> mPreview;
+        std::unique_ptr<MWRender::RaceSelection> mPreview;
         std::unique_ptr<MyGUI::ITexture> mPreviewTexture;
-
-        bool mPreviewDirty;
+        ESM::NPC mProto;
     };
 }
 #endif

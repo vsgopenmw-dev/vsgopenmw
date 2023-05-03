@@ -9,10 +9,9 @@
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/readerscache.hpp>
-#include <components/loadinglistener/loadinglistener.hpp>
 #include <components/lua/configuration.hpp>
 #include <components/misc/algorithm.hpp>
-
+/*7
 #include <components/esm4/common.hpp>
 #include <components/esm4/loadcell.hpp>
 #include <components/esm4/loadligh.hpp>
@@ -20,9 +19,11 @@
 #include <components/esm4/loadstat.hpp>
 #include <components/esm4/reader.hpp>
 #include <components/esm4/readerutils.hpp>
+*/
 #include <components/esmloader/load.hpp>
 
 #include "../mwmechanics/spelllist.hpp"
+#include "../mwstate/loading.hpp"
 
 namespace
 {
@@ -186,6 +187,7 @@ namespace MWWorld
             }
         }
 
+        /*
         template <typename T>
         static bool typedReadRecordESM4(ESM4::Reader& reader, Store<T>& store)
         {
@@ -214,6 +216,7 @@ namespace MWWorld
             return std::apply(
                 [&reader](auto&... x) { return (typedReadRecordESM4(reader, x) || ...); }, store.mStoreImp->mStores);
         }
+                */
     };
 
     int ESMStore::find(const ESM::RefId& id) const
@@ -287,18 +290,15 @@ namespace MWWorld
         return false;
     }
 
-    void ESMStore::load(ESM::ESMReader& esm, Loading::Listener* listener, ESM::Dialogue*& dialogue)
+    void ESMStore::load(ESM::ESMReader& esm, MWState::Loading& state, ESM::Dialogue*& dialogue)
     {
-        if (listener != nullptr)
-            listener->setProgressRange(::EsmLoader::fileProgress);
-
         // Land texture loading needs to use a separate internal store for each plugin.
         // We set the number of plugins here so we can properly verify if valid plugin
         // indices are being passed to the LandTexture Store retrieval methods.
         getWritable<ESM::LandTexture>().resize(esm.getIndex() + 1);
 
         // Loop through all records
-        while (esm.hasMoreRecs())
+        while (esm.hasMoreRecs() && !state.abort)
         {
             ESM::NAME n = esm.getRecName();
             esm.getRecHeader();
@@ -369,15 +369,16 @@ namespace MWWorld
                     dialogue = nullptr;
                 }
             }
-            if (listener != nullptr)
-                listener->setProgress(::EsmLoader::fileProgress * esm.getFileOffset() / esm.getFileSize());
+            state.setComplete(esm.getFileOffset() / static_cast<float>(esm.getFileSize()));
         }
     }
 
     void ESMStore::loadESM4(ESM4::Reader& reader)
     {
+        /*
         auto visitorRec = [this](ESM4::Reader& reader) { return ESMStoreImp::readRecord(reader, *this); };
         ESM4::ReaderUtils::readAll(reader, visitorRec, [](ESM4::Reader&) {});
+        */
     }
 
     void ESMStore::setIdType(const ESM::RefId& id, ESM::RecNameInts type)
@@ -452,7 +453,7 @@ namespace MWWorld
     {
         // TODO: We currently need to read entire files here again.
         // We should consider consolidating or deferring this reading.
-        if (!mRefCount.empty())
+        if (!mRefCount.empty() || getenv("VSGOPENMW_FAST_BOOT") != 0)
             return;
         std::vector<Ref> refs;
         std::set<ESM::RefId> keyIDs;

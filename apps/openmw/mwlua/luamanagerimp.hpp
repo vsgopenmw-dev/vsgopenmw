@@ -1,6 +1,9 @@
 #ifndef MWLUA_LUAMANAGERIMP_H
 #define MWLUA_LUAMANAGERIMP_H
-
+namespace MWRender
+{
+    class RenderManager;
+}
 #include <map>
 #include <set>
 
@@ -36,7 +39,7 @@ namespace MWLua
         LuaManager(LuaManager&&) = delete;
 
         // Called by engine.cpp when the environment is fully initialized.
-        void init();
+        void init(MWRender::RenderManager* renderManager);
 
         void loadPermanentStorage(const std::filesystem::path& userConfigPath);
         void savePermanentStorage(const std::filesystem::path& userConfigPath);
@@ -50,13 +53,13 @@ namespace MWLua
         // that affect the scene graph is forbidden. Such modifications must
         // be queued for execution in synchronizedUpdate().
         // The parallelism can be turned off in the settings.
-        void update();
+        void update(float dt);
 
         // \brief Executes latency-critical and scene graph related Lua logic.
         //
         // Called by engine.cpp from the main thread between InputManager and MechanicsManager updates.
         // Can use the scene graph and applies the actions queued during update()
-        void synchronizedUpdate();
+        void synchronizedUpdate(float dt);
 
         // Available everywhere through the MWBase::LuaManager interface.
         // LuaManager queues these events and propagates to scripts on the next `update` call.

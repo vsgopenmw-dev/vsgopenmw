@@ -102,9 +102,12 @@ namespace Nif
         // NiNodes (or types derived from NiNodes) can be parents.
         std::vector<NiNode*> parents;
 
-        bool isBone{ false };
-
-        void setBone();
+        enum UseFlags
+        {
+            Bone = 1,
+            Emitter = (1 << 1)
+        };
+        int useFlags{ 0 };
 
         bool isHidden() const { return flags & Flag_Hidden; }
         bool hasMeshCollision() const { return flags & Flag_MeshCollision; }
@@ -119,7 +122,8 @@ namespace Nif
 
         enum BSAnimFlags
         {
-            AnimFlag_AutoPlay = 0x0020
+            AnimFlag_AutoPlay = 0x0020,
+            AnimFlag_NotRandom = 0x0040 //0x40
         };
         enum BSParticleFlags
         {

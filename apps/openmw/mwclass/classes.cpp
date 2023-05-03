@@ -49,7 +49,9 @@ namespace MWClass
         Static::registerSelf();
         BodyPart::registerSelf();
 
+        /*
         ESM4Static::registerSelf();
         ESM4Light::registerSelf();
+        */
     }
 }

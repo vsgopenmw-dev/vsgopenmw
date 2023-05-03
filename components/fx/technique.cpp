@@ -504,8 +504,8 @@ namespace fx
 
             expect<Lexer::Equal>("error parsing config for uniform block");
 
-            constexpr bool isVec = std::is_same_v<osg::Vec2f,
-                                       SrcT> || std::is_same_v<osg::Vec3f, SrcT> || std::is_same_v<osg::Vec4f, SrcT>;
+            constexpr bool isVec = std::is_same_v<osg::Vec2f, SrcT> || std::is_same_v<osg::Vec3f, SrcT>
+                || std::is_same_v<osg::Vec4f, SrcT>;
             constexpr bool isFloat = std::is_same_v<float, SrcT>;
             constexpr bool isInt = std::is_same_v<int, SrcT>;
             constexpr bool isBool = std::is_same_v<bool, SrcT>;

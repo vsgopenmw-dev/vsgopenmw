@@ -8,10 +8,12 @@
 #include <components/esm/records.hpp>
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
+/*
 #include <components/esm4/loadcell.hpp>
 #include <components/esm4/loadligh.hpp>
 #include <components/esm4/loadrefr.hpp>
 #include <components/esm4/loadstat.hpp>
+*/
 #include <components/loadinglistener/loadinglistener.hpp>
 #include <components/misc/rng.hpp>
 
@@ -480,6 +482,8 @@ namespace MWWorld
     // this method *must* be called right after esm3.loadCell()
     void Store<ESM::Cell>::handleMovedCellRefs(ESM::ESMReader& esm, ESM::Cell* cell)
     {
+        if (getenv("VSGOPENMW_FAST_BOOT") != 0)
+            return;
         ESM::CellRef ref;
         ESM::MovedCellRef cMRef;
         bool deleted = false;
@@ -518,13 +522,13 @@ namespace MWWorld
     }
     const ESM::Cell* Store<ESM::Cell>::search(std::string_view name) const
     {
-        DynamicInt::const_iterator it = mInt.find(name);
+        DynamicInt::const_iterator it = mInt.find(std::string(name));
         if (it != mInt.end())
         {
             return &(it->second);
         }
 
-        DynamicInt::const_iterator dit = mDynamicInt.find(name);
+        DynamicInt::const_iterator dit = mDynamicInt.find(std::string(name));
         if (dit != mDynamicInt.end())
         {
             return &dit->second;
@@ -817,7 +821,7 @@ namespace MWWorld
     }
     bool Store<ESM::Cell>::erase(std::string_view name)
     {
-        auto it = mDynamicInt.find(name);
+        auto it = mDynamicInt.find(std::string(name));
 
         if (it == mDynamicInt.end())
         {
@@ -963,11 +967,7 @@ namespace MWWorld
     }
     const ESM::Pathgrid* Store<ESM::Pathgrid>::search(const MWWorld::Cell& cellVariant) const
     {
-        return ESM::visit(ESM::VisitOverload{
-                              [&](const ESM::Cell& cell) { return search(cell); },
-                              [&](const ESM4::Cell& cell) -> const ESM::Pathgrid* { return nullptr; },
-                          },
-            cellVariant);
+        return search(cellVariant.getEsm3());
     }
     const ESM::Pathgrid* Store<ESM::Pathgrid>::find(const ESM::Cell& cell) const
     {
@@ -1179,11 +1179,12 @@ namespace MWWorld
     }
 
     // ESM4 Cell
+    /*
     //=========================================================================
 
     const ESM4::Cell* Store<ESM4::Cell>::searchCellName(std::string_view cellName) const
     {
-        const auto foundCell = mCellNameIndex.find(cellName);
+        const auto foundCell = mCellNameIndex.find(std::string(cellName));
         if (foundCell == mCellNameIndex.end())
             return nullptr;
         return foundCell->second;
@@ -1201,7 +1202,7 @@ namespace MWWorld
         auto cellPtr = TypedDynamicStore<ESM4::Cell>::insertStatic(item);
         mCellNameIndex[cellPtr->mEditorId] = cellPtr;
         return cellPtr;
-    }
+    }*/
 }
 
 template class MWWorld::TypedDynamicStore<ESM::Activator>;
@@ -1247,7 +1248,9 @@ template class MWWorld::TypedDynamicStore<ESM::StartScript>;
 template class MWWorld::TypedDynamicStore<ESM::Static>;
 template class MWWorld::TypedDynamicStore<ESM::Weapon>;
 
+/*
 template class MWWorld::TypedDynamicStore<ESM4::Static>;
 template class MWWorld::TypedDynamicStore<ESM4::Light>;
 template class MWWorld::TypedDynamicStore<ESM4::Reference>;
 template class MWWorld::TypedDynamicStore<ESM4::Cell>;
+*/

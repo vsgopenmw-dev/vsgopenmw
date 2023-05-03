@@ -5,8 +5,6 @@
 #include <MyGUI_TabItem.h>
 
 #include <LinearMath/btQuickprof.h>
-#include <components/debug/debugging.hpp>
-#include <components/settings/settings.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
@@ -125,46 +123,42 @@ namespace MWGui
 #endif
     }
 
+    /*
     static std::vector<char> sLogCircularBuffer;
     static std::mutex sBufferMutex;
     static int64_t sLogStartIndex;
     static int64_t sLogEndIndex;
+    */
 
     void DebugWindow::startLogRecording()
     {
+        /*
         sLogCircularBuffer.resize(Settings::Manager::getSize("log buffer size", "General"));
         Debug::setLogListener([](Debug::Level level, std::string_view prefix, std::string_view msg) {
             if (sLogCircularBuffer.empty())
-                return; // Log viewer is disabled.
+                return;  // Log viewer is disabled.
             std::string_view color;
             switch (level)
             {
-                case Debug::Error:
-                    color = "#FF0000";
-                    break;
-                case Debug::Warning:
-                    color = "#FFFF00";
-                    break;
-                case Debug::Info:
-                    color = "#FFFFFF";
-                    break;
+                case Debug::Error: color = "#FF0000"; break;
+                case Debug::Warning: color = "#FFFF00"; break;
+                case Debug::Info: color = "#FFFFFF"; break;
                 case Debug::Verbose:
-                case Debug::Debug:
-                    color = "#666666";
-                    break;
-                default:
-                    color = "#FFFFFF";
+                case Debug::Debug: color = "#666666"; break;
+                default: color = "#FFFFFF";
             }
             bool bufferOverflow = false;
             std::lock_guard lock(sBufferMutex);
             const int64_t bufSize = sLogCircularBuffer.size();
-            auto addChar = [&](char c) {
+            auto addChar = [&](char c)
+            {
                 sLogCircularBuffer[sLogEndIndex++] = c;
                 if (sLogEndIndex == bufSize)
                     sLogEndIndex = 0;
                 bufferOverflow = bufferOverflow || sLogEndIndex == sLogStartIndex;
             };
-            auto addShieldedStr = [&](std::string_view s) {
+            auto addShieldedStr = [&](std::string_view s)
+            {
                 for (char c : s)
                 {
                     addChar(c);
@@ -179,16 +173,18 @@ namespace MWGui
             if (bufferOverflow)
                 sLogStartIndex = (sLogEndIndex + 1) % bufSize;
         });
+        */
     }
 
     void DebugWindow::updateLogView()
     {
+        /*
         std::lock_guard lock(sBufferMutex);
 
         if (!mLogView || sLogCircularBuffer.empty() || sLogStartIndex == sLogEndIndex)
             return;
         if (mLogView->isTextSelection())
-            return; // Don't change text while player is trying to copy something
+            return;  // Don't change text while player is trying to copy something
 
         std::string addition;
         const int64_t bufSize = sLogCircularBuffer.size();
@@ -204,7 +200,7 @@ namespace MWGui
         }
 
         size_t scrollPos = mLogView->getVScrollPosition();
-        bool scrolledToTheEnd = scrollPos + 1 >= mLogView->getVScrollRange();
+        bool scrolledToTheEnd = scrollPos+1 >= mLogView->getVScrollRange();
         int64_t newSizeEstimation = mLogView->getTextLength() + addition.size();
         if (newSizeEstimation > bufSize)
             mLogView->eraseText(0, newSizeEstimation - bufSize);
@@ -213,6 +209,7 @@ namespace MWGui
             mLogView->setVScrollPosition(mLogView->getVScrollRange() - 1);
         else
             mLogView->setVScrollPosition(scrollPos);
+            */
     }
 
     void DebugWindow::updateLuaProfile()

@@ -5,8 +5,6 @@
 #include <numeric>
 #include <sstream>
 
-#include <osg/Matrixf>
-
 #include <components/debug/debuglog.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
@@ -362,7 +360,7 @@ namespace MWSound
             return;
 
         MWBase::World* world = MWBase::Environment::get().getWorld();
-        const osg::Vec3f pos = world->getActorHeadTransform(ptr).getTrans();
+        auto pos = world->getActorHeadPosition(ptr);
 
         stopSay(ptr);
         StreamPtr sound = playVoice(decoder, pos, (ptr == MWMechanics::getPlayer()));
@@ -958,7 +956,7 @@ namespace MWSound
                 if (!ptr.isEmpty())
                 {
                     MWBase::World* world = MWBase::Environment::get().getWorld();
-                    sound->setPosition(world->getActorHeadTransform(ptr).getTrans());
+                    sound->setPosition(world->getActorHeadPosition(ptr));
                 }
 
                 cull3DSound(sound);

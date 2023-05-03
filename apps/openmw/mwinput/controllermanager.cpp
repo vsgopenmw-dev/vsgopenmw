@@ -100,7 +100,7 @@ namespace MWInput
             {
                 mMouseManager->injectMouseMove(xMove, yMove, mouseWheelMove);
                 mMouseManager->warpMouse();
-                MWBase::Environment::get().getWindowManager()->setCursorActive(true);
+                //MWBase::Environment::get().getWindowManager()->setCursorActive(true);
             }
         }
 
@@ -281,7 +281,7 @@ namespace MWInput
                 break;
             case SDL_CONTROLLER_BUTTON_LEFTSTICK:
                 mGamepadGuiCursorEnabled = !mGamepadGuiCursorEnabled;
-                MWBase::Environment::get().getWindowManager()->setCursorActive(mGamepadGuiCursorEnabled);
+                //MWBase::Environment::get().getWindowManager()->setCursorActive(mGamepadGuiCursorEnabled);
                 return true;
             default:
                 return false;

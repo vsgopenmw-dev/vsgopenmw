@@ -1,11 +1,12 @@
 #include "cell.hpp"
 
 #include <components/esm3/loadcell.hpp>
-#include <components/esm4/loadcell.hpp>
+//#include <components/esm4/loadcell.hpp>
 #include <components/misc/algorithm.hpp>
 
 namespace MWWorld
 {
+    /*
     Cell::Cell(const ESM4::Cell& cell)
         : ESM::CellVariant(cell)
         , mIsExterior(!(cell.mCellFlags & ESM4::CELL_Interior))
@@ -29,6 +30,7 @@ namespace MWWorld
             ,mWaterHeight(cell.mWaterHeight)
     {
     }
+    */
 
     Cell::Cell(const ESM::Cell& cell)
         : ESM::CellVariant(cell)
@@ -53,10 +55,6 @@ namespace MWWorld
 
     std::string Cell::getDescription() const
     {
-        return ESM::visit(ESM::VisitOverload{
-                              [&](const ESM::Cell& cell) { return cell.getDescription(); },
-                              [&](const ESM4::Cell& cell) { return cell.mEditorId; },
-                          },
-            *this);
+        return getEsm3().getDescription();
     }
 }

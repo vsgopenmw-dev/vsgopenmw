@@ -13,8 +13,6 @@
 #include <components/esm3/cellid.hpp>
 #include <components/misc/rng.hpp>
 
-#include <osg/Timer>
-
 #include "../mwworld/doorstate.hpp"
 #include "../mwworld/globalvariablename.hpp"
 #include "../mwworld/ptr.hpp"
@@ -27,13 +25,12 @@ namespace osg
     class Vec3f;
     class Matrixf;
     class Quat;
-    class Image;
     class Stats;
 }
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
 
 namespace ESM
@@ -66,9 +63,12 @@ namespace MWPhysics
     class RayCastingInterface;
 }
 
+namespace MWAnim
+{
+    class Object;
+}
 namespace MWRender
 {
-    class Animation;
     class Camera;
     class RenderingManager;
     class PostProcessor;
@@ -132,7 +132,7 @@ namespace MWBase
         virtual int countSavedGameRecords() const = 0;
         virtual int countSavedGameCells() const = 0;
 
-        virtual void write(ESM::ESMWriter& writer, Loading::Listener& listener) const = 0;
+        virtual void write(ESM::ESMWriter& writer, MWState::Loading& state) const = 0;
 
         virtual void readRecord(ESM::ESMReader& reader, uint32_t type, const std::map<int, int>& contentFileMap) = 0;
 
@@ -436,9 +436,8 @@ namespace MWBase
         virtual bool isWaterWalkingCastableOnTarget(const MWWorld::ConstPtr& target) const = 0;
         virtual bool isOnGround(const MWWorld::Ptr& ptr) const = 0;
 
-        virtual osg::Matrixf getActorHeadTransform(const MWWorld::ConstPtr& actor) const = 0;
+        virtual osg::Vec3f getActorHeadPosition(const MWWorld::ConstPtr& actor) const = 0;
 
-        virtual MWRender::Camera* getCamera() = 0;
         virtual void togglePOV(bool force = false) = 0;
         virtual bool isFirstPerson() const = 0;
         virtual bool isPreviewModeEnabled() const = 0;
@@ -469,12 +468,12 @@ namespace MWBase
             = 0; ///< @return true if the player is colliding with \a object
         virtual bool getActorCollidingWith(const MWWorld::ConstPtr& object)
             = 0; ///< @return true if any actor is colliding with \a object
-        virtual void hurtStandingActors(const MWWorld::ConstPtr& object, float dmgPerSecond) = 0;
+        virtual void hurtStandingActors(const MWWorld::ConstPtr& object, float dmg) = 0;
         ///< Apply a health difference to any actors standing on \a object.
-        /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-        virtual void hurtCollidingActors(const MWWorld::ConstPtr& object, float dmgPerSecond) = 0;
+        /// To hurt actors, health should be a positive value. For a negative value, actors will be healed.
+        virtual void hurtCollidingActors(const MWWorld::ConstPtr& object, float dmg) = 0;
         ///< Apply a health difference to any actors colliding with \a object.
-        /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
+        /// To hurt actors, health should be a positive value. For a negative value, actors will be healed.
 
         virtual float getWindSpeed() = 0;
 
@@ -505,13 +504,9 @@ namespace MWBase
         virtual RestPermitted canRest() const = 0;
 
         /// \todo Probably shouldn't be here
-        virtual MWRender::Animation* getAnimation(const MWWorld::Ptr& ptr) = 0;
-        virtual const MWRender::Animation* getAnimation(const MWWorld::ConstPtr& ptr) const = 0;
+        virtual MWAnim::Object* getAnimation(const MWWorld::Ptr& ptr) = 0;
+        virtual const MWAnim::Object* getAnimation(const MWWorld::ConstPtr& ptr) const = 0;
         virtual void reattachPlayerCamera() = 0;
-
-        /// \todo this does not belong here
-        virtual void screenshot(osg::Image* image, int w, int h) = 0;
-        virtual bool screenshot360(osg::Image* image) = 0;
 
         /// Find default position inside exterior cell specified by name
         /// \return false if exterior with given name not exists, true otherwise
@@ -656,7 +651,8 @@ namespace MWBase
         virtual DetourNavigator::Navigator* getNavigator() const = 0;
 
         virtual void updateActorPath(const MWWorld::ConstPtr& actor, const std::deque<osg::Vec3f>& path,
-            const DetourNavigator::AgentBounds& agentBounds, const osg::Vec3f& start, const osg::Vec3f& end) const = 0;
+            const DetourNavigator::AgentBounds& agentBounds, const osg::Vec3f& start, const osg::Vec3f& end) const
+            = 0;
 
         virtual void removeActorPath(const MWWorld::ConstPtr& actor) const = 0;
 
@@ -665,20 +661,18 @@ namespace MWBase
         virtual DetourNavigator::AgentBounds getPathfindingAgentBounds(const MWWorld::ConstPtr& actor) const = 0;
 
         virtual bool hasCollisionWithDoor(
-            const MWWorld::ConstPtr& door, const osg::Vec3f& position, const osg::Vec3f& destination) const = 0;
+            const MWWorld::ConstPtr& door, const osg::Vec3f& position, const osg::Vec3f& destination) const
+            = 0;
 
         virtual bool isAreaOccupiedByOtherActor(const osg::Vec3f& position, const float radius,
-            std::span<const MWWorld::ConstPtr> ignore, std::vector<MWWorld::Ptr>* occupyingActors = nullptr) const = 0;
+            std::span<const MWWorld::ConstPtr> ignore, std::vector<MWWorld::Ptr>* occupyingActors = nullptr) const
+            = 0;
 
         virtual void reportStats(unsigned int frameNumber, osg::Stats& stats) const = 0;
 
         virtual std::vector<MWWorld::Ptr> getAll(const ESM::RefId& id) = 0;
 
         virtual Misc::Rng::Generator& getPrng() = 0;
-
-        virtual MWRender::RenderingManager* getRenderingManager() = 0;
-
-        virtual MWRender::PostProcessor* getPostProcessor() = 0;
 
         virtual void setActorActive(const MWWorld::Ptr& ptr, bool value) = 0;
     };

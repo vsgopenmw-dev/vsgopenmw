@@ -8,19 +8,21 @@
 #include <osg/Vec3>
 #include <osg/Vec3d>
 #include <osg/ref_ptr>
+#include <vsg/core/ref_ptr.h>
 
 #include "../mwworld/ptr.hpp"
 
-namespace osg
+namespace vsg
 {
-    class Camera;
-    class Callback;
-    class Node;
+    class LookAt;
 }
-
+namespace Anim
+{
+    class Transform;
+}
 namespace MWRender
 {
-    class NpcAnimation;
+    class Player;
 
     /// \brief Camera control
     class Camera
@@ -35,7 +37,7 @@ namespace MWRender
             Preview = 4
         };
 
-        Camera(osg::Camera* camera);
+        Camera();
         ~Camera();
 
         /// Attach camera to object
@@ -49,8 +51,7 @@ namespace MWRender
         void instantTransition();
         void showCrosshair(bool v) { mShowCrosshair = v; }
 
-        /// Update the view matrix of \a cam
-        void updateCamera(osg::Camera* cam);
+        void updateCamera(vsg::LookAt& lookAt);
 
         /// Reset to defaults
         void reset() { setMode(Mode::FirstPerson); }
@@ -89,7 +90,7 @@ namespace MWRender
         float getCameraDistance() const { return mCameraDistance; }
         void setPreferredCameraDistance(float v) { mPreferredCameraDistance = v; }
 
-        void setAnimation(NpcAnimation* anim);
+        void setAnimation(Player* anim);
 
         osg::Vec3d getTrackedPosition() const { return mTrackedPosition; }
         const osg::Vec3d& getPosition() const { return mPosition; }
@@ -112,14 +113,12 @@ namespace MWRender
 
     private:
         MWWorld::Ptr mTrackingPtr;
-        osg::ref_ptr<const osg::Node> mTrackingNode;
+        std::vector<vsg::ref_ptr<const Anim::Transform>> mTrackingPath;
         osg::Vec3d mTrackedPosition;
         float mHeightScale;
         int mCollisionType;
 
-        osg::ref_ptr<osg::Camera> mCamera;
-
-        NpcAnimation* mAnimation;
+        Player* mAnimation;
 
         // Always 'true' if mMode == `FirstPerson`. Also it is 'true' in `Vanity` or `Preview` modes if
         // the camera should return to `FirstPerson` view after it.
@@ -161,8 +160,6 @@ namespace MWRender
         osg::Vec3d getFocalPointOffset() const;
         void updateFocalPointOffset(float duration);
         void updatePosition();
-
-        osg::ref_ptr<osg::Callback> mUpdateCallback;
 
         // Used to rotate player to the direction of view after exiting preview or vanity mode.
         osg::Vec3f mDeferredRotation;

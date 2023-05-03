@@ -42,6 +42,8 @@ namespace MWGui
         mGemIcon->eventMouseButtonClick += MyGUI::newDelegate(this, &Recharge::onSelectItem);
     }
 
+    Recharge::~Recharge() {}
+
     void Recharge::onOpen()
     {
         center();

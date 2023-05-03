@@ -8,7 +8,6 @@
 #include "ptr.hpp"
 
 #include <memory>
-#include <optional>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -30,31 +29,24 @@ namespace Files
     class Collections;
 }
 
-namespace Loading
-{
-    class Listener;
-}
-
 namespace DetourNavigator
 {
     struct Navigator;
     class UpdateGuard;
 }
 
+namespace MWState
+{
+    class Loading;
+}
 namespace MWRender
 {
-    class SkyManager;
-    class RenderingManager;
+    class RenderManager;
 }
 
 namespace MWPhysics
 {
     class PhysicsSystem;
-}
-
-namespace SceneUtil
-{
-    class WorkItem;
 }
 
 namespace MWWorld
@@ -76,20 +68,13 @@ namespace MWWorld
         using CellStoreCollection = std::set<CellStore*>;
 
     private:
-        struct ChangeCellGridRequest
-        {
-            osg::Vec3f mPosition;
-            osg::Vec2i mCell;
-            bool mChangeEvent;
-        };
-
         CellStore* mCurrentCell; // the cell the player is in
         CellStoreCollection mActiveCells;
         bool mCellChanged;
         bool mCellLoaded = false;
         MWWorld::World& mWorld;
         MWPhysics::PhysicsSystem* mPhysics;
-        MWRender::RenderingManager& mRendering;
+        MWRender::RenderManager& mRendering;
         DetourNavigator::Navigator& mNavigator;
         std::unique_ptr<CellPreloader> mPreloader;
         float mCellLoadingThreshold;
@@ -107,19 +92,13 @@ namespace MWWorld
 
         std::vector<ESM::RefNum> mPagedRefs;
 
-        std::vector<osg::ref_ptr<SceneUtil::WorkItem>> mWorkItems;
-
-        std::optional<ChangeCellGridRequest> mChangeCellGridRequest;
-
-        void insertCell(CellStore& cell, Loading::Listener* loadingListener,
+        void insertCell(CellStore& cell,
             const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
 
         osg::Vec2i mCurrentGridCenter;
 
         // Load and unload cells as necessary to create a cell grid with "X" and "Y" in the center
         void changeCellGrid(const osg::Vec3f& pos, int playerCellX, int playerCellY, bool changeEvent = true);
-
-        void requestChangeCellGrid(const osg::Vec3f& position, const osg::Vec2i& cell, bool changeEvent = true);
 
         typedef std::pair<osg::Vec3f, osg::Vec4i> PositionCellGrid;
 
@@ -134,22 +113,22 @@ namespace MWWorld
         osg::Vec2i getNewGridCenter(const osg::Vec3f& pos, const osg::Vec2i* currentGridCenter = nullptr) const;
 
         void unloadCell(CellStore* cell, const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
-        void loadCell(CellStore* cell, Loading::Listener* loadingListener, bool respawn, const osg::Vec3f& position,
-            const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
+        void loadCell(CellStore* cell, bool respawn, const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
 
     public:
-        Scene(MWWorld::World& world, MWRender::RenderingManager& rendering, MWPhysics::PhysicsSystem* physics,
+        Scene(MWWorld::World& world, MWRender::RenderManager& rendering, MWPhysics::PhysicsSystem* physics,
             DetourNavigator::Navigator& navigator);
 
         ~Scene();
 
-        void preloadCell(MWWorld::CellStore* cell, bool preloadSurrounding = false);
+        float /*progress*/  preloadCell(MWWorld::CellStore* cell, bool preloadSurrounding = false);
+        float /*progress*/  preloadCell(const ESM::CellId& cell, bool preloadSurrounding = false);
         void preloadTerrain(const osg::Vec3f& pos, bool sync = false);
         void reloadTerrain();
 
-        void playerMoved(const osg::Vec3f& pos);
+        bool needToChangeCellGrid(const osg::Vec3f& playerPos);
 
-        void changePlayerCell(CellStore* newCell, const ESM::Position& position, bool adjustPlayerPos);
+        void changePlayerCell(CellStore* newCell);
 
         CellStore* getCurrentCell();
 
@@ -162,12 +141,11 @@ namespace MWWorld
 
         void resetCellLoaded() { mCellLoaded = false; }
 
-        void changeToInteriorCell(
-            std::string_view cellName, const ESM::Position& position, bool adjustPlayerPos, bool changeEvent = true);
+        void changeToInteriorCell(std::string_view cellName, const ESM::Position& position, bool changeEvent = true);
         ///< Move to interior cell.
         /// @param changeEvent Set cellChanged flag?
 
-        void changeToExteriorCell(const ESM::Position& position, bool adjustPlayerPos, bool changeEvent = true);
+        void changeToExteriorCell(const ESM::Position& position, bool changeEvent = true);
         ///< Move to exterior cell.
         /// @param changeEvent Set cellChanged flag?
 
@@ -197,8 +175,8 @@ namespace MWWorld
 
         void preload(const std::string& mesh, bool useAnim = false);
 
-        void testExteriorCells();
-        void testInteriorCells();
+        void testExteriorCells(MWState::Loading& state);
+        void testInteriorCells(MWState::Loading& state);
     };
 }
 

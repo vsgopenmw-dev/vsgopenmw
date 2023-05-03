@@ -4,10 +4,7 @@
 #include <stdexcept>
 #include <string_view>
 
-#include <osg/Image>
-
-#include <osgDB/WriteFile>
-
+#include <MyGUI_DataManager.h>
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_RenderManager.h>
 #include <MyGUI_ResourceManager.h>
@@ -19,11 +16,10 @@
 
 #include <components/fallback/fallback.hpp>
 
-#include <components/vfs/manager.hpp>
-
 #include <components/misc/strings/algorithm.hpp>
-
+#include <components/misc/strings/lower.hpp>
 #include <components/myguiplatform/scalinglayer.hpp>
+#include <components/vfs/manager.hpp>
 
 #include <components/settings/settings.hpp>
 
@@ -278,22 +274,13 @@ namespace Gui
     {
         Log(Debug::Info) << "Loading font file " << fileName;
 
-        osgMyGUI::DataManager* dataManager
-            = dynamic_cast<osgMyGUI::DataManager*>(&osgMyGUI::DataManager::getInstance());
-        if (!dataManager)
-        {
-            Log(Debug::Error) << "Can not load TrueType font " << fontId << ": osgMyGUI::DataManager is not available.";
-            return;
-        }
-
         // TODO: it may be worth to take in account resolution change, but it is not safe to replace used assets
-        std::unique_ptr<MyGUI::IDataStream> layersStream(dataManager->getData("openmw_layers.xml"));
+        std::unique_ptr<MyGUI::IDataStream> layersStream(
+            MyGUI::DataManager::getInstance().getData("openmw_layers.xml"));
         MyGUI::IntSize bookSize = getBookSize(layersStream.get());
         float bookScale = osgMyGUI::ScalingLayer::getScaleFactor(bookSize);
 
-        const auto oldDataPath = dataManager->getDataPath("");
-        dataManager->setResourcePath("fonts");
-        std::unique_ptr<MyGUI::IDataStream> dataStream(dataManager->getData(fileName));
+        std::unique_ptr<MyGUI::IDataStream> dataStream(MyGUI::DataManager::getInstance().getData(fileName));
 
         MyGUI::xml::Document xmlDocument;
         xmlDocument.open(dataStream.get());
@@ -309,7 +296,6 @@ namespace Gui
 
         if (valid == false)
         {
-            dataManager->setResourcePath(oldDataPath);
             Log(Debug::Error) << "Can not load TrueType font " << fontId << ": " << fileName << " is invalid.";
             return;
         }
@@ -344,8 +330,6 @@ namespace Gui
         bookFont->deserialization(resourceNode.current(), MyGUI::Version(3, 2, 0));
         bookFont->setResourceName("Journalbook " + fontId);
         MyGUI::ResourceManager::getInstance().addResource(bookFont);
-
-        dataManager->setResourcePath(oldDataPath);
 
         if (resourceNode.next("Resource"))
             Log(Debug::Warning) << "Font file " << fileName
@@ -620,8 +604,7 @@ namespace Gui
         {
             std::string type = resourceNode->findAttribute("type");
 
-            if (Misc::StringUtils::ciEqual(type, "ResourceSkin")
-                || Misc::StringUtils::ciEqual(type, "AutoSizedResourceSkin"))
+            if (type == "ResourceSkin" || type == "AutoSizedResourceSkin")
             {
                 // We should adjust line height for MyGUI widgets depending on font size
                 MyGUI::xml::ElementPtr heightNode = resourceNode->createChild("Property");

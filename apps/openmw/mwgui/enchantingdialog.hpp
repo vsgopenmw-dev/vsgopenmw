@@ -3,7 +3,6 @@
 
 #include <memory>
 
-#include "itemselection.hpp"
 #include "spellcreationdialog.hpp"
 
 #include "../mwmechanics/enchanting.hpp"
@@ -11,13 +10,14 @@
 namespace MWGui
 {
 
+    class ItemSelectionDialog;
     class ItemWidget;
 
     class EnchantingDialog : public WindowBase, public ReferenceInterface, public EffectEditorBase
     {
     public:
         EnchantingDialog();
-        virtual ~EnchantingDialog() = default;
+        ~EnchantingDialog();
 
         void onOpen() override;
 

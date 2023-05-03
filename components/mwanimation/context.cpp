@@ -53,4 +53,16 @@ namespace MWAnim
         }
         return ret;
     }
+
+    bool Context::isAnimated(const std::string& filename) const
+    {
+        size_t slashpos = filename.find_last_of("\\/");
+        if (slashpos != std::string::npos && slashpos + 1 < filename.size())
+        {
+            std::string basename = filename.substr(slashpos + 1);
+            if (!basename.empty() && (basename[0] == 'x' || basename[0] == 'X'))
+                return true;
+        }
+        return false;
+    }
 }

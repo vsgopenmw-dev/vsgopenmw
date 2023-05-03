@@ -3,11 +3,10 @@
 
 #include <filesystem>
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
-
 namespace MWWorld
 {
 
@@ -15,7 +14,7 @@ namespace MWWorld
     {
         virtual ~ContentLoader() = default;
 
-        virtual void load(const std::filesystem::path& filepath, int& index, Loading::Listener* listener) = 0;
+        virtual void load(const std::filesystem::path& filepath, int& index, MWState::Loading& state) = 0;
     };
 
 } /* namespace MWWorld */

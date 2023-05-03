@@ -32,6 +32,7 @@ namespace MWClass
         std::string getModel(const MWWorld::ConstPtr& ptr) const override;
     };
 
+    /*
     class ESM4Static : public MWWorld::RegisteredClass<ESM4Static>
     {
         friend MWWorld::RegisteredClass<ESM4Static>;
@@ -58,6 +59,7 @@ namespace MWClass
 
         std::string getModel(const MWWorld::ConstPtr& ptr) const override;
     };
+    */
 }
 
 #endif

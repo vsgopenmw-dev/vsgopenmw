@@ -3,20 +3,17 @@
 #include <components/lua/utilpackage.hpp>
 #include <components/settings/settings.hpp>
 
-#include "../mwbase/environment.hpp"
-#include "../mwbase/world.hpp"
 #include "../mwrender/camera.hpp"
-#include "../mwrender/renderingmanager.hpp"
+#include "../mwrender/rendermanager.hpp"
 
 namespace MWLua
 {
 
     using CameraMode = MWRender::Camera::Mode;
 
-    sol::table initCameraPackage(const Context& context)
+    sol::table initCameraPackage(const Context& context, MWRender::RenderManager* renderingManager)
     {
-        MWRender::Camera* camera = MWBase::Environment::get().getWorld()->getCamera();
-        MWRender::RenderingManager* renderingManager = MWBase::Environment::get().getWorld()->getRenderingManager();
+        MWRender::Camera* camera = renderingManager->getCamera();
 
         sol::table api(context.mLua->sol(), sol::create);
         api["MODE"] = LuaUtil::makeStrictReadOnly(

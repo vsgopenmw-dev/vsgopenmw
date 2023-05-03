@@ -7,6 +7,7 @@
 #include <vsg/nodes/CullNode.h>
 #include <vsg/nodes/CullGroup.h>
 #include <vsg/nodes/DepthSorted.h>
+#include <vsg/utils/ComputeBounds.h>
 
 #include <components/vsgutil/computetransform.hpp>
 #include <components/vsgutil/nodepath.hpp>
@@ -204,14 +205,14 @@ namespace Anim
     {
         if (mDynamicBounds)
         {
-            vsg::box boundingBox;
+            vsg::ComputeBounds compute;
             for (size_t i = 0; i < mBones.size(); ++i)
             {
                 auto& matrix = mBones[i].matrix;
-                auto boneBounds = vsgUtil::transformSphere(matrix, bones[i].bounds);
-                vsgUtil::expandBoxBySphere(boundingBox, boneBounds);
+                compute.matrixStack = { vsg::dmat4(matrix) };
+                compute.add(vsg::dsphere(bones[i].bounds));
             }
-            auto sphere = vsgUtil::toSphere(boundingBox);
+            auto sphere = vsgUtil::toSphere(compute.bounds);
             mDynamicBounds->set(sphere.center, sphere.radius);
             if (mDynamicDepthSortedBounds)
                 mDynamicDepthSortedBounds->set(sphere.center, sphere.radius);
