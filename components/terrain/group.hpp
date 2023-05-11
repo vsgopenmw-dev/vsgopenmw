@@ -6,7 +6,6 @@
 #include <vsg/io/Options.h>
 #include <vsg/nodes/Group.h>
 
-
 #include <components/vsgutil/composite.hpp>
 
 namespace vsgUtil
