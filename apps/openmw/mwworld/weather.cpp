@@ -286,10 +286,19 @@ namespace MWWorld
 
     RegionWeather::RegionWeather(const ESM::Region& region)
         : mWeather(invalidWeatherID)
+        , mChances()
     {
-        mChances = { region.mData.mClear, region.mData.mCloudy, region.mData.mFoggy, region.mData.mOvercast,
-            region.mData.mRain, region.mData.mThunder, region.mData.mAsh, region.mData.mBlight, region.mData.mSnow,
-            region.mData.mBlizzard };
+        mChances.reserve(10);
+        mChances.push_back(region.mData.mClear);
+        mChances.push_back(region.mData.mCloudy);
+        mChances.push_back(region.mData.mFoggy);
+        mChances.push_back(region.mData.mOvercast);
+        mChances.push_back(region.mData.mRain);
+        mChances.push_back(region.mData.mThunder);
+        mChances.push_back(region.mData.mAsh);
+        mChances.push_back(region.mData.mBlight);
+        mChances.push_back(region.mData.mSnow);
+        mChances.push_back(region.mData.mBlizzard);
     }
 
     RegionWeather::RegionWeather(const ESM::RegionWeatherState& state)
