@@ -1,6 +1,7 @@
 #ifndef VSGOPENMW_MWSTATE_LOADING_H
 #define VSGOPENMW_MWSTATE_LOADING_H
 
+#include <atomic>
 #include <mutex>
 
 #include <vsg/core/ref_ptr.h>

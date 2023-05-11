@@ -1,6 +1,7 @@
 #include "videowrapper.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 #include <SDL_video.h>
 
