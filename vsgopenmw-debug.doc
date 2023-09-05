@@ -1,0 +1,10 @@
+# Lists available environment variables for debugging vsgopenmw.
+vsgopenmw-debug={
+    "VSGOPENMW_VALIDATION" : "", # Enables Vulkan validation in standard output. Make sure the Vulkan validation layer is installed.
+    "VSGOPENMW_NO_VIEWER_THREADING" : "", # Disables multi-threaded command graph recording offered by vsg::Viewer::setupThreading. Command graphs will be recorded in the main thread.
+    "VSGOPENMW_NO_FRAME_QUEUE" : "", # Prevents queued frames in the swapchain by inserting a vkDeviceWaitIdle call in between frames.
+    "VSGOPENMW_INDIRECT" : "", # Disables direct rendering. Hardware acceleration is still used but the rendered output will be copied to the window surface in software. Use this if your Vulkan driver doesn't support DRI or your build of SDL doesn't support Vulkan.
+    "VSGOPENMW_FAST_BOOT" : "", # Skips time intensive loading procedures. May break certain content features.
+    "VSGOPENMW_DECOMPRESS_BC" : "1", # Forces software conversion of block-compressed textures.
+    "VSGOPENMW_DECOMPRESS_BC" : "0" # Forces hardware block-compressed textures even if support is not advertised by the hardware.
+}
