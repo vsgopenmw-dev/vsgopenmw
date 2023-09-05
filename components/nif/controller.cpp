@@ -217,6 +217,8 @@ namespace Nif
     {
         Controller::post(nif);
         emitter.post(nif);
+        if (!emitter.empty())
+            emitter->useFlags |= Nif::Node::Emitter;
         affectors.post(nif);
         colliders.post(nif);
     }

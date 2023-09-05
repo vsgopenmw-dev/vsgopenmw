@@ -7,7 +7,6 @@
 #include <components/esm3/loadsndg.hpp>
 #include <components/esm3/loadsoun.hpp>
 #include <components/misc/rng.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -46,7 +45,6 @@ namespace MWClass
         if (!model.empty())
         {
             renderingInterface.getObjects().insertModel(ptr, model);
-            ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Static);
         }
     }
 
@@ -146,12 +144,10 @@ namespace MWClass
             = getModel(ptr); // Assume it's not empty, since we wouldn't have gotten the soundgen otherwise
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
         const ESM::RefId* creatureId = nullptr;
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
 
         for (const ESM::Creature& iter : store.get<ESM::Creature>())
         {
-            if (!iter.mModel.empty()
-                && Misc::StringUtils::ciEqual(model, Misc::ResourceHelpers::correctMeshPath(iter.mModel, vfs)))
+            if (!iter.mModel.empty() && Misc::StringUtils::ciEqual(model, iter.mModel))
             {
                 creatureId = !iter.mOriginal.empty() ? &iter.mOriginal : &iter.mId;
                 break;

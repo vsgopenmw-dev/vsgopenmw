@@ -107,7 +107,7 @@ namespace MWMechanics
         bool& rotate = storage.mTurnActorToTarget;
         if (rotate)
         {
-            if (zTurn(actor, storage.mTargetAngleRadians))
+            if (zTurn(actor, duration, storage.mTargetAngleRadians))
                 rotate = false;
 
             return false;
@@ -194,7 +194,7 @@ namespace MWMechanics
         {
             float faceAngleRadians = std::atan2(targetDir.x(), targetDir.y());
 
-            if (!zTurn(actor, faceAngleRadians, osg::DegreesToRadians(45.f)))
+            if (!zTurn(actor, duration, faceAngleRadians, osg::DegreesToRadians(45.f)))
             {
                 storage.mTargetAngleRadians = faceAngleRadians;
                 storage.mTurnActorToTarget = true;

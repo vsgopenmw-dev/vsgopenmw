@@ -1,7 +1,5 @@
 #include "mapwindow.hpp"
 
-#include <osg/Texture2D>
-
 #include <MyGUI_Button.h>
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_Gui.h>
@@ -15,8 +13,10 @@
 
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/globalmap.hpp>
-#include <components/myguiplatform/myguitexture.hpp>
 #include <components/settings/settings.hpp>
+#include <components/vsgadapters/mygui/manualtexture.hpp>
+#include <components/vsgadapters/mygui/texture.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -28,8 +28,8 @@
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldmodel.hpp"
 
-#include "../mwrender/globalmap.hpp"
-#include "../mwrender/localmap.hpp"
+#include "../mwrender/map.hpp"
+#include "../mwrender/worldmap.hpp"
 
 #include "confirmationdialog.hpp"
 
@@ -37,7 +37,6 @@
 
 namespace
 {
-
     const int cellSize = Constants::CellSizeInUnits;
     constexpr float speed = 1.08f; // the zoom speed, it should be greater than 1
 
@@ -88,21 +87,22 @@ namespace
 
     int getLocalViewingDistance()
     {
+        return Constants::CellGridRadius;
+        /*
         if (!Settings::Manager::getBool("allow zooming", "Map"))
             return Constants::CellGridRadius;
         if (!Settings::Manager::getBool("distant terrain", "Terrain"))
             return Constants::CellGridRadius;
-        const int maxLocalViewingDistance
-            = std::max(Settings::Manager::getInt("max local viewing distance", "Map"), Constants::CellGridRadius);
-        const int viewingDistanceInCells
-            = Settings::Manager::getFloat("viewing distance", "Camera") / Constants::CellSizeInUnits;
-        return std::clamp(viewingDistanceInCells, Constants::CellGridRadius, maxLocalViewingDistance);
+        const int maxLocalViewingDistance = std::max(Settings::Manager::getInt("max local viewing distance", "Map"),
+        Constants::CellGridRadius); const int viewingDistanceInCells = Settings::Manager::getFloat("viewing distance",
+        "Camera") / Constants::CellSizeInUnits; return std::clamp(viewingDistanceInCells, Constants::CellGridRadius,
+        maxLocalViewingDistance);
+        */
     }
 }
 
 namespace MWGui
 {
-
     void CustomMarkerCollection::addMarker(const ESM::CustomMarker& marker, bool triggerEvent)
     {
         mMarkers.insert(std::make_pair(marker.mCell, marker));
@@ -170,8 +170,7 @@ namespace MWGui
 
     // ------------------------------------------------------
 
-    LocalMapBase::LocalMapBase(
-        CustomMarkerCollection& markers, MWRender::LocalMap* localMapRender, bool fogOfWarEnabled)
+    LocalMapBase::LocalMapBase(CustomMarkerCollection& markers, MWRender::Map* localMapRender, bool fogOfWarEnabled)
         : mLocalMapRender(localMapRender)
         , mCurX(0)
         , mCurY(0)
@@ -243,22 +242,17 @@ namespace MWGui
     bool LocalMapBase::toggleFogOfWar()
     {
         mFogOfWarToggled = !mFogOfWarToggled;
-        applyFogOfWar();
-        return mFogOfWarToggled;
-    }
-
-    void LocalMapBase::applyFogOfWar()
-    {
         if (!mFogOfWarToggled || !mFogOfWarEnabled)
         {
             for (auto& entry : mMaps)
             {
                 entry.mFogWidget->setImageTexture("");
                 entry.mFogTexture.reset();
+                entry.mBlack = false;
             }
         }
-
-        redraw();
+        mNeedUpdateChilds = true;
+        return mFogOfWarToggled;
     }
 
     MyGUI::IntPoint LocalMapBase::getPosition(int cellX, int cellY, float nX, float nY) const
@@ -279,11 +273,12 @@ namespace MWGui
         {
             cellIndex = MWWorld::positionToCellIndex(worldX, worldY);
             nX = (worldX - cellSize * cellIndex.x()) / cellSize;
-            // Image space is -Y up, cells are Y up
-            nY = 1 - (worldY - cellSize * cellIndex.y()) / cellSize;
+            nY = (worldY - cellSize * cellIndex.y()) / cellSize;
         }
         else
             mLocalMapRender->worldToInteriorMapPosition({ worldX, worldY }, nX, nY, cellIndex.x(), cellIndex.y());
+        // MyGUI Image space is -Y up, cells are Y up
+        nY = 1 - nY;
 
         markerPos.cellX = cellIndex.x();
         markerPos.cellY = cellIndex.y();
@@ -376,11 +371,10 @@ namespace MWGui
                     markerWidget->setNeedMouseFocus(true);
                     customMarkerCreated(markerWidget);
                     mCustomMarkerWidgets.push_back(markerWidget);
+                    mNeedUpdateChilds = true;
                 }
             }
         }
-
-        redraw();
     }
 
     void LocalMapBase::setActiveCell(const int x, const int y, bool interior)
@@ -416,7 +410,7 @@ namespace MWGui
             for (auto const& cell : mMaps)
             {
                 if (mHasALastActiveCell && !intersection.inside({ cell.mCellX, cell.mCellY }))
-                    mLocalMapRender->removeExteriorCell(cell.mCellX, cell.mCellY);
+                    mLocalMapRender->removeCell(cell.mCellX, cell.mCellY);
             }
         }
 
@@ -429,16 +423,19 @@ namespace MWGui
         {
             for (int my = 0; my < mNumCells; ++my)
             {
+                // openmw-7140-map-update
                 MapEntry& entry = mMaps[my + mNumCells * mx];
                 entry.mMapWidget->setRenderItemTexture(nullptr);
                 entry.mFogWidget->setRenderItemTexture(nullptr);
                 entry.mMapTexture.reset();
                 entry.mFogTexture.reset();
+                entry.mBlack = false;
 
                 entry.mCellX = x + (mx - mCellDistance);
                 entry.mCellY = y - (my - mCellDistance);
             }
         }
+        centerView();
 
         // Delay the door markers update until scripts have been given a chance to run.
         // If we don't do this, door markers that should be disabled will still appear on the map.
@@ -456,13 +453,10 @@ namespace MWGui
 
     void LocalMapBase::requestMapRender(const MWWorld::CellStore* cell)
     {
-        mLocalMapRender->requestMap(cell);
-    }
-
-    void LocalMapBase::redraw()
-    {
-        // Redraw children in proper order
-        mLocalMap->getParent()->_updateChilds();
+        if (cell->isExterior())
+            mLocalMapRender->requestExteriorMap(cell);
+        else
+            mLocalMapRender->requestInteriorMap(cell);
     }
 
     float LocalMapBase::getWidgetSize() const
@@ -472,7 +466,7 @@ namespace MWGui
 
     void LocalMapBase::setPlayerPos(int cellX, int cellY, const float nx, const float ny)
     {
-        MyGUI::IntPoint pos = getPosition(cellX, cellY, nx, ny) - MyGUI::IntPoint{ 16, 16 };
+        MyGUI::IntPoint pos = getPosition(cellX, cellY, nx, 1 - ny) - MyGUI::IntPoint{ 16, 16 };
 
         if (pos != mCompass->getPosition())
         {
@@ -480,7 +474,7 @@ namespace MWGui
 
             mCompass->setPosition(pos);
         }
-        osg::Vec2f curPos((cellX + nx) * cellSize, (cellY + 1 - ny) * cellSize);
+        osg::Vec2f curPos((cellX + nx) * cellSize, (cellY + ny) * cellSize);
         if ((curPos - mCurPos).length2() > 0.001)
         {
             mCurPos = curPos;
@@ -539,11 +533,13 @@ namespace MWGui
             markerWidget->setNeedMouseFocus(false);
             markerWidget->setUserData(markerPos);
             mMagicMarkerWidgets.push_back(markerWidget);
+            mNeedUpdateChilds = true;
         }
     }
 
     void LocalMapBase::onFrame(float dt)
     {
+        updateRequiredMaps();
         if (mNeedDoorMarkersUpdate)
         {
             updateDoorMarkers();
@@ -557,8 +553,11 @@ namespace MWGui
             mMarkerUpdateTimer = 0;
             updateMagicMarkers();
         }
-
-        updateRequiredMaps();
+        if (mNeedUpdateChilds)
+        {
+            // Redraw children in proper order
+            mLocalMap->getParent()->_updateChilds();
+        }
     }
 
     bool widgetCropped(MyGUI::Widget* widget, MyGUI::Widget* cropTo)
@@ -578,48 +577,74 @@ namespace MWGui
 
     void LocalMapBase::updateRequiredMaps()
     {
-        bool needRedraw = false;
         for (MapEntry& entry : mMaps)
         {
+            /*
+             * Skips rendering of cells outside the scrolling viewport.
+             */
             if (widgetCropped(entry.mMapWidget, mLocalMap))
                 continue;
 
-            if (!entry.mMapTexture)
+            auto setBlack = [this] (MapEntry& entry) {
+                if (!entry.mBlack)
+                {
+                    entry.mFogWidget->setImageTexture("black");
+                    entry.mFogTexture = {};
+                    entry.mMapWidget->setImageTexture("");
+                    entry.mMapTexture = {};
+                    entry.mBlack = true;
+                    mNeedUpdateChilds = true;
+                }
+            };
+
+            /*
+             * Skips requesting cells fully covered by fog of war.
+             */
+            bool useFog = mFogOfWarToggled && mFogOfWarEnabled;
+            if (!mInterior && useFog)
             {
-                if (!mInterior)
+                const auto cell = MWBase::Environment::get().getWorldModel()->getExterior(entry.mCellX, entry.mCellY);
+                if (!cell || (!cell->getFog() && !mLocalMapRender->isCellExplored(entry.mCellX, entry.mCellY)))
+                {
+                    setBlack(entry);
+                    continue;
+                }
+            }
+            if ((!entry.mFogTexture && useFog) || !entry.mMapTexture)
+            {
+                vsg::ImageView* fogTex{};
+                if (useFog)
+                {
+                    fogTex = mLocalMapRender->getFogOfWarTexture(entry.mCellX, entry.mCellY);
+                    if (!fogTex)
+                    {
+                        setBlack(entry);
+                        continue;
+                    }
+                }
+                if (!mInterior && !entry.mMapTexture)
                     requestMapRender(
                         MWBase::Environment::get().getWorldModel()->getExterior(entry.mCellX, entry.mCellY));
-
-                osg::ref_ptr<osg::Texture2D> texture = mLocalMapRender->getMapTexture(entry.mCellX, entry.mCellY);
-                if (texture)
+                auto mapTex = mLocalMapRender->getMapTexture(entry.mCellX, entry.mCellY);
+                if (!mapTex)
                 {
-                    entry.mMapTexture = std::make_unique<osgMyGUI::OSGTexture>(texture);
-                    entry.mMapWidget->setRenderItemTexture(entry.mMapTexture.get());
-                    entry.mMapWidget->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
-                    needRedraw = true;
+                    setBlack(entry);
+                    continue;
                 }
-                else
-                    entry.mMapTexture = std::make_unique<osgMyGUI::OSGTexture>(std::string(), nullptr);
-            }
-            if (!entry.mFogTexture && mFogOfWarToggled && mFogOfWarEnabled)
-            {
-                osg::ref_ptr<osg::Texture2D> tex = mLocalMapRender->getFogOfWarTexture(entry.mCellX, entry.mCellY);
-                if (tex)
+                entry.mMapTexture = std::make_unique<vsgAdapters::mygui::Texture>(mapTex);
+                entry.mMapWidget->setRenderItemTexture(entry.mMapTexture.get());
+                entry.mMapWidget->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
+                if (fogTex)
                 {
-                    entry.mFogTexture = std::make_unique<osgMyGUI::OSGTexture>(tex);
+                    entry.mFogTexture = std::make_unique<vsgAdapters::mygui::Texture>(fogTex);
                     entry.mFogWidget->setRenderItemTexture(entry.mFogTexture.get());
                     entry.mFogWidget->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 1.f, 1.f, 0.f));
                 }
-                else
-                {
-                    entry.mFogWidget->setImageTexture("black");
-                    entry.mFogTexture = std::make_unique<osgMyGUI::OSGTexture>(std::string(), nullptr);
-                }
-                needRedraw = true;
+                entry.mBlack = false;
+                mNeedDoorMarkersUpdate = true;
+                mNeedUpdateChilds = true;
             }
         }
-        if (needRedraw)
-            redraw();
     }
 
     void LocalMapBase::updateDoorMarkers()
@@ -644,7 +669,7 @@ namespace MWGui
         {
             for (MapEntry& entry : mMaps)
             {
-                if (!entry.mMapTexture && !widgetCropped(entry.mMapWidget, mLocalMap))
+                if (!entry.mBlack)
                     world->getDoorMarkers(worldModel->getExterior(entry.mCellX, entry.mCellY), doors);
             }
             if (doors.empty())
@@ -683,6 +708,7 @@ namespace MWGui
             currentDoorMarkersWidgets().push_back(markerWidget);
             if (!mInterior)
                 mExteriorDoorsByCell[{ data->cellX, data->cellY }].push_back(markerWidget);
+            mNeedUpdateChilds = true;
         }
 
         for (auto& widget : mDoorMarkersToRecycle)
@@ -716,9 +742,8 @@ namespace MWGui
             markerWidget->setNeedMouseFocus(false);
             markerWidget->setUserData(markerPos);
             mMagicMarkerWidgets.push_back(markerWidget);
+            mNeedUpdateChilds = true;
         }
-
-        redraw();
     }
 
     void LocalMapBase::updateLocalMap()
@@ -749,8 +774,8 @@ namespace MWGui
     }
 
     // ------------------------------------------------------------------------------------------
-    MapWindow::MapWindow(CustomMarkerCollection& customMarkers, DragAndDrop* drag, MWRender::LocalMap* localMapRender,
-        SceneUtil::WorkQueue* workQueue)
+    MapWindow::MapWindow(CustomMarkerCollection& customMarkers, DragAndDrop* drag, MWRender::Map* localMapRender,
+        MWRender::WorldMap* worldMapRender)
 #ifdef USE_OPENXR
         : WindowPinnableBase("openmw_map_window_vr.layout")
 #else
@@ -764,7 +789,7 @@ namespace MWGui
         , mGlobal(Settings::Manager::getBool("global", "Map"))
         , mEventBoxGlobal(nullptr)
         , mEventBoxLocal(nullptr)
-        , mGlobalMapRender(std::make_unique<MWRender::GlobalMap>(localMapRender->getRoot(), workQueue))
+        , mGlobalMapRender(worldMapRender)
         , mEditNoteDialog()
         , mAllowZooming(Settings::Manager::getBool("allow zooming", "Map"))
     {
@@ -820,6 +845,8 @@ namespace MWGui
 
         mGlobalMap->setVisible(mGlobal);
         mLocalMap->setVisible(!mGlobal);
+
+        resizeGlobalMap();
     }
 
     void MapWindow::onNoteEditOk()
@@ -869,22 +896,23 @@ namespace MWGui
         int y = (int(widgetPos.top / float(mapWidgetSize)) - mCellDistance) * -1;
         float nX = widgetPos.left / float(mapWidgetSize) - int(widgetPos.left / float(mapWidgetSize));
         float nY = widgetPos.top / float(mapWidgetSize) - int(widgetPos.top / float(mapWidgetSize));
+        nY = 1 - nY;
         x += mCurX;
         y += mCurY;
 
-        osg::Vec2f worldPos;
+        vsg::vec2 worldPos;
         if (mInterior)
         {
             worldPos = mLocalMapRender->interiorMapToWorldPosition(nX, nY, x, y);
         }
         else
         {
-            worldPos.x() = (x + nX) * cellSize;
-            worldPos.y() = (y + (1.0f - nY)) * cellSize;
+            worldPos.x = (x + nX) * cellSize;
+            worldPos.y = (y + nY) * cellSize;
         }
 
-        mEditingMarker.mWorldX = worldPos.x();
-        mEditingMarker.mWorldY = worldPos.y();
+        mEditingMarker.mWorldX = worldPos.x;
+        mEditingMarker.mWorldY = worldPos.y;
 
         mEditingMarker.mCell.mPaged = !mInterior;
         if (mInterior)
@@ -961,8 +989,8 @@ namespace MWGui
                 return; // the zoom out is too big, we switch to the global map
             }
 
-            if (zoomOut)
-                mNeedDoorMarkersUpdate = true;
+            //if (zoomOut)
+            //    mNeedDoorMarkersUpdate = true;
         }
         zoomOnCursor(speedDiff);
     }
@@ -1019,12 +1047,6 @@ namespace MWGui
     {
         WindowBase::setVisible(visible);
         mButton->setVisible(visible && MWBase::Environment::get().getWindowManager()->getMode() != MWGui::GM_None);
-    }
-
-    void MapWindow::renderGlobalMap()
-    {
-        mGlobalMapRender->render();
-        resizeGlobalMap();
     }
 
     MapWindow::~MapWindow() {}
@@ -1108,7 +1130,6 @@ namespace MWGui
 
     void MapWindow::cellExplored(int x, int y)
     {
-        mGlobalMapRender->cleanupCameras();
         mGlobalMapRender->exploreCell(x, y, mLocalMapRender->getMapTexture(x, y));
     }
 
@@ -1191,7 +1212,6 @@ namespace MWGui
 
         if (!mGlobal)
         {
-            mNeedDoorMarkersUpdate = true;
             mLocalMap->setViewOffset(mLocalMap->getViewOffset() + diff);
         }
         else
@@ -1279,15 +1299,17 @@ namespace MWGui
 
     void MapWindow::ensureGlobalMapLoaded()
     {
-        if (!mGlobalMapTexture.get())
+        if (!mGlobalMapTexture)
         {
-            mGlobalMapTexture = std::make_unique<osgMyGUI::OSGTexture>(mGlobalMapRender->getBaseTexture());
-            mGlobalMapImage->setRenderItemTexture(mGlobalMapTexture.get());
-            mGlobalMapImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
+            auto baseTex = mGlobalMapRender->getBaseTexture();
+            mGlobalMapTexture = vsgAdapters::mygui::createManualTexture("globalmap", baseTex);
+            mGlobalMapImage->setRenderItemTexture(mGlobalMapTexture);
+            mGlobalMapImage->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 1.f, 1.f, 0.f));
 
-            mGlobalMapOverlayTexture = std::make_unique<osgMyGUI::OSGTexture>(mGlobalMapRender->getOverlayTexture());
+            mGlobalMapOverlayTexture
+                = std::make_unique<vsgAdapters::mygui::Texture>(mGlobalMapRender->getOverlayTexture());
             mGlobalMapOverlay->setRenderItemTexture(mGlobalMapOverlayTexture.get());
-            mGlobalMapOverlay->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
+            mGlobalMapOverlay->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 1.f, 1.f, 0.f));
 
             // Redraw children in proper order
             mGlobalMap->getParent()->_updateChilds();
@@ -1349,11 +1371,8 @@ namespace MWGui
 
     void MapWindow::customMarkerCreated(MyGUI::Widget* marker)
     {
-        marker->eventMouseDrag += MyGUI::newDelegate(this, &MapWindow::onMouseDrag);
-        marker->eventMouseButtonPressed += MyGUI::newDelegate(this, &MapWindow::onDragStart);
         marker->eventMouseButtonDoubleClick += MyGUI::newDelegate(this, &MapWindow::onCustomMarkerDoubleClicked);
-        if (mAllowZooming)
-            marker->eventMouseWheel += MyGUI::newDelegate(this, &MapWindow::onMapZoomed);
+        doorMarkerCreated(marker);
     }
 
     void MapWindow::doorMarkerCreated(MyGUI::Widget* marker)
@@ -1362,11 +1381,6 @@ namespace MWGui
         marker->eventMouseButtonPressed += MyGUI::newDelegate(this, &MapWindow::onDragStart);
         if (mAllowZooming)
             marker->eventMouseWheel += MyGUI::newDelegate(this, &MapWindow::onMapZoomed);
-    }
-
-    void MapWindow::asyncPrepareSaveMap()
-    {
-        mGlobalMapRender->asyncWritePng();
     }
 
     // -------------------------------------------------------------------
@@ -1430,7 +1444,7 @@ namespace MWGui
     {
         if (!mLocalMapRender)
             return true;
-        return mLocalMapRender->isPositionExplored(nX, nY, cellX, cellY);
+        return mLocalMapRender->isPositionExplored(nX, 1 - nY, cellX, cellY);
     }
 
 }

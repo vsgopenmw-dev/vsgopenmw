@@ -7,11 +7,11 @@
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/loadregn.hpp>
-#include <components/loadinglistener/loadinglistener.hpp>
 #include <components/settings/settings.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
+#include "../mwstate/loading.hpp"
 
 #include "cellstore.hpp"
 #include "cellutils.hpp"
@@ -201,17 +201,19 @@ MWWorld::CellStore* MWWorld::WorldModel::getInterior(std::string_view name)
 
     if (result == mInteriors.end())
     {
+        /*
         const ESM4::Cell* cell4 = mStore.get<ESM4::Cell>().searchCellName(name);
 
-        if (!cell4)
+        if (!cell4)*/
         {
             const ESM::Cell* cell = mStore.get<ESM::Cell>().find(name);
             result = mInteriors.emplace(name, CellStore(MWWorld::Cell(*cell), mStore, mReaders)).first;
         }
+        /*
         else
         {
             result = mInteriors.emplace(name, CellStore(MWWorld::Cell(*cell4), mStore, mReaders)).first;
-        }
+        }*/
     }
 
     if (result->second.getState() != CellStore::State_Loaded)
@@ -263,11 +265,12 @@ const ESM::Cell* MWWorld::WorldModel::getESMCellByName(std::string_view name)
 ESM::CellVariant MWWorld::WorldModel::getCellByName(std::string_view name)
 {
     const ESM::Cell* cellEsm3 = getESMCellByName(name);
+    /*
     if (!cellEsm3)
     {
         const ESM4::Cell* cellESM4 = mStore.get<ESM4::Cell>().searchCellName(name);
         return ESM::CellVariant(*cellESM4);
-    }
+    }*/
     return ESM::CellVariant(*cellEsm3);
 }
 
@@ -410,20 +413,20 @@ int MWWorld::WorldModel::countSavedGameRecords() const
     return count;
 }
 
-void MWWorld::WorldModel::write(ESM::ESMWriter& writer, Loading::Listener& progress) const
+void MWWorld::WorldModel::write(ESM::ESMWriter& writer, MWState::Loading& state) const
 {
     for (std::map<std::pair<int, int>, CellStore>::iterator iter(mExteriors.begin()); iter != mExteriors.end(); ++iter)
         if (iter->second.hasState())
         {
             writeCell(writer, iter->second);
-            progress.increaseProgress();
+            state.advance();
         }
 
     for (auto iter(mInteriors.begin()); iter != mInteriors.end(); ++iter)
         if (iter->second.hasState())
         {
             writeCell(writer, iter->second);
-            progress.increaseProgress();
+            state.advance();
         }
 }
 

@@ -8,19 +8,14 @@
 #include <MyGUI_InputManager.h>
 #include <MyGUI_LanguageManager.h>
 
-#include <osg/Texture2D>
-#include <osgDB/ReadFile>
-
 #include <components/debug/debuglog.hpp>
-
-#include <components/myguiplatform/myguitexture.hpp>
-
 #include <components/misc/strings/lower.hpp>
+#include <components/vsgadapters/mygui/manualtexture.hpp>
+#include <components/vsgutil/imageio.hpp>
 
 #include <components/settings/settings.hpp>
 
 #include <components/files/conversion.hpp>
-#include <components/files/memorystream.hpp>
 #include <components/misc/timeconvert.hpp>
 
 #include <components/esm3/loadclas.hpp>
@@ -29,9 +24,8 @@
 #include "../mwbase/statemanager.hpp"
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
-#include "../mwworld/esmstore.hpp"
-
 #include "../mwstate/character.hpp"
+#include "../mwworld/esmstore.hpp"
 
 #include "confirmationdialog.hpp"
 #include "ustring.hpp"
@@ -436,47 +430,14 @@ namespace MWGui
         mInfoText->setCaptionWithReplacing(text.str());
 
         // Reset the image for the case we're unable to recover a screenshot
-        mScreenshotTexture.reset();
         mScreenshot->setRenderItemTexture(nullptr);
-        mScreenshot->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
 
         // Decode screenshot
-        const std::vector<char>& data = mCurrentSlot->mProfile.mScreenshot;
-        if (!data.size())
+        if (auto data = vsgUtil::readImageFromMemory(mCurrentSlot->mProfile.mScreenshot))
         {
-            Log(Debug::Warning) << "Selected save file '" << Files::pathToUnicodeString(mCurrentSlot->mPath.filename())
-                                << "' has no savegame screenshot";
-            return;
+            vsgAdapters::mygui::createOrUpdateManualTexture(mScreenshotTexture, "savescreenshot", data);
+            mScreenshot->setRenderItemTexture(mScreenshotTexture);
+            mScreenshot->getSubWidgetMain()->_setUVSet(MyGUI::FloatRect(0.f, 0.f, 1.f, 1.f));
         }
-
-        Files::IMemStream instream(data.data(), data.size());
-
-        osgDB::ReaderWriter* readerwriter = osgDB::Registry::instance()->getReaderWriterForExtension("jpg");
-        if (!readerwriter)
-        {
-            Log(Debug::Error) << "Can't open savegame screenshot, no jpg readerwriter found";
-            return;
-        }
-
-        osgDB::ReaderWriter::ReadResult result = readerwriter->readImage(instream);
-        if (!result.success())
-        {
-            Log(Debug::Error) << "Failed to read savegame screenshot: " << result.message() << " code "
-                              << result.status();
-            return;
-        }
-
-        osg::ref_ptr<osg::Texture2D> texture(new osg::Texture2D);
-        texture->setImage(result.getImage());
-        texture->setInternalFormat(GL_RGB);
-        texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-        texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
-        texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
-        texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-        texture->setResizeNonPowerOfTwoHint(false);
-        texture->setUnRefImageDataAfterApply(true);
-
-        mScreenshotTexture = std::make_unique<osgMyGUI::OSGTexture>(texture);
-        mScreenshot->setRenderItemTexture(mScreenshotTexture.get());
     }
 }

@@ -14,7 +14,7 @@ namespace ESM
     struct RegionWeatherState
     {
         int mWeather;
-        std::vector<char> mChances;
+        std::vector<unsigned char> mChances;
     };
 
     struct WeatherState

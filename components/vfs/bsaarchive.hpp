@@ -22,8 +22,6 @@ namespace VFS
 
         Files::IStreamPtr open() override { return mFile->getFile(mInfo); }
 
-        std::filesystem::path getPath() override { return mInfo->name(); }
-
         const Bsa::BSAFile::FileStruct* mInfo;
         FileType* mFile;
     };

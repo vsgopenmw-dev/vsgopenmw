@@ -32,15 +32,27 @@
 
 namespace MWGui
 {
-    void ResponseCallback::addResponse(const std::string& title, const std::string& text)
-    {
-        mWindow->addResponse(title, text, mNeedMargin);
-    }
 
-    void ResponseCallback::updateTopics() const
+    class ResponseCallback : public MWBase::DialogueManager::ResponseCallback
     {
-        mWindow->updateTopics();
-    }
+    public:
+        ResponseCallback(DialogueWindow* win, bool needMargin = true)
+            : mWindow(win)
+            , mNeedMargin(needMargin)
+        {
+        }
+
+        void addResponse(const std::string& title, const std::string& text) override
+        {
+            mWindow->addResponse(title, text, mNeedMargin);
+        }
+
+        void updateTopics() { mWindow->updateTopics(); }
+
+    private:
+        DialogueWindow* mWindow;
+        bool mNeedMargin;
+    };
 
     PersuasionDialog::PersuasionDialog(std::unique_ptr<ResponseCallback> callback)
         : WindowModal("openmw_persuasion_dialog.layout")
@@ -85,6 +97,8 @@ namespace MWGui
         mBribe100Button->eventMouseButtonClick += MyGUI::newDelegate(this, &PersuasionDialog::onPersuade);
         mBribe1000Button->eventMouseButtonClick += MyGUI::newDelegate(this, &PersuasionDialog::onPersuade);
     }
+
+    PersuasionDialog::~PersuasionDialog() {}
 
     void PersuasionDialog::adjustAction(MyGUI::Widget* action, int& totalHeight)
     {
@@ -332,6 +346,8 @@ namespace MWGui
         mMainWidget->castType<MyGUI::Window>()->eventWindowChangeCoord
             += MyGUI::newDelegate(this, &DialogueWindow::onWindowResize);
     }
+
+    DialogueWindow::~DialogueWindow() {}
 
     void DialogueWindow::onTradeComplete()
     {

@@ -18,6 +18,7 @@ namespace MWGui
     {
     public:
         Repair();
+        ~Repair();
 
         void onOpen() override;
 

@@ -1,6 +1,8 @@
 #ifndef MWINPUT_GYROMANAGER
 #define MWINPUT_GYROMANAGER
 
+#include <array>
+
 #include <components/settings/settings.hpp>
 
 namespace MWInput

@@ -171,7 +171,6 @@ namespace MWGui
         MWMechanics::CreatureStats& npcStats = mPtr.getClass().getCreatureStats(mPtr);
         npcStats.setGoldPool(npcStats.getGoldPool() + price);
 
-        MWBase::Environment::get().getWindowManager()->fadeScreenOut(1);
         ESM::Position pos = *_sender->getUserData<ESM::Position>();
         const std::string& cellname = _sender->getUserString("Destination");
         bool interior = _sender->getUserString("interior") == "y";
@@ -194,14 +193,9 @@ namespace MWGui
         MWBase::Environment::get().getWindowManager()->removeGuiMode(GM_Travel);
         MWBase::Environment::get().getWindowManager()->exitCurrentGuiMode();
 
-        MWBase::Environment::get().getWindowManager()->fadeScreenOut(1);
-
         // Teleports any followers, too.
         MWWorld::ActionTeleport action(interior ? cellname : "", pos, true);
         action.execute(player);
-
-        MWBase::Environment::get().getWindowManager()->fadeScreenOut(0);
-        MWBase::Environment::get().getWindowManager()->fadeScreenIn(1);
     }
 
     void TravelWindow::onCancelButtonClicked(MyGUI::Widget* _sender)

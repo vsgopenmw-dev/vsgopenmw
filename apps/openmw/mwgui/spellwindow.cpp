@@ -56,6 +56,8 @@ namespace MWGui
         mFilterEdit->setSize(filterWidth, mFilterEdit->getSize().height);
     }
 
+    SpellWindow::~SpellWindow() {}
+
     void SpellWindow::onPinToggled()
     {
         Settings::Manager::setBool("spells pin", "Windows", mPinned);

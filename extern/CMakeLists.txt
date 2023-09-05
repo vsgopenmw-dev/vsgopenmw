@@ -2,6 +2,36 @@
 
 set(CMAKE_CXX_CLANG_TIDY "")
 
+# Note that installing external software unasked involves a security risk and may violate the software's licenses. To protect vsgopenmw's users against OpenMW's ill-chosen defaults, fetching has been disabled here.
+if(NOT OPENMW_USE_SYSTEM_BULLET)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_BULLET)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_RECASTNAVIGATION)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_MYGUI)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_SQLITE3)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_SQLITE3)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_OSG)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_OSG)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_ICU)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_ICU)")
+endif()
+if(BUILD_UNITTESTS AND NOT OPENMW_USE_SYSTEM_GOOGLETEST)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_GOOGLETEST)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_YAML_CPP)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_YAML_CPP)")
+endif()
+if(BUILD_BENCHMARKS AND NOT OPENMW_USE_SYSTEM_BENCHMARK)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_USE_SYSTEM_BENCHMARK)")
+endif()
+
+#[[
 # Like `FetchContent_MakeAvailable` but passes EXCLUDE_FROM_ALL to `add_subdirectory`.
 macro(FetchContent_MakeAvailableExcludeFromAll)
     foreach(contentName IN ITEMS ${ARGV})
@@ -320,3 +350,4 @@ if ((BUILD_UNITTESTS OR BUILD_OPENCS_TESTS) AND NOT OPENMW_USE_SYSTEM_GOOGLETEST
     add_library(GTest::GTest ALIAS gtest)
     add_library(GMock::GMock ALIAS gmock)
 endif()
+]]

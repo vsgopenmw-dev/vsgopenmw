@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#include <components/resource/resourcesystem.hpp>
-
 MWBase::Environment* MWBase::Environment::sThis = nullptr;
 
 MWBase::Environment::Environment()

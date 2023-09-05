@@ -89,7 +89,7 @@ namespace MWInput
             MyGUI::InputManager::getInstance().injectMouseMove(
                 static_cast<int>(mGuiCursorX), static_cast<int>(mGuiCursorY), mMouseWheel);
 
-            MWBase::Environment::get().getWindowManager()->setCursorActive(true);
+            //MWBase::Environment::get().getWindowManager()->setCursorActive(true);
         }
 
         if (mMouseLookEnabled && !input->controlsDisabled())
@@ -169,7 +169,7 @@ namespace MWInput
                     MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Menu Click"));
                 }
             }
-            MWBase::Environment::get().getWindowManager()->setCursorActive(true);
+            //MWBase::Environment::get().getWindowManager()->setCursorActive(true);
         }
 
         mBindingsManager->setPlayerControlsEnabled(!guiMode);

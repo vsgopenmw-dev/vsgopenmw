@@ -6,7 +6,7 @@
 #include <components/esm/format.hpp>
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/readerscache.hpp>
-#include <components/esm4/reader.hpp>
+//#include <components/esm4/reader.hpp>
 #include <components/files/conversion.hpp>
 #include <components/files/openfile.hpp>
 #include <components/resource/resourcesystem.hpp>
@@ -27,7 +27,7 @@ namespace MWWorld
     {
     }
 
-    void EsmLoader::load(const std::filesystem::path& filepath, int& index, Loading::Listener* listener)
+    void EsmLoader::load(const std::filesystem::path& filepath, int& index, MWState::Loading& state)
     {
 
         auto stream = Files::openBinaryInputFileStream(filepath);
@@ -53,14 +53,15 @@ namespace MWWorld
                   "Please run the launcher to fix this issue.");
 
                 mESMVersions[index] = reader->getVer();
-                mStore.load(*reader, listener, mDialogue);
+                mStore.load(*reader, state, mDialogue);
 
                 if (!mMasterFileFormat.has_value()
-                    && (Misc::StringUtils::ciEndsWith(reader->getName().u8string(), u8".esm")
-                        || Misc::StringUtils::ciEndsWith(reader->getName().u8string(), u8".omwgame")))
+                    && (Misc::StringUtils::ciEndsWith(reader->getName().string(), ".esm")
+                        || Misc::StringUtils::ciEndsWith(reader->getName().string(), ".omwgame")))
                     mMasterFileFormat = reader->getFormatVersion();
                 break;
             }
+            /*
             case ESM::Format::Tes4:
             {
                 ESM4::Reader readerESM4(
@@ -69,6 +70,7 @@ namespace MWWorld
                 mStore.loadESM4(readerESM4);
                 break;
             }
+            */
         }
     }
 

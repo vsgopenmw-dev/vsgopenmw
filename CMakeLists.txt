@@ -33,11 +33,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(GNUInstallDirs)
 
-option(OPENMW_GL4ES_MANUAL_INIT "Manually initialize gl4es. This is more reliable on platforms without a windowing system. Requires gl4es to be configured with -DNOEGL=ON -DNO_LOADER=ON -DNO_INIT_CONSTRUCTOR=ON." OFF)
-if(OPENMW_GL4ES_MANUAL_INIT)
-    add_definitions(-DOPENMW_GL4ES_MANUAL_INIT)
-endif()
-
 # Apps and tools
 option(BUILD_OPENMW             "Build OpenMW" ON)
 option(BUILD_LAUNCHER           "Build Launcher" ON)
@@ -79,10 +74,6 @@ if (APPLE)
 endif (APPLE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
-
-if (ANDROID)
-    set(CMAKE_FIND_ROOT_PATH ${OPENMW_DEPENDENCIES_DIR} "${CMAKE_FIND_ROOT_PATH}")
-endif()
 
 # Version
 message(STATUS "Configuring OpenMW...")
@@ -158,7 +149,7 @@ else()
 endif()
 option(MYGUI_STATIC "Link static build of Mygui into the binaries" ${_mygui_static_default})
 
-option(OPENMW_USE_SYSTEM_RECASTNAVIGATION "Use system provided recastnavigation library" OFF)
+option(OPENMW_USE_SYSTEM_RECASTNAVIGATION "Use system provided recastnavigation library" ON)
 if(OPENMW_USE_SYSTEM_RECASTNAVIGATION)
     set(_recastnavigation_static_default OFF)
     find_package(RecastNavigation REQUIRED)
@@ -232,7 +223,8 @@ if(MSVC)
 endif()
 
 # Dependencies
-find_package(OpenGL REQUIRED)
+find_package(vsg 1.0.9 REQUIRED)
+find_package(vsgXchange REQUIRED)
 
 find_package(LZ4 REQUIRED)
 
@@ -269,6 +261,7 @@ set(USED_OSG_PLUGINS
     osgdb_serializers_osg
     osgdb_tga)
 
+#[[
 if(NOT COLLADA_DOM_VERSION_MAJOR)
     set(COLLADA_DOM_VERSION_MAJOR 2)
 endif()
@@ -278,6 +271,7 @@ if(NOT COLLADA_DOM_VERSION_MINOR)
 endif()
 
 find_package(collada_dom 2.5)
+#]]
 
 option(OPENMW_USE_SYSTEM_ICU "Use system ICU library instead of internal. If disabled, requires autotools" ON)
 if(OPENMW_USE_SYSTEM_ICU)
@@ -311,7 +305,7 @@ find_package(FFmpeg REQUIRED COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMP
 
 if(FFmpeg_FOUND)
     SET(FFVER_OK TRUE)
-
+    #[[
     # Can not detect FFmpeg version on Windows for now
     if (NOT WIN32)
         if(FFmpeg_AVFORMAT_VERSION VERSION_LESS "57.56.100")
@@ -339,6 +333,7 @@ if(FFmpeg_FOUND)
     if(NOT FFVER_OK AND NOT APPLE)  # unable to detect on version on MacOS < 11.0
         message(FATAL_ERROR "FFmpeg version is too old, 3.2 is required" )
     endif()
+    #]]
 endif()
 
 if(NOT FFmpeg_FOUND)
@@ -433,6 +428,7 @@ if(NOT HAVE_STDINT_H)
     message(FATAL_ERROR "stdint.h was not found" )
 endif()
 
+#[[
 if(OPENMW_USE_SYSTEM_OSG)
     find_package(OpenSceneGraph 3.6.5 REQUIRED ${USED_OSG_COMPONENTS})  # Bump to 3.6.6 when released
 
@@ -451,6 +447,7 @@ include(cmake/CheckOsgMultiview.cmake)
 if(HAVE_MULTIVIEW)
     add_definitions(-DOSG_HAS_MULTIVIEW)
 endif(HAVE_MULTIVIEW)
+#]]
 
 set(BOOST_COMPONENTS system filesystem program_options iostreams)
 if(WIN32)
@@ -490,7 +487,7 @@ else(USE_LUAJIT)
     add_compile_definitions(NO_LUAJIT)
 endif(USE_LUAJIT)
 if (NOT WIN32)
-    include(cmake/CheckLuaCustomAllocator.cmake)
+    #include(cmake/CheckLuaCustomAllocator.cmake)
 endif()
 
 # C++ library binding to Lua
@@ -504,7 +501,6 @@ include_directories(
     ${Boost_INCLUDE_DIR}
     ${MyGUI_INCLUDE_DIRS}
     ${OPENAL_INCLUDE_DIR}
-    ${OPENGL_INCLUDE_DIR}
     ${BULLET_INCLUDE_DIRS}
     ${LUA_INCLUDE_DIR}
     ${SOL_INCLUDE_DIR}
@@ -548,8 +544,8 @@ endif (APPLE)
 
 # Other files
 
-pack_resource_file(${OpenMW_SOURCE_DIR}/files/settings-default.cfg
-    "${OpenMW_BINARY_DIR}" "defaults.bin")
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/settings-default.cfg
+    "${OpenMW_BINARY_DIR}" "defaults.cfg")
 
 configure_resource_file(${OpenMW_SOURCE_DIR}/files/openmw.appdata.xml
     "${OpenMW_BINARY_DIR}" "openmw.appdata.xml")
@@ -564,8 +560,8 @@ else ()
         "${OpenMW_BINARY_DIR}/openmw.cfg")
 endif ()
 
-pack_resource_file(${OpenMW_SOURCE_DIR}/files/openmw-cs.cfg
-    "${OpenMW_BINARY_DIR}" "defaults-cs.bin")
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/openmw-cs.cfg
+    "${OpenMW_BINARY_DIR}" "defaults-cs.cfg")
 
 # Needs the copy version because the configure version assumes the end of the file has been reached when a null character is reached and there are no CMake expressions to evaluate.
 copy_resource_file(${OpenMW_SOURCE_DIR}/files/opencs/defaultfilters
@@ -603,7 +599,7 @@ endif()
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    set(OPENMW_CXX_FLAGS "-Wall -Wextra -Wundef -Wextra-semi -Wno-unused-parameter -pedantic -Wno-long-long -Wnon-virtual-dtor -Wunused ${OPENMW_CXX_FLAGS}")
+    set(OPENMW_CXX_FLAGS "-Wall -Wextra -Wundef -Wextra-semi -Wno-unused-parameter -pedantic -Wno-long-long -Wnon-virtual-dtor -Wunused -Wno-mismatched-tags ${OPENMW_CXX_FLAGS}")
     add_definitions( -DBOOST_NO_CXX11_SCOPED_ENUMS=ON )
 
     if (APPLE)
@@ -626,7 +622,6 @@ endif (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clan
 
 add_subdirectory (extern/osg-ffmpeg-videoplayer)
 add_subdirectory (extern/oics)
-add_subdirectory (extern/Base64)
 if ((BUILD_OPENCS OR BUILD_OPENCS_TESTS) AND Qt5_FOUND)
     add_subdirectory (extern/osgQt)
 endif()
@@ -648,11 +643,11 @@ if (BUILD_BSATOOL)
 endif()
 
 if (BUILD_ESMTOOL)
-    add_subdirectory( apps/esmtool )
+    #add_subdirectory( apps/esmtool )
 endif()
 
 if (BUILD_LAUNCHER)
-    add_subdirectory( apps/launcher )
+    #add_subdirectory( apps/launcher )
 endif()
 
 if (BUILD_MWINIIMPORTER)
@@ -660,11 +655,11 @@ if (BUILD_MWINIIMPORTER)
 endif()
 
 if (BUILD_ESSIMPORTER)
-    add_subdirectory (apps/essimporter )
+    #add_subdirectory (apps/essimporter )
 endif()
 
 if (BUILD_OPENCS OR BUILD_OPENCS_TESTS)
-    add_subdirectory (apps/opencs)
+    #add_subdirectory (apps/opencs)
 endif()
 
 if (BUILD_WIZARD)
@@ -672,28 +667,28 @@ if (BUILD_WIZARD)
 endif()
 
 if (BUILD_NIFTEST)
-    add_subdirectory(apps/niftest)
+    #add_subdirectory(apps/niftest)
 endif(BUILD_NIFTEST)
 
 # UnitTests
 if (BUILD_UNITTESTS)
-    add_subdirectory( apps/openmw_test_suite )
+    #add_subdirectory( apps/openmw_test_suite )
 endif()
 
 if (BUILD_BENCHMARKS)
-    add_subdirectory(apps/benchmarks)
+    #add_subdirectory(apps/benchmarks)
 endif()
 
 if (BUILD_NAVMESHTOOL)
-    add_subdirectory(apps/navmeshtool)
+    #add_subdirectory(apps/navmeshtool)
 endif()
 
 if (BUILD_BULLETOBJECTTOOL)
-    add_subdirectory( apps/bulletobjecttool )
+    #add_subdirectory( apps/bulletobjecttool )
 endif()
 
 if (BUILD_OPENCS_TESTS)
-    add_subdirectory(apps/opencs_tests)
+    #add_subdirectory(apps/opencs_tests)
 endif()
 
 if (WIN32)
@@ -962,7 +957,7 @@ elseif(NOT APPLE)
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/CHANGELOG.md" DESTINATION "." RENAME "CHANGELOG.txt")
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/README.md" DESTINATION "." RENAME "README.txt")
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/LICENSE" DESTINATION "." RENAME "LICENSE.txt")
-        INSTALL(FILES "${INSTALL_SOURCE}/defaults.bin" DESTINATION ".")
+        INSTALL(FILES "${INSTALL_SOURCE}/defaults.cfg" DESTINATION ".")
         INSTALL(FILES "${INSTALL_SOURCE}/gamecontrollerdb.txt" DESTINATION ".")
 
         INSTALL(DIRECTORY "${INSTALL_SOURCE}/resources" DESTINATION ".")
@@ -1073,13 +1068,13 @@ elseif(NOT APPLE)
         ENDIF(BUILD_OPENCS)
 
         # Install global configuration files
-        INSTALL(FILES "${INSTALL_SOURCE}/defaults.bin" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
+        INSTALL(FILES "${INSTALL_SOURCE}/defaults.cfg" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
         INSTALL(FILES "${INSTALL_SOURCE}/openmw.cfg.install" DESTINATION "${SYSCONFDIR}" RENAME "openmw.cfg" COMPONENT "openmw")
         INSTALL(FILES "${INSTALL_SOURCE}/resources/version" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
         INSTALL(FILES "${INSTALL_SOURCE}/gamecontrollerdb.txt" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
 
         IF(BUILD_OPENCS)
-            INSTALL(FILES "${INSTALL_SOURCE}/defaults-cs.bin" DESTINATION "${SYSCONFDIR}" COMPONENT "opencs")
+            INSTALL(FILES "${INSTALL_SOURCE}/defaults-cs.cfg" DESTINATION "${SYSCONFDIR}" COMPONENT "opencs")
         ENDIF(BUILD_OPENCS)
 
         # Install resources

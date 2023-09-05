@@ -13,8 +13,7 @@
 
 #include <osg/BoundingBox>
 #include <osg/Quat>
-#include <osg/Timer>
-#include <osg/ref_ptr>
+#include <vsg/core/ref_ptr.h>
 
 #include <components/detournavigator/collisionshapetype.hpp>
 
@@ -25,11 +24,13 @@
 
 namespace osg
 {
-    class Group;
-    class Object;
     class Stats;
 }
-
+namespace vsg
+{
+    class Object;
+    class Options;
+}
 namespace MWRender
 {
     class DebugDrawer;
@@ -37,7 +38,6 @@ namespace MWRender
 
 namespace Resource
 {
-    class BulletShapeManager;
     class ResourceSystem;
 }
 
@@ -150,10 +150,10 @@ namespace MWPhysics
     class PhysicsSystem : public RayCastingInterface
     {
     public:
-        PhysicsSystem(Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode);
+        PhysicsSystem(Resource::ResourceSystem* resourceSystem);
         virtual ~PhysicsSystem();
 
-        Resource::BulletShapeManager* getShapeManager();
+        void pruneCache() const;
 
         void enableWater(float height);
         void setWaterHeight(float height);
@@ -185,7 +185,7 @@ namespace MWPhysics
         void updatePosition(const MWWorld::Ptr& ptr);
 
         void addHeightField(const float* heights, int x, int y, int size, int verts, float minH, float maxH,
-            const osg::Object* holdObject);
+            const vsg::Object* holdObject);
 
         void removeHeightField(int x, int y);
 
@@ -194,8 +194,7 @@ namespace MWPhysics
         bool toggleCollisionMode();
 
         /// Determine new position based on all queued movements, then clear the list.
-        void stepSimulation(
-            float dt, bool skipSimulation, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+        void stepSimulation(float dt);
 
         /// Apply new positions to actors
         void moveActors();
@@ -256,9 +255,6 @@ namespace MWPhysics
         /// be overwritten. Valid until the next call to stepSimulation
         void queueObjectMovement(const MWWorld::Ptr& ptr, const osg::Vec3f& velocity);
 
-        /// Clear the queued movements list without applying.
-        void clearQueuedMovement();
-
         /// Return true if \a actor has been standing on \a object in this frame
         /// This will trigger whenever the object is directly below the actor.
         /// It doesn't matter if the actor is stationary or moving.
@@ -296,6 +292,9 @@ namespace MWPhysics
         void reportStats(unsigned int frameNumber, osg::Stats& stats) const;
         void reportCollision(const btVector3& position, const btVector3& normal);
 
+        vsg::ref_ptr<const vsg::Options> readOptions();
+        vsg::ref_ptr<const vsg::Options> actorReadOptions();
+
     private:
         void updateWater();
 
@@ -307,7 +306,6 @@ namespace MWPhysics
         std::unique_ptr<btCollisionWorld> mCollisionWorld;
         std::unique_ptr<PhysicsTaskScheduler> mTaskScheduler;
 
-        std::unique_ptr<Resource::BulletShapeManager> mShapeManager;
         Resource::ResourceSystem* mResourceSystem;
 
         using ObjectMap = std::unordered_map<const MWWorld::LiveCellRefBase*, std::shared_ptr<Object>>;
@@ -335,9 +333,7 @@ namespace MWPhysics
         std::unique_ptr<btCollisionObject> mWaterCollisionObject;
         std::unique_ptr<btCollisionShape> mWaterCollisionShape;
 
-        std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
-
-        osg::ref_ptr<osg::Group> mParentNode;
+        // std::unique_ptr<MWRender::DebugDrawer> mDebugDrawer;
 
         float mPhysicsDt;
 
@@ -346,6 +342,9 @@ namespace MWPhysics
         std::size_t mSimulationsCounter = 0;
         std::array<std::vector<Simulation>, 2> mSimulations;
         std::vector<std::pair<MWWorld::Ptr, osg::Vec3f>> mActorsPositions;
+
+        vsg::ref_ptr<vsg::Options> mActorReadOptions;
+        vsg::ref_ptr<vsg::Options> mReadOptions;
 
         PhysicsSystem(const PhysicsSystem&);
         PhysicsSystem& operator=(const PhysicsSystem&);

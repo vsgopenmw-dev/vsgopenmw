@@ -135,10 +135,7 @@ namespace Files
             mergeComposingVariables(variables, composingVariables, description);
         }
 
-        mUserDataPath = variables["user-data"]
-                            .as<Files::MaybeQuotedPath>()
-                            .u8string(); // This call to u8string is redundant, but required to build on MSVC 14.26 due
-                                         // to implementation bugs.
+        mUserDataPath = variables["user-data"].as<Files::MaybeQuotedPath>();
         if (mUserDataPath.empty())
         {
             if (!quiet)
@@ -298,7 +295,7 @@ namespace Files
         const auto pos = str.find('?', 1);
         if (pos != std::u8string::npos && pos != 0)
         {
-            auto tokenIt = mTokensMapping.find(str.substr(0, pos + 1));
+            auto tokenIt = mTokensMapping.find(std::u8string(Misc::StringUtils::stringToU8String(str.substr(0, pos + 1))));
             if (tokenIt != mTokensMapping.end())
             {
                 auto tempPath(((mFixedPath).*(tokenIt->second))());
@@ -447,7 +444,7 @@ namespace Files
         {
             std::string intermediate;
             istream >> std::quoted(intermediate, '"', '&');
-            static_cast<std::filesystem::path&>(MaybeQuotedPath) = Misc::StringUtils::stringToU8String(intermediate);
+            static_cast<std::filesystem::path&>(MaybeQuotedPath) = std::filesystem::path(intermediate);
             if (istream && !istream.eof() && istream.peek() != EOF)
             {
                 std::string remainder{ std::istreambuf_iterator(istream), {} };
@@ -458,7 +455,7 @@ namespace Files
         else
         {
             std::string intermediate{ std::istreambuf_iterator(istream), {} };
-            static_cast<std::filesystem::path&>(MaybeQuotedPath) = Misc::StringUtils::stringToU8String(intermediate);
+            static_cast<std::filesystem::path&>(MaybeQuotedPath) = std::filesystem::path(intermediate);
         }
         return istream;
     }
@@ -469,8 +466,7 @@ namespace Files
         res.reserve(MaybeQuotedPathContainer.size());
         for (const auto& maybeQuotedPath : MaybeQuotedPathContainer)
         {
-            res.emplace_back(maybeQuotedPath.u8string()); // This call to u8string is redundant, but required to build
-                                                          // on MSVC 14.26 due to implementation bugs.
+            res.emplace_back(maybeQuotedPath);
         }
         return res;
     }

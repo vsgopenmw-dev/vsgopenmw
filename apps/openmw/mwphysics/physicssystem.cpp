@@ -4,9 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include <osg/Group>
-#include <osg/Stats>
-#include <osg/Timer>
+#include <vsg/io/read.h>
+#include <vsg/utils/SharedObjects.h>
 
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
@@ -25,9 +24,10 @@
 #include <components/misc/convert.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/misc/strings/conversion.hpp>
-#include <components/resource/bulletshapemanager.hpp>
+#include <components/vsgadapters/vfs.hpp>
+#include <components/resource/bulletshapereader.hpp>
 #include <components/resource/resourcesystem.hpp>
-#include <components/settings/settings.hpp>
+#include <components/settings/settings.hpp> //vsgopenmw-fixme(dependency-policy)
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
@@ -40,7 +40,7 @@
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/player.hpp"
 
-#include "../mwrender/bulletdebugdraw.hpp"
+// #include "../mwrender/bulletdebugdraw.hpp"
 
 #include "../mwworld/class.hpp"
 
@@ -93,21 +93,39 @@ namespace
 
 namespace MWPhysics
 {
-    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem, osg::ref_ptr<osg::Group> parentNode)
-        : mShapeManager(std::make_unique<Resource::BulletShapeManager>(
-            resourceSystem->getVFS(), resourceSystem->getSceneManager(), resourceSystem->getNifFileManager()))
-        , mResourceSystem(resourceSystem)
-        , mDebugDrawEnabled(false)
+    void PhysicsSystem::pruneCache() const
+    {
+        auto pruneSharedObjects = [](const vsg::ref_ptr<const vsg::Options>& options) { if (options->sharedObjects) options->sharedObjects->prune(); };
+        pruneSharedObjects(mReadOptions);
+        pruneSharedObjects(mActorReadOptions);
+    }
+
+    PhysicsSystem::PhysicsSystem(Resource::ResourceSystem* resourceSystem)
+        : mDebugDrawEnabled(false)
         , mTimeAccum(0.0f)
         , mProjectileId(0)
         , mWaterHeight(0)
         , mWaterEnabled(false)
-        , mParentNode(parentNode)
         , mPhysicsDt(1.f / 60.f)
         , mActorCollisionShapeType(
               DetourNavigator::toCollisionShapeType(Settings::Manager::getInt("actor collision shape type", "Game")))
     {
-        mResourceSystem->addResourceManager(mShapeManager.get());
+        mReadOptions = vsg::Options::create();
+        mReadOptions->sharedObjects = vsg::SharedObjects::create();
+        auto vfs = vsg::ref_ptr{ new vsgAdapters::vfs(*resourceSystem->getVFS()) };
+        vfs->readerWriters = { vsg::ref_ptr{ new Resource::BulletShapeReader() } };
+        mReadOptions->readerWriters = { vfs };
+        mReadOptions->findFileCallback = [](const vsg::Path& file, const vsg::Options* options) -> vsg::Path
+        {
+            return vsg::Path("meshes/") + file;
+        };
+        mActorReadOptions = vsg::Options::create(*mReadOptions);
+        mActorReadOptions->sharedObjects = vsg::SharedObjects::create();
+        mActorReadOptions->findFileCallback = [resourceSystem](const vsg::Path& file, const vsg::Options* options) -> vsg::Path
+        {
+            std::string path = "meshes/" + file;
+            return vsg::Path(Misc::ResourceHelpers::correctActorModelPath(path, resourceSystem->getVFS()));
+        };
 
         mCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
         mDispatcher = std::make_unique<btCollisionDispatcher>(mCollisionConfiguration.get());
@@ -132,14 +150,14 @@ namespace MWPhysics
             }
         }
 
-        mDebugDrawer = std::make_unique<MWRender::DebugDrawer>(mParentNode, mCollisionWorld.get(), mDebugDrawEnabled);
-        mTaskScheduler = std::make_unique<PhysicsTaskScheduler>(mPhysicsDt, mCollisionWorld.get(), mDebugDrawer.get());
+        // mDebugDrawer = std::make_unique<MWRender::DebugDrawer>(mParentNode, mCollisionWorld.get(),
+        // mDebugDrawEnabled);
+        mTaskScheduler = std::make_unique<PhysicsTaskScheduler>(
+            mPhysicsDt, mCollisionWorld.get(), nullptr); // mDebugDrawer.get());
     }
 
     PhysicsSystem::~PhysicsSystem()
     {
-        mResourceSystem->removeResourceManager(mShapeManager.get());
-
         if (mWaterCollisionObject)
             mTaskScheduler->removeCollisionObject(mWaterCollisionObject.get());
 
@@ -150,17 +168,12 @@ namespace MWPhysics
         mProjectiles.clear();
     }
 
-    Resource::BulletShapeManager* PhysicsSystem::getShapeManager()
-    {
-        return mShapeManager.get();
-    }
-
     bool PhysicsSystem::toggleDebugRendering()
     {
         mDebugDrawEnabled = !mDebugDrawEnabled;
 
-        mCollisionWorld->setDebugDrawer(mDebugDrawEnabled ? mDebugDrawer.get() : nullptr);
-        mDebugDrawer->setDebugMode(mDebugDrawEnabled);
+        // mCollisionWorld->setDebugDrawer(mDebugDrawEnabled ? mDebugDrawer.get() : nullptr);
+        // mDebugDrawer->setDebugMode(mDebugDrawEnabled);
         return mDebugDrawEnabled;
     }
 
@@ -470,7 +483,7 @@ namespace MWPhysics
     }
 
     void PhysicsSystem::addHeightField(
-        const float* heights, int x, int y, int size, int verts, float minH, float maxH, const osg::Object* holdObject)
+        const float* heights, int x, int y, int size, int verts, float minH, float maxH, const vsg::Object* holdObject)
     {
         mHeightFields[std::make_pair(x, y)]
             = std::make_unique<HeightField>(heights, x, y, size, verts, minH, maxH, holdObject, mTaskScheduler.get());
@@ -497,12 +510,12 @@ namespace MWPhysics
         if (ptr.mRef->mData.mPhysicsPostponed)
             return;
 
-        std::string animationMesh = mesh;
-        if (ptr.getClass().useAnim())
-            animationMesh = Misc::ResourceHelpers::correctActorModelPath(mesh, mResourceSystem->getVFS());
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(animationMesh);
-        if (!shapeInstance || !shapeInstance->mCollisionShape)
+        auto& options = ptr.getClass().useAnim() ? mActorReadOptions : mReadOptions;
+        auto shape = vsg::read_cast<Resource::BulletShape>(mesh, options);
+        if (!shape || !shape->mCollisionShape)
             return;
+
+        auto shapeInstance = Resource::makeInstance(shape);
 
         assert(!getObject(ptr));
 
@@ -647,16 +660,12 @@ namespace MWPhysics
 
     void PhysicsSystem::addActor(const MWWorld::Ptr& ptr, const std::string& mesh)
     {
-        std::string animationMesh = Misc::ResourceHelpers::correctActorModelPath(mesh, mResourceSystem->getVFS());
-        osg::ref_ptr<const Resource::BulletShape> shape = mShapeManager->getShape(animationMesh);
+        auto shape = vsg::read_cast<Resource::BulletShape>(mesh, mActorReadOptions);
 
         // Try to get shape from basic model as fallback for creatures
         if (!ptr.getClass().isNpc() && shape && shape->mCollisionBox.mExtents.length2() == 0)
         {
-            if (animationMesh != mesh)
-            {
-                shape = mShapeManager->getShape(mesh);
-            }
+            shape = vsg::read_cast<Resource::BulletShape>(mesh, mReadOptions);
         }
 
         if (!shape)
@@ -674,9 +683,12 @@ namespace MWPhysics
     int PhysicsSystem::addProjectile(
         const MWWorld::Ptr& caster, const osg::Vec3f& position, const std::string& mesh, bool computeRadius)
     {
-        osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance = mShapeManager->getInstance(mesh);
-        assert(shapeInstance);
-        float radius = computeRadius ? shapeInstance->mCollisionBox.mExtents.length() / 2.f : 1.f;
+        float radius = 1.f;
+        if (computeRadius)
+        {
+            if (auto shape = vsg::read_cast<Resource::BulletShape>(mesh, mReadOptions))
+                radius = shape->mCollisionBox.mExtents.length() / 2.f;
+        }
 
         mProjectileId++;
 
@@ -715,15 +727,6 @@ namespace MWPhysics
         ActorMap::iterator found = mActors.find(ptr.mRef);
         if (found != mActors.end())
             found->second->setVelocity(velocity);
-    }
-
-    void PhysicsSystem::clearQueuedMovement()
-    {
-        for (const auto& [_, actor] : mActors)
-        {
-            actor->setVelocity(osg::Vec3f());
-            actor->setInertialForce(osg::Vec3f());
-        }
     }
 
     void PhysicsSystem::prepareSimulation(bool willSimulate, std::vector<Simulation>& simulations)
@@ -778,8 +781,7 @@ namespace MWPhysics
         }
     }
 
-    void PhysicsSystem::stepSimulation(
-        float dt, bool skipSimulation, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats)
+    void PhysicsSystem::stepSimulation(float dt)
     {
         for (auto& [animatedObject, changed] : mAnimatedObjects)
         {
@@ -803,15 +805,10 @@ namespace MWPhysics
 
         mTimeAccum += dt;
 
-        if (skipSimulation)
-            mTaskScheduler->resetSimulation(mActors);
-        else
-        {
-            std::vector<Simulation>& simulations = mSimulations[mSimulationsCounter++ % mSimulations.size()];
-            prepareSimulation(mTimeAccum >= mPhysicsDt, simulations);
-            // modifies mTimeAccum
-            mTaskScheduler->applyQueuedMovements(mTimeAccum, simulations, frameStart, frameNumber, stats);
-        }
+        std::vector<Simulation>& simulations = mSimulations[mSimulationsCounter++ % mSimulations.size()];
+        prepareSimulation(mTimeAccum >= mPhysicsDt, simulations);
+        // modifies mTimeAccum
+        mTaskScheduler->applyQueuedMovements(mTimeAccum, simulations);
     }
 
     void PhysicsSystem::moveActors()
@@ -965,16 +962,28 @@ namespace MWPhysics
 
     void PhysicsSystem::reportStats(unsigned int frameNumber, osg::Stats& stats) const
     {
+        /*
         stats.setAttribute(frameNumber, "Physics Actors", mActors.size());
         stats.setAttribute(frameNumber, "Physics Objects", mObjects.size());
         stats.setAttribute(frameNumber, "Physics Projectiles", mProjectiles.size());
         stats.setAttribute(frameNumber, "Physics HeightFields", mHeightFields.size());
+        */
     }
 
     void PhysicsSystem::reportCollision(const btVector3& position, const btVector3& normal)
     {
-        if (mDebugDrawEnabled)
-            mDebugDrawer->addCollision(position, normal);
+        // if (mDebugDrawEnabled)
+        //   mDebugDrawer->addCollision(position, normal);
+    }
+
+    vsg::ref_ptr<const vsg::Options> PhysicsSystem::readOptions()
+    {
+        return mReadOptions;
+    }
+
+    vsg::ref_ptr<const vsg::Options> PhysicsSystem::actorReadOptions()
+    {
+        return mActorReadOptions;
     }
 
     ActorFrameData::ActorFrameData(Actor& actor, bool inert, bool waterCollision, float slowFall, float waterlevel)

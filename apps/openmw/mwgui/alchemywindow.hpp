@@ -12,7 +12,10 @@
 
 #include "windowbase.hpp"
 
-#include "../mwmechanics/alchemy.hpp"
+namespace MWMechanics
+{
+    class Alchemy;
+}
 
 namespace MWGui
 {
@@ -25,6 +28,7 @@ namespace MWGui
     {
     public:
         AlchemyWindow();
+        ~AlchemyWindow();
 
         void onOpen() override;
 

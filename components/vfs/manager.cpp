@@ -101,17 +101,6 @@ namespace VFS
         return {};
     }
 
-    std::filesystem::path Manager::getAbsoluteFileName(const std::filesystem::path& name) const
-    {
-        std::string normalized = Files::pathToUnicodeString(name);
-        normalize_path(normalized, mStrict);
-
-        const auto found = mIndex.find(normalized);
-        if (found == mIndex.end())
-            throw std::runtime_error("Resource '" + normalized + "' not found");
-        return found->second->getPath();
-    }
-
     namespace
     {
         bool startsWith(std::string_view text, std::string_view start)

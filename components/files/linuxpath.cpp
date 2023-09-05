@@ -89,7 +89,7 @@ namespace Files
         static const std::filesystem::path statusPaths[]
             = { "/proc/self/exe", "/proc/self/file", "/proc/curproc/exe", "/proc/curproc/file" };
 
-        for (const auto& path : statusPaths)
+        for(const auto& path : statusPaths)
         {
             std::error_code ec;
             const auto binPath = read_symlink(path, ec);

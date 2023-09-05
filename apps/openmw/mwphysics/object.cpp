@@ -1,20 +1,47 @@
 #include "object.hpp"
 #include "mtphysics.hpp"
 
+#include <vsg/maths/transform.h>
+#include <vsg/nodes/Transform.h>
+
+#include <components/animation/transform.hpp>
 #include <components/bullethelpers/collisionobject.hpp>
 #include <components/debug/debuglog.hpp>
 #include <components/misc/convert.hpp>
-#include <components/nifosg/particle.hpp>
+#include <components/mwanimation/object.hpp>
 #include <components/resource/bulletshape.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/vsgutil/id.hpp>
+#include <components/vsgutil/traverse.hpp>
+#include <components/vsgutil/nodepath.hpp>
 
 #include <BulletCollision/CollisionShapes/btCompoundShape.h>
 
 #include <LinearMath/btTransform.h>
 
+#include "../mwbase/environment.hpp"
+#include "../mwbase/world.hpp"
+
+namespace
+{
+    class GetNodePath : public vsgUtil::SearchPath<const vsg::Transform*>, public vsgUtil::TConstTraverse<vsg::Node>
+    {
+    public:
+        int needle{};
+        using vsg::ConstVisitor::apply;
+        void apply(const vsg::Transform& node) override
+        {
+            auto ppn = pushPop(&node);
+            auto id = vsgUtil::ID::get(node);
+            if (id && id->id == needle)
+                foundPath = this->path;
+            else
+                traverseNode(node, *this);
+        }
+    };
+}
 namespace MWPhysics
 {
-    Object::Object(const MWWorld::Ptr& ptr, osg::ref_ptr<Resource::BulletShapeInstance> shapeInstance,
+    Object::Object(const MWWorld::Ptr& ptr, vsg::ref_ptr<Resource::BulletShapeInstance> shapeInstance,
         osg::Quat rotation, int collisionType, PhysicsTaskScheduler* scheduler)
         : PtrHolder(ptr, osg::Vec3f())
         , mShapeInstance(std::move(shapeInstance))
@@ -37,9 +64,9 @@ namespace MWPhysics
         mTaskScheduler->removeCollisionObject(mCollisionObject.get());
     }
 
-    const Resource::BulletShapeInstance* Object::getShapeInstance() const
+    const vsg::ref_ptr<Resource::BulletShapeInstance> Object::getShapeInstance() const
     {
-        return mShapeInstance.get();
+        return mShapeInstance;
     }
 
     void Object::setScale(float scale)
@@ -119,28 +146,29 @@ namespace MWPhysics
             auto nodePathFound = mRecIndexToNodePath.find(recIndex);
             if (nodePathFound == mRecIndexToNodePath.end())
             {
-                NifOsg::FindGroupByRecIndex visitor(recIndex);
-                mPtr.getRefData().getBaseNode()->accept(visitor);
-                if (!visitor.mFound)
+                if (auto anim = MWBase::Environment::get().getWorld()->getAnimation(mPtr))
                 {
-                    Log(Debug::Warning) << "Warning: animateCollisionShapes can't find node " << recIndex << " for "
-                                        << mPtr.getCellRef().getRefId();
+                    GetNodePath visitor;
+                    visitor.needle = recIndex;
+                    anim->transform()->traverse(visitor);
 
-                    // Remove nonexistent nodes from animated shapes map and early out
-                    mShapeInstance->mAnimatedShapes.erase(recIndex);
-                    return false;
+                    if (visitor.foundPath.empty())
+                    {
+                        // Remove nonexistent transforms from animated shapes map and early out
+                        mShapeInstance->mAnimatedShapes.erase(recIndex);
+                        return false;
+                    }
+                    nodePathFound = mRecIndexToNodePath.emplace(recIndex, visitor.foundPath).first;
                 }
-                osg::NodePath nodePath = visitor.mFoundPath;
-                nodePath.erase(nodePath.begin());
-                nodePathFound = mRecIndexToNodePath.emplace(recIndex, nodePath).first;
             }
 
-            osg::NodePath& nodePath = nodePathFound->second;
-            osg::Matrixf matrix = osg::computeLocalToWorld(nodePath);
-            matrix.orthoNormalize(matrix);
+            auto& nodePath = nodePathFound->second;
+            auto matrix = vsg::mat4(vsg::computeTransform(nodePath));
+            // matrix.orthoNormalize(matrix);
 
             btTransform transform;
-            transform.setOrigin(Misc::Convert::toBullet(matrix.getTrans()) * compound->getLocalScaling());
+            auto pos = matrix[3];
+            transform.setOrigin(btVector3(pos.x, pos.y, pos.z) * compound->getLocalScaling());
             for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     transform.getBasis()[i][j] = matrix(j, i); // NB column/row major difference

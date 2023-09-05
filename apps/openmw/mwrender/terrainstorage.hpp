@@ -7,6 +7,10 @@
 
 #include <components/resource/resourcesystem.hpp>
 
+namespace MWWorld
+{
+    class ESMStore;
+}
 namespace MWRender
 {
 
@@ -16,22 +20,18 @@ namespace MWRender
     class TerrainStorage : public ESMTerrain::Storage
     {
     public:
-        TerrainStorage(Resource::ResourceSystem* resourceSystem, const std::string& normalMapPattern = "",
-            const std::string& normalHeightMapPattern = "", bool autoUseNormalMaps = false,
-            const std::string& specularMapPattern = "", bool autoUseSpecularMaps = false);
+        TerrainStorage(Resource::ResourceSystem* resourceSystem);
         ~TerrainStorage();
 
-        osg::ref_ptr<const ESMTerrain::LandObject> getLand(int cellX, int cellY) override;
-        const ESM::LandTexture* getLandTexture(int index, short plugin) override;
+        void setStore(const MWWorld::ESMStore* store) { mEsmStore = store; }
 
-        bool hasData(int cellX, int cellY) override;
-
-        /// Get bounds of the whole terrain in cell units
-        void getBounds(float& minX, float& maxX, float& minY, float& maxY) override;
+        vsg::ref_ptr<const ESMTerrain::LandObject> getLand(int cellX, int cellY) const override;
+        std::map<PluginTexture, std::string> enumerateLayers() const override;
 
         LandManager* getLandManager() const;
 
     private:
+        const MWWorld::ESMStore* mEsmStore =nullptr;
         std::unique_ptr<LandManager> mLandManager;
 
         Resource::ResourceSystem* mResourceSystem;

@@ -1,8 +1,7 @@
 #include "static.hpp"
 
 #include <components/esm3/loadstat.hpp>
-#include <components/esm4/loadstat.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
+//#include <components/esm4/loadstat.hpp>
 
 #include "../mwphysics/physicssystem.hpp"
 #include "../mwworld/cellstore.hpp"
@@ -27,7 +26,6 @@ namespace MWClass
         if (!model.empty())
         {
             renderingInterface.getObjects().insertModel(ptr, model);
-            ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Static);
         }
     }
 
@@ -65,6 +63,7 @@ namespace MWClass
         return MWWorld::Ptr(cell.insert(ref), &cell);
     }
 
+    /*
     ESM4Static::ESM4Static()
         : MWWorld::RegisteredClass<ESM4Static>(ESM4::Static::sRecordId)
     {
@@ -76,7 +75,6 @@ namespace MWClass
         if (!model.empty())
         {
             renderingInterface.getObjects().insertModel(ptr, model);
-            ptr.getRefData().getBaseNode()->setNodeMask(MWRender::Mask_Static);
         }
     }
 
@@ -113,4 +111,5 @@ namespace MWClass
 
         return MWWorld::Ptr(cell.insert(ref), &cell);
     }
+    */
 }

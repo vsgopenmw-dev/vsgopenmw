@@ -72,9 +72,9 @@ namespace MWWorld
         CellRefList<ESM::Container>, CellRefList<ESM::Creature>, CellRefList<ESM::Door>, CellRefList<ESM::Ingredient>,
         CellRefList<ESM::CreatureLevList>, CellRefList<ESM::ItemLevList>, CellRefList<ESM::Light>,
         CellRefList<ESM::Lockpick>, CellRefList<ESM::Miscellaneous>, CellRefList<ESM::NPC>, CellRefList<ESM::Probe>,
-        CellRefList<ESM::Repair>, CellRefList<ESM::Static>, CellRefList<ESM::Weapon>, CellRefList<ESM::BodyPart>,
+        CellRefList<ESM::Repair>, CellRefList<ESM::Static>, CellRefList<ESM::Weapon>, CellRefList<ESM::BodyPart>>;
 
-        CellRefList<ESM4::Static>, CellRefList<ESM4::Light>>;
+        //CellRefList<ESM4::Static>, CellRefList<ESM4::Light>>;
 
     /// \brief Mutable state of a cell
     class CellStore
@@ -270,7 +270,7 @@ namespace MWWorld
         // Should be phased out when we have const version of forEach
         inline const CellRefList<ESM::Door>& getReadOnlyDoors() const { return get<ESM::Door>(); }
         inline const CellRefList<ESM::Static>& getReadOnlyStatics() const { return get<ESM::Static>(); }
-        inline const CellRefList<ESM4::Static>& getReadOnlyEsm4Statics() const { return get<ESM4::Static>(); }
+        //inline const CellRefList<ESM4::Static>& getReadOnlyEsm4Statics() const { return get<ESM4::Static>(); }
 
         bool isExterior() const;
 
@@ -382,15 +382,15 @@ namespace MWWorld
 
         /// Run through references and store IDs
         void listRefs(const ESM::Cell& cell);
-        void listRefs(const ESM4::Cell& cell);
+        //void listRefs(const ESM4::Cell& cell);
         void listRefs();
 
         void loadRefs(const ESM::Cell& cell, std::map<ESM::RefNum, ESM::RefId>& refNumToID);
-        void loadRefs(const ESM4::Cell& cell, std::map<ESM::RefNum, ESM::RefId>& refNumToID);
+        //void loadRefs(const ESM4::Cell& cell, std::map<ESM::RefNum, ESM::RefId>& refNumToID);
 
         void loadRefs();
 
-        void loadRef(const ESM4::Reference& ref, bool deleted);
+        //void loadRef(const ESM4::Reference& ref, bool deleted);
         void loadRef(ESM::CellRef& ref, bool deleted, std::map<ESM::RefNum, ESM::RefId>& refNumToID);
         ///< Make case-adjustments to \a ref and insert it into the respective container.
         ///

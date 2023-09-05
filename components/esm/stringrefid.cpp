@@ -21,7 +21,7 @@ namespace ESM
         {
             static Misc::ScopeGuarded<StringsSet> refIds;
             const auto locked = refIds.lock();
-            auto it = locked->find(id);
+            auto it = locked->find(std::string(id));
             if (it == locked->end())
                 it = locked->emplace(id).first;
             return &*it;

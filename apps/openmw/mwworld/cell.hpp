@@ -33,7 +33,7 @@ namespace MWWorld
         };
 
     public:
-        explicit Cell(const ESM4::Cell& cell);
+        //explicit Cell(const ESM4::Cell& cell);
         explicit Cell(const ESM::Cell& cell);
 
         int getGridX() const { return mGridPos.x(); }

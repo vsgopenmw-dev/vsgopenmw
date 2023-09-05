@@ -39,9 +39,6 @@ namespace Constants
     static constexpr float sStepSizeUp = 34.0f;
     static constexpr float sMaxSlope = 46.0f;
 
-    // Identifier for main scene camera
-    const std::string SceneCamera = "SceneCam";
-
 }
 
 #endif

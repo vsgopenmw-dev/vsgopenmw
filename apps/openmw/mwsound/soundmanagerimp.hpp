@@ -133,8 +133,6 @@ namespace MWSound
         void cull3DSound(SoundBase* sound);
 
         void updateSounds(float duration);
-        void updateRegionSound(float duration);
-        void updateWaterSound();
         void updateMusic(float duration);
 
         float volumeFromType(Type type) const;
@@ -165,6 +163,9 @@ namespace MWSound
         ~SoundManager() override;
 
         void processChangedSettings(const Settings::CategorySettingVector& settings) override;
+
+        void updateRegionSound(float duration);
+        void updateWaterSound();
 
         void stopMusic() override;
         ///< Stops music if it's playing

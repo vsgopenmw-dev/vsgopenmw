@@ -8,7 +8,8 @@
 #include <components/misc/mathutil.hpp>
 
 #include <components/detournavigator/navigatorutils.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include "../mwphysics/raycasting.hpp"
 
@@ -458,19 +459,19 @@ namespace MWMechanics
         actorMovementSettings.mPosition[1] = movement.y();
         actorMovementSettings.mPosition[2] = storage.mMovement.mPosition[2];
 
-        rotateActorOnAxis(actor, 2, actorMovementSettings, storage);
-        rotateActorOnAxis(actor, 0, actorMovementSettings, storage);
+        rotateActorOnAxis(actor, duration, 2, actorMovementSettings, storage);
+        rotateActorOnAxis(actor, duration, 0, actorMovementSettings, storage);
     }
 
-    void AiCombat::rotateActorOnAxis(
-        const MWWorld::Ptr& actor, int axis, MWMechanics::Movement& actorMovementSettings, AiCombatStorage& storage)
+    void AiCombat::rotateActorOnAxis(const MWWorld::Ptr& actor, float duration, int axis,
+        MWMechanics::Movement& actorMovementSettings, AiCombatStorage& storage)
     {
         actorMovementSettings.mRotation[axis] = 0;
         bool isRangedCombat = false;
         storage.mCurrentAction->getCombatRange(isRangedCombat);
         float eps = isRangedCombat ? osg::DegreesToRadians(0.5) : osg::DegreesToRadians(3.f);
         float targetAngleRadians = storage.mMovement.mRotation[axis];
-        storage.mRotateMove = !smoothTurn(actor, targetAngleRadians, axis, eps);
+        storage.mRotateMove = !smoothTurn(actor, duration, targetAngleRadians, axis, eps);
     }
 
     MWWorld::Ptr AiCombat::getTarget() const
@@ -590,10 +591,10 @@ namespace MWMechanics
             // Currently we take the 35% of actor's height from the ground as vector height.
             // This approach allows us to detect small obstacles (e.g. crates) and curved walls.
             osg::Vec3f halfExtents = MWBase::Environment::get().getWorld()->getHalfExtents(actor);
-            osg::Vec3f pos = actor.getRefData().getPosition().asVec3();
-            osg::Vec3f source = pos + osg::Vec3f(0, 0, 0.75f * halfExtents.z());
-            osg::Vec3f fallbackDirection = actor.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0, -1, 0);
-            osg::Vec3f destination = source + fallbackDirection * (halfExtents.y() + 16);
+            auto pos = actor.getRefData().getPosition().asVec3();
+            auto source = pos + osg::Vec3f(0, 0, 0.75f * halfExtents.z());
+            auto fallbackDirection = toOsg(-MWAnim::forward(actor.getRefData().getPosition()));
+            auto destination = source + fallbackDirection * (halfExtents.y() + 16);
 
             const auto* rayCasting = MWBase::Environment::get().getWorld()->getRayCasting();
             bool isObstacleDetected = rayCasting->castRay(source, destination, mask).mHit;

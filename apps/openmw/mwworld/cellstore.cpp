@@ -40,10 +40,12 @@
 #include <components/esm3/npcstate.hpp>
 #include <components/esm3/objectstate.hpp>
 #include <components/esm3/readerscache.hpp>
+/*
 #include <components/esm4/loadligh.hpp>
 #include <components/esm4/loadrefr.hpp>
 #include <components/esm4/loadstat.hpp>
 #include <components/esm4/readerutils.hpp>
+*/
 #include <components/files/openfile.hpp>
 #include <components/misc/tuplehelpers.hpp>
 #include <components/resource/resourcesystem.hpp>
@@ -376,6 +378,7 @@ namespace MWWorld
         }
     }
 
+    /*
     template <typename X>
     void CellRefList<X>::load(const ESM4::Reference& ref, bool deleted, const MWWorld::ESMStore& esmStore)
     {
@@ -398,6 +401,7 @@ namespace MWWorld
                                 << " (dropping reference)";
         }
     }
+    */
 
     template <typename X>
     bool operator==(const LiveCellRef<X>& ref, int pRefnum)
@@ -760,6 +764,7 @@ namespace MWWorld
         }
     }
 
+    /*
     template <typename ReferenceInvocable>
     static void visitCell4References(const ESM4::Cell& cell, ESM::ReadersCache& readers, ReferenceInvocable&& invocable)
     {
@@ -795,15 +800,18 @@ namespace MWWorld
                 [&](ESM4::Reader& reader) {});
         }
     }
+    */
 
+    /*
     void CellStore::listRefs(const ESM4::Cell& cell)
     {
         visitCell4References(cell, mReaders, [&](ESM4::Reference& ref) { mIds.push_back(ref.mBaseObj); });
     }
+*/
 
     void CellStore::listRefs()
     {
-        ESM::visit([&](auto&& cell) { listRefs(cell); }, mCellVariant);
+        listRefs(mCellVariant.getEsm3());
         std::sort(mIds.begin(), mIds.end());
     }
 
@@ -860,16 +868,18 @@ namespace MWWorld
         }
     }
 
+    /*
     void CellStore::loadRefs(const ESM4::Cell& cell, std::map<ESM::RefNum, ESM::RefId>& refNumToID)
     {
         visitCell4References(cell, mReaders, [&](ESM4::Reference& ref) { loadRef(ref, false); });
     }
+    */
 
     void CellStore::loadRefs()
     {
         std::map<ESM::RefNum, ESM::RefId> refNumToID; // used to detect refID modifications
 
-        ESM::visit([&](auto&& cell) { loadRefs(cell, refNumToID); }, mCellVariant);
+        loadRefs(mCellVariant.getEsm3(), refNumToID);
 
         updateMergedRefs();
     }
@@ -904,6 +914,7 @@ namespace MWWorld
         return Ptr();
     }
 
+    /*
     void CellStore::loadRef(const ESM4::Reference& ref, bool deleted)
     {
         const MWWorld::ESMStore& store = mStore;
@@ -915,6 +926,7 @@ namespace MWWorld
                 x, foundType, [&ref, &deleted, &store](auto& storeIn) { storeIn.load(ref, deleted, store); });
         });
     }
+    */
 
     void CellStore::loadRef(ESM::CellRef& ref, bool deleted, std::map<ESM::RefNum, ESM::RefId>& refNumToID)
     {
@@ -1109,6 +1121,7 @@ namespace MWWorld
         }
     }
 
+    /*
     struct IsEqualVisitor
     {
         bool operator()(const ESM::Cell& a, const ESM::Cell& b) const { return a.getCellId() == b.getCellId(); }
@@ -1120,10 +1133,11 @@ namespace MWWorld
             return false;
         }
     };
+    */
 
     bool CellStore::operator==(const CellStore& right) const
     {
-        return ESM::visit(IsEqualVisitor(), this->mCellVariant, right.mCellVariant);
+        return mCellVariant.getEsm3().getCellId() == right.mCellVariant.getEsm3().getCellId();
     }
 
     void CellStore::setFog(std::unique_ptr<ESM::FogState>&& fog)

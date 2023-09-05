@@ -12,8 +12,6 @@
 
 #include "../mwgui/mode.hpp"
 
-#include <components/sdlutil/events.hpp>
-
 namespace ESM
 {
     class RefId;
@@ -23,7 +21,10 @@ namespace Loading
 {
     class Listener;
 }
-
+namespace MWState
+{
+    class LoadingScreen;
+}
 namespace Translation
 {
     class Storage;
@@ -76,7 +77,6 @@ namespace MWGui
     class WindowModal;
     class JailScreen;
     class MessageBox;
-    class PostProcessorHud;
 
     enum ShowInDialogueMode
     {
@@ -95,8 +95,8 @@ namespace SFO
 
 namespace MWBase
 {
-    /// \brief Interface for widnow manager (implemented in MWGui)
-    class WindowManager : public SDLUtil::WindowListener
+    /// \brief Interface for window manager (implemented in MWGui)
+    class WindowManager
     {
         WindowManager(const WindowManager&);
         ///< not implemented
@@ -135,8 +135,6 @@ namespace MWBase
 
         virtual bool isConsoleMode() const = 0;
 
-        virtual bool isPostProcessorHudVisible() const = 0;
-
         virtual void toggleVisible(MWGui::GuiWindow wnd) = 0;
 
         virtual void forceHide(MWGui::GuiWindow wnd) = 0;
@@ -155,7 +153,6 @@ namespace MWBase
         virtual MWGui::CountDialog* getCountDialog() = 0;
         virtual MWGui::ConfirmationDialog* getConfirmationDialog() = 0;
         virtual MWGui::TradeWindow* getTradeWindow() = 0;
-        virtual MWGui::PostProcessorHud* getPostProcessorHud() = 0;
 
         /// Make the player use an item, while updating GUI state accordingly
         virtual void useItem(const MWWorld::Ptr& item, bool force = false) = 0;
@@ -183,8 +180,6 @@ namespace MWBase
         virtual void setFocusObject(const MWWorld::Ptr& focus) = 0;
         virtual void setFocusObjectScreenCoords(float min_x, float min_y, float max_x, float max_y) = 0;
 
-        virtual void setCursorVisible(bool visible) = 0;
-        virtual void setCursorActive(bool active) = 0;
         virtual void getMousePosition(int& x, int& y) = 0;
         virtual void getMousePosition(float& x, float& y) = 0;
         virtual void setDragDrop(bool dragDrop) = 0;
@@ -255,9 +250,7 @@ namespace MWBase
             = 0;
         virtual void staticMessageBox(std::string_view message) = 0;
         virtual void removeStaticMessageBox() = 0;
-        virtual void interactiveMessageBox(
-            std::string_view message, const std::vector<std::string>& buttons = {}, bool block = false)
-            = 0;
+        virtual void interactiveMessageBox(std::string_view message, const std::vector<std::string>& buttons = {}) = 0;
 
         /// returns the index of the pressed button or -1 if no button was pressed
         /// (->MessageBoxmanager->InteractiveMessageBox)
@@ -298,10 +291,7 @@ namespace MWBase
         /// Warning: do not use MyGUI::InputManager::setKeyFocusWidget directly. Instead use this.
         virtual void setKeyFocusWidget(MyGUI::Widget* widget) = 0;
 
-        virtual Loading::Listener* getLoadingScreen() = 0;
-
-        /// Should the cursor be visible?
-        virtual bool getCursorVisible() = 0;
+        virtual std::shared_ptr<MWState::LoadingScreen> createLoadingScreen() = 0;
 
         /// Clear all savegame-specific data
         virtual void clear() = 0;
@@ -342,7 +332,6 @@ namespace MWBase
 
         virtual void toggleConsole() = 0;
         virtual void toggleDebugWindow() = 0;
-        virtual void togglePostProcessorHud() = 0;
 
         /// Cycle to next or previous spell
         virtual void cycleSpell(bool next) = 0;
@@ -360,11 +349,6 @@ namespace MWBase
         virtual bool injectKeyPress(MyGUI::KeyCode key, unsigned int text, bool repeat) = 0;
         virtual bool injectKeyRelease(MyGUI::KeyCode key) = 0;
 
-        void windowVisibilityChange(bool visible) override = 0;
-        void windowResized(int x, int y) override = 0;
-        void windowClosed() override = 0;
-        virtual bool isWindowVisible() = 0;
-
         virtual void watchActor(const MWWorld::Ptr& ptr) = 0;
         virtual MWWorld::Ptr getWatchedActor() const = 0;
 
@@ -374,12 +358,6 @@ namespace MWBase
         virtual void forceLootMode(const MWWorld::Ptr& ptr) = 0;
 
         virtual void asyncPrepareSaveMap() = 0;
-
-        /// Sets the cull masks for all applicable views
-        virtual void setCullMask(uint32_t mask) = 0;
-
-        /// Same as viewer->getCamera()->getCullMask(), provided for consistency.
-        virtual uint32_t getCullMask() = 0;
     };
 }
 

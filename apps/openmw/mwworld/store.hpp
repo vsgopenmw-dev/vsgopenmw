@@ -15,7 +15,7 @@
 #include <components/esm3/loadgmst.hpp>
 #include <components/esm3/loadland.hpp>
 #include <components/esm3/loadpgrd.hpp>
-#include <components/esm4/loadcell.hpp>
+//#include <components/esm4/loadcell.hpp>
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/algorithm.hpp>
 
@@ -271,6 +271,7 @@ namespace MWWorld
         const ESM::GameSetting* search(const std::string_view id) const;
     };
 
+    /*
     template <>
     class Store<ESM4::Cell> : public TypedDynamicStore<ESM4::Cell>
     {
@@ -282,6 +283,7 @@ namespace MWWorld
         ESM4::Cell* insert(const ESM4::Cell& item, bool overrideOnly = false);
         ESM4::Cell* insertStatic(const ESM4::Cell& item);
     };
+    */
 
     template <>
     class Store<ESM::Land> : public DynamicStore

@@ -10,6 +10,7 @@
 #include <components/esm/records.hpp>
 #include <components/l10n/manager.hpp>
 #include <components/misc/resourcehelpers.hpp>
+#include <components/resource/resourcesystem.hpp>
 #include <components/settings/settings.hpp>
 #include <components/widgets/box.hpp>
 
@@ -103,8 +104,6 @@ namespace MWGui
 
         if (guiMode)
         {
-            if (!winMgr->getCursorVisible())
-                return;
             const MyGUI::IntPoint& mousePos = MyGUI::InputManager::getInstance().getMousePosition();
 
             if (winMgr->getWorldMouseOver()

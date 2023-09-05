@@ -41,7 +41,7 @@ namespace ESM
             esm.getHNT(region.mWeather, regionWeatherRecord);
             while (esm.isNextSub(regionChanceRecord))
             {
-                char chance;
+                unsigned char chance;
                 esm.getHT(chance);
                 region.mChances.push_back(chance);
             }
