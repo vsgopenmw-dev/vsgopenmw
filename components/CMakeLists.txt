@@ -112,7 +112,7 @@ add_component_dir (mwanimation
 #add_base_dir(vsgutil
 add_component_dir (vsgutil
     # Object extensions.
-    attachable name id operation image
+    attachable name id operation image debugmessenger
     # Nodes.
     setviewportstate projection viewrelative computebin nullbin suspendrenderpass
     # Algorithms.

@@ -133,7 +133,7 @@ namespace MWRender
     class WorldMap::UpdateOverlay : public Render::ComputeImage
     {
         vsg::ref_ptr<vsg::vec4Array> mArgs = vsg::vec4Array::create(1);
-        mutable vsgUtil::DeletionQueue mDeletionQueue = vsgUtil::DeletionQueue(7); //3;
+        mutable vsgUtil::DeletionQueue mDeletionQueue = vsgUtil::DeletionQueue(4);
 
     public:
         vsg::PipelineLayout* layout{};

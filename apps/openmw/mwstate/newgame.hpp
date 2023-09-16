@@ -85,7 +85,6 @@ namespace MWState
                         if (MWBase::Environment::get().getWorld()->findExteriorPosition(startCell, pos))
                         {
                             world->changeToExteriorCell(pos, true);
-                            world->adjustPosition(world->getPlayerPtr(), false);
                         }
                         else
                         {

@@ -12,6 +12,7 @@
 
 #include <components/vsgutil/deletionqueue.hpp>
 #include <components/vsgutil/compilecontext.hpp>
+#include <components/vsgutil/debugmessenger.hpp>
 
 #include "headless.hpp"
 #include "limitframerate.hpp"
@@ -25,8 +26,8 @@ namespace Render
         mViewer = vsg::Viewer::create();
         mViewer->addWindow(mWindow);
         mTraits = mWindow->traits();
-        //mDeletionQueue = std::make_unique<vsgUtil::DeletionQueue>(mTraits->swapchainPreferences.imageCount); //mWindow->numFrames()
-        mDeletionQueue = std::make_unique<vsgUtil::DeletionQueue>(mTraits->swapchainPreferences.imageCount*2+1); //mWindow->numFrames()
+        mDeletionQueue = std::make_unique<vsgUtil::DeletionQueue>(mTraits->swapchainPreferences.imageCount+1);
+        if (mTraits->debugLayer) mDebugMessenger = std::make_unique<vsgUtil::DebugMessenger>(mWindow->getOrCreateInstance());
     }
 
     Engine::Engine(Callback headlessCallback, vsg::ref_ptr<vsg::WindowTraits> traits)
@@ -36,6 +37,7 @@ namespace Render
         mTraits = traits;
         //mDeletionQueue = {};
         mDeletionQueue = std::make_unique<vsgUtil::DeletionQueue>(3);
+        if (mTraits->debugLayer) mDebugMessenger = std::make_unique<vsgUtil::DebugMessenger>(mHeadless->getOrCreateInstance());
     }
 
     Engine::~Engine() {}

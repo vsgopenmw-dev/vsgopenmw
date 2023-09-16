@@ -230,6 +230,10 @@ namespace OMW
         traits->width = width;
         traits->height = height;
         traits->debugLayer = getenv("VSGOPENMW_VALIDATION") != 0;
+        if (traits->debugLayer)
+        {
+            traits->instanceExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
         traits->queueFlags |= VK_QUEUE_COMPUTE_BIT;
         traits->depthFormat = Render::compatibleDepthFormat;
         traits->swapchainPreferences.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;

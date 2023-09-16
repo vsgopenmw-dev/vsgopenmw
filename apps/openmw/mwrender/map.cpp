@@ -249,7 +249,7 @@ namespace MWRender
         auto view = vsgUtil::createSharedView(camera, root);
         // auto lightGrid = std::make_unique<View::LightGrid>(shaderOptions);
         // setResolution()
-        view->mask = ~Mask_Particle;
+        view->mask = ~(Mask_Particle|Mask_GUI);
         view->viewDependentState = collectLights;
         view->bins = {
             vsg::Bin::create(Bin_DepthSorted, vsg::Bin::DESCENDING),

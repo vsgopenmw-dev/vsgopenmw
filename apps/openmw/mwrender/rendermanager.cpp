@@ -361,7 +361,7 @@ namespace MWRender
 
     void RenderManager::setViewMode(ViewMode mode, bool enable)
     {
-        vsg::Mask mask;
+        vsg::Mask mask = vsg::MASK_OFF;
         if (mode == ViewMode::Scene)
             mask = ~Mask_GUI;
 

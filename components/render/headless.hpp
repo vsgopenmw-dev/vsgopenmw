@@ -74,12 +74,17 @@ namespace Render // namespace vsgExamples
             resizeRenderGraph();
             return mRenderGraph;
         }
+        vsg::ref_ptr<vsg::Instance> getOrCreateInstance()
+        {
+            if (!mInstance)
+                mInstance = vsg::Instance::create(mTraits->instanceExtensionNames, mTraits->requestedLayers);
+            return mInstance;
+        }
         vsg::ref_ptr<vsg::PhysicalDevice> getOrCreatePhysicalDevice()
         {
             if (mPhysicalDevice)
                 return mPhysicalDevice;
-            mInstance = vsg::Instance::create(mTraits->instanceExtensionNames, mTraits->requestedLayers);
-            std::tie(mPhysicalDevice, mQueueFamily) = mInstance->getPhysicalDeviceAndQueueFamily(mTraits->queueFlags);
+            std::tie(mPhysicalDevice, mQueueFamily) = getOrCreateInstance()->getPhysicalDeviceAndQueueFamily(mTraits->queueFlags);
             if (!mPhysicalDevice || mQueueFamily < 0)
                 throw std::runtime_error("Could not create PhysicalDevice");
             return mPhysicalDevice;
