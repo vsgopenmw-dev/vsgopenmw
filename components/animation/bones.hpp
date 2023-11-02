@@ -26,7 +26,7 @@ namespace Anim
     };
 
     /*
-     * Maps a transform hierarchy not necessarily attached to the scene graph.
+     * Bones is a container class providing access to a hierarchy of bones by name.
      */
     class Bones
     {
@@ -37,12 +37,19 @@ namespace Anim
     public:
         Bones();
         ~Bones();
+
         /*
-         * Specifies whether bone nodes are attached to each other in the scene graph.
-         * @note Attaching only required bones may allow for a smaller scene graph.
+         * Specifies whether bone nodes are initially attached to each other. If set to false, all bones' children are initially empty and their hierarchy can only be obtained from the BonePath member.
+         * @note Attaching only required bones as needed can reduce the size of the scene graph that needs to be traversed each frame.
          */
         const bool attached;
+
+        /*
+         * Optionally supports case-insensitive searches.
+         */
         using NormalizeFunc = std::function<std::string(const std::string&)>;
+        NormalizeFunc normalizeFunc = [](auto& s) { return s; };
+
         /*
          * Creates detached copy of bones from provided graph.
          */
@@ -52,10 +59,6 @@ namespace Anim
          * Reads attached bones from provided graph.
          */
         Bones(NormalizeFunc f, vsg::Node& scene);
-        /*
-         * Optionally supports case-insensitive searches.
-         */
-        NormalizeFunc normalizeFunc = [](auto& s) { return s; };
 
         Bone* search(const std::string& name);
     };

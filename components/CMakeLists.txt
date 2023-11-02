@@ -112,13 +112,13 @@ add_component_dir (mwanimation
 #add_base_dir(vsgutil
 add_component_dir (vsgutil
     # Object extensions.
-    attachable name id operation image
+    attachable name id operation image debugmessenger
     # Nodes.
     setviewportstate projection viewrelative computebin nullbin suspendrenderpass
     # Algorithms.
-    bounds transform computetransform intersectnormal toggle group compilecontext compileop updatethreads arraytexture
+    convert bounds transform computetransform intersectnormal toggle group compilecontext compileop updatethreads arraytexture
     # Visitors.
-    traverse traversestate nodepath sharebuffer cullnode searchbyname searchbytype cameradistanceintersector arraystate
+    traverse traversestate nodepath cullnode searchbyname searchbytype cameradistanceintersector arraystate
     # I/O.
     cache virtualfile imageio readimage decompress readnode readshader share shareimage deletionqueue
     # Temporary workarounds.

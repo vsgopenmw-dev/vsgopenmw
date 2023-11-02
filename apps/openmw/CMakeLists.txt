@@ -17,7 +17,7 @@ source_group(game FILES ${GAME} ${GAME_HEADER})
 
 add_openmw_dir (mwrender
     mask bin rendermode renderinginterface renderpass intersect rendermanager terrainstorage landmanager
-    animcontext bodyparts wieldingcreature npc player face scene camera itemlight effect effects projectiles spellcastglow
+    animcontext bodyparts wieldingcreature npc player face scene camera itemlight effect effects projectiles spellcastglow transparency
     env weather weatherdata
     map worldmap preview shadow
     #bulletdebugdraw ripplesimulation

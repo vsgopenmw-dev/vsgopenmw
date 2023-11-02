@@ -17,6 +17,7 @@ layout(constant_id=START_UVSET_CONSTANTS+BUMP_UNIT) const int bumpUV=0;
 #include "lib/view/env.glsl"
 #include "lib/view/fog.glsl"
 #include "lib/view/shadow.glsl"
+#include "lib/view/dither.glsl"
 #include "lib/object/object.glsl"
 #include "lib/material/alphatest.glsl"
 #include "lib/material/terms.glsl"
@@ -98,5 +99,18 @@ void main()
 
 #ifdef DEBUG_SHADOW
     outColor = debugShadow(outColor);
+#endif
+
+#ifdef NORMAL
+    if (object.alpha != 1)
+    {
+        int x = int(mod(gl_FragCoord.x, 8));
+        int y = int(mod(gl_FragCoord.y, 8));
+        float b = texture(sceneEnv, vec3(frag_in.envUV, envIndex(scene.time))).x;
+        b = mix(object.alpha, 1.0, b);
+        float dither = dither8(x, y, b);
+        if (dither == 0)
+            discard;
+    }
 #endif
 }

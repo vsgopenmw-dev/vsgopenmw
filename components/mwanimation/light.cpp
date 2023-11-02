@@ -68,7 +68,7 @@ namespace
         if (!(light.mData.mFlags
                 & (ESM::Light::Flicker | ESM::Light::FlickerSlow | ESM::Light::Pulse | ESM::Light::PulseSlow)))
             return {};
-        return vsg::ref_ptr{ new LightController(light.mData.mFlags, light.mData.mRadius) };
+        return LightController::create(light.mData.mFlags, light.mData.mRadius);
     }
 }
 

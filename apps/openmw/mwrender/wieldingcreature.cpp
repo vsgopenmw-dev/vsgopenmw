@@ -14,6 +14,7 @@
 #include "../mwworld/inventorystore.hpp"
 
 #include "env.hpp"
+#include "transparency.hpp"
 
 namespace MWRender
 {
@@ -99,7 +100,7 @@ namespace MWRender
 
         auto node = mwctx.readNode(model);
         auto result = MWAnim::decorate(node, {});
-        addEnv(node, item);
+        addEnv(node, item, getTransparency(*this));
         if (slot == MWWorld::InventoryStore::Slot_CarriedRight)
         {
             mAttachAmmo = result.placeholders.attachAmmo;
@@ -115,7 +116,7 @@ namespace MWRender
         if (mParts[i].empty())
             return;
 
-        Anim::Context ctx{ mParts[i], &animation->bones, &mwctx.mask };
+        Anim::Context ctx{ { transform() }, mParts[i], &animation->bones, &mwctx.mask };
         Anim::Update* dst = &mStaticControllers;
         if (slot == MWWorld::InventoryStore::Slot_CarriedRight)
             dst = &mWeaponControllers;

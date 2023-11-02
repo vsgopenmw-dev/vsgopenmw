@@ -14,6 +14,7 @@ layout(constant_id=1) const bool colorCurve = false;
 layout(constant_id=2) const bool gravityPlane = false;
 layout(constant_id=3) const bool gravityPoint = false;
 layout(constant_id=4) const bool collidePlane = false;
+layout(constant_id=5) const bool worldSpace = false;
 
 layout(set=TEXTURE_SET, binding=PARTICLE_BINDING) buffer ParticleBuffer{
     Particle particles[];
@@ -39,6 +40,11 @@ void main()
     {
         Particle p = particles[gid];
         p.velocityAge.w += dt;
+        if (worldSpace)
+        {
+            p.positionSize.xyz = (frameArgs.worldOffset * vec4(p.positionSize.xyz, 1)).xyz;
+            p.velocityAge.xyz = (vec4(p.velocityAge.xyz, 0) * inverse(frameArgs.worldOffset)).xyz;
+        }
         if (!isDead(p))
         {
             p.positionSize.xyz += p.velocityAge.xyz * dt;
@@ -52,7 +58,7 @@ void main()
                 float rand3 = signedRandom(rand2);
                 p.positionSize.xyz = (frameArgs.emitMatrix * vec4(args.emit.offsetRandom.x * rand1,
                     args.emit.offsetRandom.y * rand2,
-                    args.emit.offsetRandom.z * rand3, 0)).xyz;
+                    args.emit.offsetRandom.z * rand3, 1)).xyz;
 
                 rand1 = signedRandom(rand3);
                 rand2 = signedRandom(rand1);

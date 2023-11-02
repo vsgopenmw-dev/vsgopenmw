@@ -27,6 +27,7 @@ namespace vsgUtil
 {
     class DeletionQueue;
     class CompileContext;
+    class DebugMessenger;
 }
 namespace Render
 {
@@ -79,6 +80,7 @@ namespace Render
         vsg::ref_ptr<vsg::Window> mWindow;
         std::unique_ptr<Headless> mHeadless;
         std::unique_ptr<vsgUtil::DeletionQueue> mDeletionQueue;
+        std::unique_ptr<vsgUtil::DebugMessenger> mDebugMessenger;
     };
 }
 

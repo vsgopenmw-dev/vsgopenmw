@@ -22,6 +22,7 @@
 #include "../mwrender/effect.hpp"
 #include "../mwrender/itemlight.hpp"
 #include "../mwrender/player.hpp"
+#include "../mwrender/transparency.hpp"
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -914,7 +915,7 @@ namespace MWMechanics
              * handle knockout and death which moves the character down. */
             mAnimation->setAccumulation({ 1.0f, 1.0f, 0.0f });
 
-            MWRender::addItemLightsAndListener(*mActor->transform(), cls.getContainerStore(mPtr));
+            MWRender::addItemLightsAndListener(*mObject, cls.getContainerStore(mPtr));
 
             if (cls.hasInventoryStore(mPtr))
             {
@@ -1866,7 +1867,7 @@ namespace MWMechanics
         speed = 0.f;
 
         updateMagicEffects();
-        MWAnim::updateEffects(*mObject->transform(), duration);
+        MWAnim::updateEffects(*mObject->node(), duration);
 
         bool isPlayer = mPtr == MWMechanics::getPlayer();
         bool isFirstPersonPlayer = isPlayer && MWBase::Environment::get().getWorld()->isFirstPerson();
@@ -2423,7 +2424,6 @@ namespace MWMechanics
         if (mActor)
         {
             mActor->manualAnimation(mPtr.getRefData().getPosition().rot[0], duration);
-            MWRender::updateItemLights(*mActor->transform(), duration);
             if (mWielding)
             {
                 if (mWeaponType != 0 && !mCurrentWeapon.empty())
@@ -2765,9 +2765,7 @@ namespace MWMechanics
             visibility = std::min(visibility, alpha);
         }
 
-        // TODO: implement a dithering shader rather than just change object transparency.
-        // createBin(ChameleonPostFxBin)
-        // mAnimation->setAlpha(visibility);
+        MWRender::setTransparency(*mObject, visibility);
     }
 
     std::string_view CharacterController::getMovementBasedAttackType() const

@@ -21,9 +21,11 @@ namespace vsgAdapters
         vsg::ref_ptr<const vsg::Options> mImageOptions;
 
     public:
-        nif(const Pipeline::Builder& builder, vsg::ref_ptr<const vsg::Options> imageOptions)
+        nif(const Pipeline::Builder& builder, vsg::ref_ptr<const vsg::Options> imageOptions, int computeBin, int depthSortedBin)
             : mBuilder(builder)
             , mImageOptions(imageOptions)
+            , mComputeBin(computeBin)
+            , mDepthSortedBin(depthSortedBin)
         {
         }
         vsg::ref_ptr<vsg::Object> read(std::istream&, vsg::ref_ptr<const vsg::Options> = {}) const override;
@@ -37,6 +39,9 @@ namespace vsgAdapters
         // Mask to use for nodes that ignore the crosshair intersection.
         // This is used for NiCollisionSwitch nodes with NiCollisionSwitch state set to disabled.
         unsigned int intersectionDisabledMask = ~0;
+
+        const int mComputeBin;
+        const int mDepthSortedBin;
     };
 }
 

@@ -1,5 +1,7 @@
 #include "object.hpp"
 
+#include <vsg/nodes/StateGroup.h>
+
 #include <components/animation/transform.hpp>
 #include <components/animation/bones.hpp>
 #include <components/vsgutil/compilecontext.hpp>
@@ -55,5 +57,28 @@ namespace MWAnim
         path.push_back(mTransform);
         std::copy(bone.path.begin(), bone.path.end(), std::back_inserter(path));
         return path;
+    }
+
+    vsg::StateGroup* Object::getOrCreateStateGroup()
+    {
+        if (!mStateGroup)
+        {
+            mStateGroup = vsg::StateGroup::create();
+            mStateGroup->children = mTransform->children;
+            mTransform->children = { mStateGroup };
+        }
+        return mStateGroup.get();
+    }
+
+    vsg::StateGroup* Object::getStateGroup()
+    {
+        return mStateGroup;
+    }
+
+    vsg::Group* Object::nodeToAddChildrenTo()
+    {
+        if (mStateGroup)
+            return mStateGroup.get();
+        return mTransform.get();
     }
 }

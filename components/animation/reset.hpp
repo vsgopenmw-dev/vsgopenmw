@@ -8,7 +8,7 @@
 namespace Anim
 {
     /*
-     * Resets vector components.
+     * Resets certain components of input vector channel, typically used to remove root bone movement that is supposed to be applied to the physics engine.
      */
     class Reset : public Anim::Channel<vsg::vec3>
     {

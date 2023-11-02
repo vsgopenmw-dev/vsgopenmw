@@ -9,7 +9,7 @@
 namespace Anim
 {
     /*
-     * Writes color values.
+     * Writes color values for use with dynamic materials etc.
      */
     class Color : public UpdateData<Color>
     {

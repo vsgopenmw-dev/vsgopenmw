@@ -6,7 +6,14 @@
 
 namespace Pipeline
 {
-    using Object = DescriptorValue<Data::Object>;
+    struct Object : public DynamicDescriptorValue<Data::Object>
+    {
+        Object()
+            : DynamicDescriptorValue<Data::Object>(0)
+        {
+            value().alpha = 1;
+        }
+    };
 }
 
 #endif

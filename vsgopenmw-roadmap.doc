@@ -1,10 +1,8 @@
 vsgopenmw-roadmap={
 "vsgopenmw-alpha" : {},
 "vsgopenmw-feature-parity" : {
-    "vsgopenmw-world-space-particles",
     "vsgopenmw-weather-particles",
     "vsgopenmw-water-ripples",
-    "vsgopenmw-invisibility-effect",
     "vsgopenmw-paged-instanced-objects",
     "vsgopenmw-normal-maps",
     "vsgopenmw-alpha-to-coverage",

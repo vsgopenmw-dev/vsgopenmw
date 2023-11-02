@@ -25,7 +25,8 @@ namespace Anim
     };
 
     /*
-     * Adapts time.
+     * Extrapolate<T> is a composite channel class used to adapt the time value that is passed in.
+     * The extrapolation mode to use is passed as a template parameter to avoid the evaluation of branches at runtime.
      */
     template <class T, ExtrapolationMode M, bool TimeFunc>
     class Extrapolate : public Channel<T>

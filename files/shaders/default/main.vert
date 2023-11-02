@@ -47,12 +47,19 @@ void main()
     for (int i=0; i<numMorphs; ++i)
         vertex.xyz += morphweights[i] * morphdata[gl_VertexIndex*numMorphs+i].xyz;
 #elif defined(PARTICLE)
-    Particle particle = particles[gl_VertexIndex/4];
-    int vertexIndex = gl_VertexIndex%4;
-    vec2 texCoord = vec2((vertexIndex << 1) & 2, vertexIndex & 2);
+    Particle particle = particles[gl_VertexIndex/6];
+    /*bool*/ int secondTriangle = gl_VertexIndex/3;
+    int vertexIndex = (secondTriangle*3) + ((gl_VertexIndex + secondTriangle) % 3) * (-secondTriangle*2+1);
+    vec2 texCoord = vec2(vertexIndex & 1, (vertexIndex >> 1) & 1);
     vec4 vertex = vec4(particle.positionSize.xyz, 1.0);
+    float deadFactor = isDead(particle) ? 0 : 1;
+    vec3 xAxis = (vec4(1,0,0,0) * pc.modelview).xyz;
+    vec3 yAxis = (vec4(0,1,0,0) * pc.modelview).xyz;
+    vec2 offsetCoord = texCoord - 0.5;
+    vertex.xyz += (offsetCoord.x * normalize(xAxis) + offsetCoord.y * normalize(yAxis)) * particle.positionSize.w * deadFactor;
+
     vert_out.texCoord[0] = texCoord;
-    vert_out.color = particle.color;
+    vert_out.color = particle.color * deadFactor;
 #elif defined(VERTEX)
     vec4 vertex = vec4(inVertex, 1.0);
 #endif
@@ -78,15 +85,6 @@ void main()
     pc.modelview
 #endif
      * vertex;
-
-#ifdef PARTICLE
-    float deadFactor = isDead(particle) ? 0 : 1;
-    vec3 xAxis = (vec4(1,0,0,0) * pc.modelview).xyz;
-    vec3 yAxis = (vec4(0,1,0,0) * pc.modelview).xyz;
-    vec2 scale = vec2(length(xAxis), length(yAxis));
-    viewPos.xy += (texCoord - 0.5) * particle.positionSize.w * scale * deadFactor;
-    vert_out.color.a *= deadFactor;
-#endif
 
     vert_out.viewPos = viewPos.xyz;
     gl_Position = pc.projection * viewPos;

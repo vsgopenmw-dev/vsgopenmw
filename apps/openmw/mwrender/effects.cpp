@@ -23,21 +23,18 @@ namespace MWRender
     void Effects::add(const std::string& model, const std::string& textureOverride, const vsg::vec3& worldPosition,
         float scale, bool isMagicVFX)
     {
-        MWAnim::Effect effect{.mwctx=mContext};
-        effect.overrideTexture = textureOverride;
-        effect.overrideAllTextures = !isMagicVFX;
-        effect.node = mContext.readNode(model);
-        effect.compile();
-
         auto transform = vsg::ref_ptr{ new Anim::Transform };
-        transform->children = { effect.node };
-        effect.node = transform;
-
-        effect.attachTo(mNode.get());
-
         transform->translation = worldPosition;
         transform->setScale(scale);
 
+        MWAnim::Effect effect;
+        effect.mwctx = mContext;
+
+        auto [anim, node] = MWAnim::Effect::load(mContext, mContext.readNode(model), textureOverride, !isMagicVFX);
+        transform->children = { node };
+        effect.compile(anim, transform, { transform }, { node.get() } );
+
+        effect.attachTo(mNode.get());
         mEffects->effects.push_back(effect);
     }
 

@@ -61,10 +61,6 @@ namespace Pipeline::Descriptors
 }
 namespace
 {
-    // vsgopenmw-fixme(find-my-place)
-    const int computeBin = 1;
-    const int depthSortedBin = 0;
-
     static const vsg::ref_ptr<vsg::ArrayState> sNullArrayState = vsg::NullArrayState::create();
 
     bool isTypeGeometry(int type)
@@ -177,6 +173,8 @@ namespace vsgAdapters
         const vsg::ref_ptr<const vsg::Options>& mImageOptions;
         bool mCanOptimize = true;
         bool mShowMarkers = false;
+        int mComputeBin;
+        int mDepthSortedBin;
         uint32_t mPhaseGroups = 0;
         std::string mFilename;
         std::unique_ptr<Nif::NIFFile> mNifFile;
@@ -188,10 +186,12 @@ namespace vsgAdapters
 
     public:
         nifImpl(std::istream& stream, const vsg::Options& options, const vsg::ref_ptr<const vsg::Options>& imageOptions,
-            bool showMarkers, const Pipeline::Builder& builder)
+            bool showMarkers, int computeBin, int depthSortedBin, const Pipeline::Builder& builder)
             : mOptions(options)
             , mImageOptions(imageOptions)
             , mShowMarkers(showMarkers)
+            , mComputeBin(computeBin)
+            , mDepthSortedBin(depthSortedBin)
             , mBuilder(builder)
         {
             options.getValue("filename", mFilename);
@@ -230,7 +230,7 @@ namespace vsgAdapters
             vsg::ref_ptr<Anim::Color> materialController;
             float alphaTestCutoff = 1.f;
             bool depthSorted = false;
-            bool autoPlay = false;
+            uint32_t animFlags = 0;
             uint32_t phaseGroup = 0;
             bool filterMatched = false;
         };
@@ -264,7 +264,7 @@ namespace vsgAdapters
             vsgUtil::removeGroup(nodes);
 
             vsg::ref_ptr<vsg::Node> ret;
-            if (!mContents.contains(Anim::Contents::TransformControllers | Anim::Contents::Skins | Anim::Contents::Particles | Anim::Contents::Placeholders))
+            if (!mContents.contains(Anim::Contents::TransformControllers | Anim::Contents::DynamicBounds | Anim::Contents::Placeholders))
             {
                 ret = vsgUtil::createCullNode(nodes);
                 vsgUtil::addLeafCullNodes(ret, 2);
@@ -398,7 +398,7 @@ namespace vsgAdapters
             auto descriptor = vsg::DescriptorBuffer::create(
                 boneMatrices, Pipeline::Descriptors::BONE_BINDING, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
             addModeDescriptor(descriptor, Pipeline::Mode::SKIN);
-            addAnimContents(Anim::Contents::Skins | Anim::Contents::Controllers);
+            addAnimContents(Anim::Contents::Skins | Anim::Contents::Controllers | Anim::Contents::DynamicBounds);
         }
 
         vsg::ref_ptr<vsg::Node> handleGeometry(const Nif::NiGeometry& niGeometry)
@@ -489,7 +489,7 @@ namespace vsgAdapters
             if (nodeOptions.depthSorted)
             {
                 // Alpha sorting uses the calculated bounding sphere centre.
-                return vsg::DepthSorted::create(depthSortedBin, vsgUtil::getBounds(sg), sg);
+                return vsg::DepthSorted::create(mDepthSortedBin, vsgUtil::getBounds(sg), sg);
             }
             return sg;
         }
@@ -516,11 +516,7 @@ namespace vsgAdapters
                 particleArray, Pipeline::Descriptors::PARTICLE_BINDING, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
             addModeDescriptor(particlesDescriptor, Pipeline::Mode::PARTICLE);
 
-            auto ctrl = Emitter::create(partctrl, particles.recIndex);
-            // ArrayEmitter
-            vsgUtil::setID(*sw, particles.recIndex);
-
-            auto maxLifetime = partctrl.lifetime + partctrl.lifetimeRandom;
+            auto maxLifetime = ParticleSystem::calculateMaxLifetime(partctrl);
             Pipeline::Data::SimulateArgs args{};
             args.emit = handleEmitterData(partctrl);
             vsg::ref_ptr<vsg::Data> colorCurve;
@@ -597,6 +593,14 @@ namespace vsgAdapters
                 descriptors.emplace_back(vsg::DescriptorImage::create(sampler, colorCurve, Pipeline::Descriptors::COLOR_CURVE_BINDING));
             }
 
+            auto& nodeOptions = getNodeOptions();
+            nodeOptions.numUvSets = 1;
+            nodeOptions.primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            nodeOptions.cullMode = VK_CULL_MODE_NONE;
+            bool worldSpace = !(nodeOptions.animFlags & Nif::NiNode::ParticleFlag_LocalSpace);
+            if (worldSpace)
+                modes |= Pipeline::ParticleMode_WorldSpace;
+
             auto bindComputePipeline = mBuilder.particle->getOrCreate(modes);
             auto computeBds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_COMPUTE, bindComputePipeline->pipeline->layout, Pipeline::TEXTURE_SET, descriptors);
             auto computeGroup = vsg::Commands::create(); // vsg::StateGroup::create();
@@ -606,20 +610,21 @@ namespace vsgAdapters
                 createParticleDispatch(maxParticles)
             };
 
-            auto& nodeOptions = getNodeOptions();
-            nodeOptions.numUvSets = 1;
-            nodeOptions.primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-            nodeOptions.cullMode = VK_CULL_MODE_NONE;
-
-            auto draw = vsg::Draw::create(maxParticles * 4, 1, 0, 0);
+            auto draw = vsg::Draw::create(maxParticles * 6, 1, 0, 0);
             auto drawGroup = createStateGroup(draw);
             drawGroup->prototypeArrayState = sNullArrayState;
-            double maxRadius = maxLifetime * (partctrl.velocity + partctrl.velocityRandom) + std::max(partctrl.offsetRandom.x(), std::max(partctrl.offsetRandom.y(), partctrl.offsetRandom.z())) + partctrl.size/2.f;
+            double maxRadius = ParticleSystem::calculateRadius(partctrl);
             vsg::dsphere bound(vsg::dvec3(), maxRadius);
+            // bound.dataVariance = DYNAMIC;
+
             sw->children = {
-                { vsg::MASK_ALL, vsg::DepthSorted::create(depthSortedBin, bound, drawGroup) },
-                { vsg::MASK_ALL, vsg::DepthSorted::create(computeBin, bound, computeGroup) }
+                { vsg::MASK_ALL, vsg::DepthSorted::create(mDepthSortedBin, bound, drawGroup) },
+                { vsg::MASK_ALL, vsg::DepthSorted::create(mComputeBin, bound, computeGroup) }
             };
+
+            auto ctrl = ParticleSystem::create(partctrl, particles.recIndex, worldSpace);
+            setup(partctrl, *ctrl, *frameArgsData);
+
             auto cullCtrl = Anim::CullParticles::create();
             cullCtrl->active = ctrl->active;
             cullCtrl->maxLifetime = maxLifetime;
@@ -627,10 +632,7 @@ namespace vsgAdapters
             cullCtrl->dispatchIndex = 1;
             setup(partctrl, *cullCtrl, *sw);
 
-            addAnimContents(Anim::Contents::Particles);
-            setup(partctrl, *ctrl, *frameArgsData);
-            // ParticleFlag_LocalSpace
-
+            addAnimContents(Anim::Contents::Particles | Anim::Contents::DynamicBounds);
             //return sw;
             return vsg::CullNode::create(bound, sw);
         }
@@ -994,7 +996,7 @@ namespace vsgAdapters
         {
             hints.duration = std::max(hints.duration, nictrl.timeStop);
             auto& nodeOptions = getNodeOptions();
-            hints.autoPlay = nodeOptions.autoPlay;
+            hints.autoPlay = nodeOptions.animFlags & Nif::NiNode::AnimFlag_AutoPlay;
             hints.phaseGroup = nodeOptions.phaseGroup;
         }
 
@@ -1182,13 +1184,21 @@ namespace vsgAdapters
             return {};
         }
 
+
+        template <class T>
+        vsg::ref_ptr<T> createGroup(const Nif::Node& nifNode) const
+        {
+            auto node = T::create();
+            vsgUtil::setName(*node, std::string(nifNode.name));
+            vsgUtil::setID(*node, nifNode.recIndex);
+            return node;
+        }
+
         vsg::ref_ptr<Anim::Transform> handleTransform(const Nif::Node& nifNode)
         {
-            auto trans = Anim::Transform::create();
+            auto trans = createGroup<Anim::Transform>(nifNode);
             convertTrafo(*trans, nifNode.trafo);
             handleTransformControllers(nifNode.controller, *trans);
-            vsgUtil::setName(*trans, std::string(nifNode.name));
-            vsgUtil::setID(*trans, nifNode.recIndex);
             return trans;
         }
 
@@ -1197,7 +1207,7 @@ namespace vsgAdapters
             if (nifNode.recType == Nif::RC_NiBSAnimationNode || nifNode.recType == Nif::RC_NiBSParticleNode)
             {
                 auto& nodeOptions = getNodeOptions();
-                nodeOptions.autoPlay = nifNode.flags & Nif::NiNode::AnimFlag_AutoPlay;
+                nodeOptions.animFlags = nifNode.flags;
                 nodeOptions.phaseGroup = (nifNode.flags & Nif::NiNode::AnimFlag_NotRandom) ? 0u : ++mPhaseGroups; // openmw-6455-controller-random-phase
             }
         }
@@ -1234,8 +1244,7 @@ namespace vsgAdapters
             if (nifNode.useFlags & Nif::Node::Emitter /* || animatedCollision*/)
             {
                 if (!group)
-                    retNode = group = vsg::Group::create();
-                vsgUtil::setID(*group, nifNode.recIndex);
+                    retNode = group = createGroup<vsg::Group>(nifNode);
             }
 
             if (nifNode.recType == Nif::RC_NiBillboardNode)
@@ -1259,9 +1268,8 @@ namespace vsgAdapters
                 if (e->recType == Nif::RC_NiTextKeyExtraData)
                 {
                     if (!group)
-                        group = vsg::Group::create();
+                        group = createGroup<vsg::Group>(nifNode);
                     handleTextKeys(static_cast<const Nif::NiTextKeyExtraData&>(*e.getPtr()))->attachTo(*group);
-                    ;
                 }
                 else if (e->recType == Nif::RC_NiStringExtraData)
                 {
@@ -1350,8 +1358,11 @@ namespace vsgAdapters
                 auto child = handleParticles(static_cast<const Nif::NiParticles&>(nifNode));
                 if (group && child)
                     group->addChild(child);
-                else
+                else if (child)
+                {
+                    vsgUtil::setID(*child, nifNode.recIndex);
                     retNode = child;
+                }
             }
             if (group && !retNode)
                 retNode = group;
@@ -1378,7 +1389,7 @@ namespace vsgAdapters
             return {};
         try
         {
-            return nifImpl(stream, *options, mImageOptions, showMarkers, mBuilder).load();
+            return nifImpl(stream, *options, mImageOptions, showMarkers, mComputeBin, mDepthSortedBin, mBuilder).load();
         }
         catch (std::exception& e)
         {

@@ -13,7 +13,8 @@
 namespace vsgUtil
 {
     /*
-     * Spreads workload.
+     * UpdateThreads is a thread pool for distributing update tasks.
+     * vsg::OperationThreads is used to implement the threads, with added tracking of the number of pending tasks.
      */
     class UpdateThreads : public vsg::Inherit<vsg::Object, UpdateThreads>
     {

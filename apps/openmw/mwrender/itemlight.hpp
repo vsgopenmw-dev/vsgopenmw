@@ -3,22 +3,21 @@
 
 #include "../mwworld/ptr.hpp"
 
-#include <vsg/nodes/Group.h>
-
-#include <components/animation/controllers.hpp>
-
 namespace ESM
 {
     class Light;
 }
+namespace MWAnim
+{
+    class Object;
+}
 namespace MWRender
 {
-    void addItemLightsAndListener(vsg::Group& node, MWWorld::ContainerStore& store);
+    void addItemLightsAndListener(MWAnim::Object& obj, MWWorld::ContainerStore& store);
     void removeListener(MWWorld::ContainerStore& store);
-    void addItemLightIfRequired(vsg::Group& node, const MWWorld::ConstPtr& item);
-    void addItemLight(vsg::Group& node, const MWWorld::ConstPtr& item, const ESM::Light& esmLight);
-    void removeItemLight(vsg::Group& node, const MWWorld::ConstPtr& item);
-    void updateItemLights(vsg::Group& node, float dt);
+    void addItemLightIfRequired(MWAnim::Object& obj, const MWWorld::ConstPtr& item);
+    void addItemLight(MWAnim::Object& obj, const MWWorld::ConstPtr& item, const ESM::Light& esmLight);
+    void removeItemLight(MWAnim::Object& obj, const MWWorld::ConstPtr& item);
 }
 
 #endif

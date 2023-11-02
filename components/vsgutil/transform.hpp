@@ -7,6 +7,9 @@
 
 namespace vsgUtil
 {
+    /*
+     * Optimized version of lhsMatrix * vec4(rhsVector, 0), typically used for transforming direction vectors.
+     */
     template<typename T>
     vsg::t_vec3<T> transform3x3(const vsg::t_mat4<T>& lhs, const vsg::t_vec3<T>& rhs)
     {
@@ -15,6 +18,9 @@ namespace vsgUtil
             (lhs[0][2] * rhs[0] + lhs[1][2] * rhs[1] + lhs[2][2] * rhs[2]));
     }
 
+    /*
+     * Optimized version of vec4(lhsVector, 0) * rhsMatrix, typically used to avoid a transpose(..) call when transforming normals by an inverse transpose normal matrix.
+     */
     template<typename T>
     vsg::t_vec3<T> transform3x3(const vsg::t_vec3<T>& lhs, const vsg::t_mat4<T>& rhs)
     {
@@ -23,6 +29,9 @@ namespace vsgUtil
             lhs[0] * rhs[2][0] + lhs[1] * rhs[2][1] + lhs[2] * rhs[2][2]);
     }
 
+    /*
+     * Gets the rotation part of a 4x4 matrix.
+     */
     template<typename T>
     vsg::t_mat3<T> getRotation(const vsg::t_mat4<T>& mat)
     {
@@ -33,6 +42,9 @@ namespace vsgUtil
         };
     }
 
+    /*
+     * Sets the rotation part of a 4x4 matrix.
+     */
     template<typename T>
     void setRotation(vsg::t_mat4<T>& mat, const vsg::t_mat3<T>& rot)
     {

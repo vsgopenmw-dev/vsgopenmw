@@ -8,6 +8,9 @@
 
 namespace Anim
 {
+    /*
+     * Rotates around axis based on speed and delta time.
+     */
     class Roll : public TMutable<Roll, Transform>
     {
         DeltaTime mDt;

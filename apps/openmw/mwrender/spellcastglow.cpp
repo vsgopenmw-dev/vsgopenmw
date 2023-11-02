@@ -53,9 +53,7 @@ namespace MWRender
         if (!stateSwitch)
         {
             stateSwitch = vsg::StateSwitch::create();
-            sg->stateCommands = { stateSwitch };
-            sg->children = object->transform()->children;
-            object->transform()->children = { sg };
+            object->getOrCreateStateGroup()->stateCommands.push_back(stateSwitch);
         }
         else
         {
@@ -64,7 +62,7 @@ namespace MWRender
             stateSwitch->children.clear();
         }
 
-        auto timeout = vsg::ref_ptr{ new Timeout(group.timer + duration) };
+        auto timeout = Timeout::create(group.timer + duration);
         for (auto& sc : envCommands)
         {
             stateSwitch->add(vsg::MASK_ALL, sc);

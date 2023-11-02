@@ -10,6 +10,7 @@
 
 namespace Anim
 {
+    /// Channel for converting a list of angle/axis rotations to a quaternion value.
     class Rotate : public Channel<vsg::quat>
     {
     public:

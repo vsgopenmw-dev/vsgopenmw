@@ -44,7 +44,8 @@ namespace Anim
         void link(Anim::Context& ctx, vsg::Object& o)
         {
             mCountdown = 0.f;
-            mMask = ctx.mask->particle;
+            if (ctx.mask)
+                mMask = ctx.mask->particle;
             setAllChildren(mMask, static_cast<vsg::Switch&>(o));
         }
 

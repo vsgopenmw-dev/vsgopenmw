@@ -9,7 +9,7 @@
 namespace Anim
 {
     /*
-     * Assigns morph weights.
+     * Assigns a list of weights to a floatArray, typically used for morph animations.
      */
     class Morph : public UpdateData<Morph, vsg::floatArray>
     {

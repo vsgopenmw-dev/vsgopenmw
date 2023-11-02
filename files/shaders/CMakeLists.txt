@@ -105,6 +105,7 @@ set(SHADER_FILES
     lib/view/reflect.glsl
     lib/view/cascades.glsl
     lib/view/fog.glsl
+    lib/view/dither.glsl
     lib/math/random.glsl
     lib/math/distance.glsl
     lib/math/plane.glsl
