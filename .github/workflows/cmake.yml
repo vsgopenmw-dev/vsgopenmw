@@ -3,9 +3,7 @@ name: CMake
 on:
   push:
     branches:
-      - 'master'
-  pull_request:
-    branches: [ master ]
+      - 'release'
 
 env:
   BUILD_TYPE: RelWithDebInfo
