@@ -141,6 +141,15 @@ else()
 endif()
 option(OSG_STATIC "Link static build of OpenSceneGraph into the binaries" ${_osg_static_default})
 
+option(OPENMW_USE_SYSTEM_VSG "Use system provided VulkanSceneGraph libraries" OFF)
+if(OPENMW_USE_SYSTEM_VSG)
+    find_package(vsg 1.0.9 REQUIRED)
+endif()
+option(OPENMW_USE_SYSTEM_VSGXCHANGE "Use system provided VulkanSceneGraph plugins" OFF)
+if(OPENMW_USE_SYSTEM_VSGXCHANGE)
+    find_package(vsgXchange 1.0.5 REQUIRED)
+endif()
+
 option(OPENMW_USE_SYSTEM_MYGUI "Use system provided mygui library" ON)
 if(OPENMW_USE_SYSTEM_MYGUI)
     set(_mygui_static_default OFF)
@@ -223,9 +232,6 @@ if(MSVC)
 endif()
 
 # Dependencies
-find_package(vsg 1.0.9 REQUIRED)
-find_package(vsgXchange REQUIRED)
-
 find_package(LZ4 REQUIRED)
 
 if (USE_QT)
@@ -597,7 +603,6 @@ if(OPENMW_LTO_BUILD)
     endif()
 endif()
 
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(OPENMW_CXX_FLAGS "-Wall -Wextra -Wundef -Wextra-semi -Wno-unused-parameter -pedantic -Wno-long-long -Wnon-virtual-dtor -Wunused -Wno-mismatched-tags ${OPENMW_CXX_FLAGS}")
     add_definitions( -DBOOST_NO_CXX11_SCOPED_ENUMS=ON )
@@ -860,25 +865,6 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
     " COMPONENT Runtime)
 
     set(ABSOLUTE_PLUGINS "")
-
-    set(OSGPlugins_DONT_FIND_DEPENDENCIES 1)
-    find_package(OSGPlugins REQUIRED COMPONENTS ${USED_OSG_PLUGINS})
-
-    foreach (PLUGIN_NAME ${USED_OSG_PLUGINS})
-        string(TOUPPER ${PLUGIN_NAME} PLUGIN_NAME_UC)
-        if(${PLUGIN_NAME_UC}_LIBRARY_RELEASE)
-            set(PLUGIN_ABS ${${PLUGIN_NAME_UC}_LIBRARY_RELEASE})
-        elseif(${PLUGIN_NAME_UC}_LIBRARY)
-            set(PLUGIN_ABS ${${PLUGIN_NAME_UC}_LIBRARY})
-        else()
-            message(FATAL_ERROR "Can't find library file for ${PLUGIN_NAME}")
-            # We used to construct the path manually from OSGPlugins_LIB_DIR and the plugin name.
-            # Maybe that could be restored as a fallback?
-        endif()
-        set(ABSOLUTE_PLUGINS ${PLUGIN_ABS} ${ABSOLUTE_PLUGINS})
-    endforeach ()
-
-    set(OSG_PLUGIN_PREFIX_DIR "osgPlugins-${OPENSCENEGRAPH_VERSION}")
 
     # installs used plugins in bundle at given path (bundle_path must be relative to ${CMAKE_INSTALL_PREFIX})
     # and returns list of install paths for all installed plugins
