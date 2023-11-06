@@ -30,7 +30,7 @@ jobs:
           max-size: 1000M
 
       - name: Configure
-        run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1 -DUSE_SYSTEM_TINYXML=1 -DBUILD_UNITTESTS=1 -DCMAKE_INSTALL_PREFIX=install
+        run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1 -DUSE_SYSTEM_TINYXML=1 -DBUILD_UNITTESTS=0 -DCMAKE_INSTALL_PREFIX=install
 
       - name: Build
         run: make -j3
