@@ -31,7 +31,6 @@ if(BUILD_BENCHMARKS AND NOT OPENMW_USE_SYSTEM_BENCHMARK)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_USE_SYSTEM_BENCHMARK)")
 endif()
 
-#[[
 # Like `FetchContent_MakeAvailable` but passes EXCLUDE_FROM_ALL to `add_subdirectory`.
 macro(FetchContent_MakeAvailableExcludeFromAll)
     foreach(contentName IN ITEMS ${ARGV})
@@ -47,6 +46,28 @@ macro(FetchContent_MakeAvailableExcludeFromAll)
     endforeach()
 endmacro()
 
+if (NOT OPENMW_USE_SYSTEM_VSG)
+    include(FetchContent)
+    FetchContent_Declare(vsg
+            URL https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/tags/v1.0.9.zip
+            URL_HASH MD5=b64d66d6eb3cce8a6fbd7b7ffb2979e7
+            SOURCE_DIR fetched/vsg
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsg)
+endif()
+
+if (NOT OPENMW_USE_SYSTEM_VSGXCHANGE)
+    include(FetchContent)
+    FetchContent_Declare(vsgXchange
+            URL https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
+            URL_HASH MD5=3493034f40ef7f4af62322d6cc8dc981
+            SOURCE_DIR fetched/vsgXchange
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsgXchange)
+    add_dependencies(vsg vsgXchange)
+endif()
+
+#[[
 if(NOT OPENMW_USE_SYSTEM_BULLET)
     cmake_minimum_required(VERSION 3.11) # for FetchContent
 

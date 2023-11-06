@@ -555,6 +555,7 @@ target_link_libraries(components
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
     vsg::vsg
+    vsgXchange::vsgXchange
     ${SDL2_LIBRARIES}
     ${MyGUI_LIBRARIES}
     ${LUA_LIBRARIES}
@@ -565,7 +566,7 @@ target_link_libraries(components
     SQLite::SQLite3
     #smhasher
     ${ICU_LIBRARIES}
-    yaml-cpp
+    yaml-cpp::yaml-cpp
     )
 
 if(Boost_VERSION_STRING VERSION_GREATER_EQUAL 1.77.0)
