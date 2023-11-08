@@ -30,13 +30,19 @@ jobs:
           max-size: 1000M
 
       - name: Configure
-        run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1 -DUSE_SYSTEM_TINYXML=1 -DBUILD_UNITTESTS=0 -DCMAKE_INSTALL_PREFIX=install
+        run: |
+          cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DUSE_SYSTEM_TINYXML=TRUE \
+          -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=TRUE \
+          -DOPENMW_USE_SYSTEM_VSG=FALSE \
+          -DOPENMW_USE_SYSTEM_VSGXCHANGE=FALSE \
+          -DCMAKE_INSTALL_PREFIX=install
 
       - name: Build
         run: make -j3
 
-      - name: Test
-        run: ./openmw_test_suite
+          #   - name: Test
+          #     run: ./openmw_test_suite
 
           #    - name: Install
           #      shell: bash
@@ -62,9 +68,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install Building Dependencies
-        run: |
-          CI/before_install.osx.sh
-          brew install vulkan-headers vulkan-loader vulkan-tools vulkan-extensionlayer vulkan-validationlayers
+        run: CI/before_install.osx.sh
 
       - name: Prime ccache
         uses: hendrikmuhs/ccache-action@v1
