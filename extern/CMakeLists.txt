@@ -9,9 +9,9 @@ endif()
 if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_RECASTNAVIGATION)")
 endif()
-if(NOT OPENMW_USE_SYSTEM_MYGUI)
-    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
-endif()
+#if(NOT OPENMW_USE_SYSTEM_MYGUI)
+#    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
+#endif()
 if(NOT OPENMW_USE_SYSTEM_SQLITE3)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_SQLITE3)")
 endif()
@@ -50,7 +50,7 @@ if (NOT OPENMW_USE_SYSTEM_VSG)
     include(FetchContent)
     FetchContent_Declare(vsg
             URL https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/tags/v1.0.9.zip
-            URL_HASH MD5=b64d66d6eb3cce8a6fbd7b7ffb2979e7
+            URL_HASH SHA3_256=d6a9cb1058fabf8c9174138e7c111b365e17c5a34468709144b7e765fb2c9d6e
             SOURCE_DIR fetched/vsg
     )
     FetchContent_MakeAvailableExcludeFromAll(vsg)
@@ -60,14 +60,13 @@ if (NOT OPENMW_USE_SYSTEM_VSGXCHANGE)
     include(FetchContent)
     FetchContent_Declare(vsgXchange
             URL https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
-            URL_HASH MD5=3493034f40ef7f4af62322d6cc8dc981
+            URL_HASH SHA3_256=05fcbe8b0c4bde28d295f20b26ebcd7a6a4df540f459639e73a4c9db5b42ee20
             SOURCE_DIR fetched/vsgXchange
     )
     FetchContent_MakeAvailableExcludeFromAll(vsgXchange)
     add_dependencies(vsg vsgXchange)
 endif()
 
-#[[
 if(NOT OPENMW_USE_SYSTEM_BULLET)
     cmake_minimum_required(VERSION 3.11) # for FetchContent
 
@@ -145,6 +144,7 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
     set(MyGUI_LIBRARIES MyGUIEngine PARENT_SCOPE)
 endif()
 
+#[[
 if(NOT OPENMW_USE_SYSTEM_OSG)
     cmake_minimum_required(VERSION 3.11) # for FetchContent
 

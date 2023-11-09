@@ -95,6 +95,24 @@ modules:
         url: https://github.com/openmw/osg/archive/76e061739610bc9a3420a59e7c9395e742ce2f97.zip
         sha256: fa1100362eae260192819d65d90b29ec0b88fdf80e30cee677730b7a0d68637e
 
+  - name: vulkanscenegraph
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+    sources:
+      - type: archive
+        url: https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/tags/v1.0.9.zip
+        sha256: f3f6ecba491c3bcf56132de4f26b6583b61e7ff0ea182c1335409b948938cbb4
+
+  - name: vsgXchange
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+    sources:
+      - type: archive
+        url: https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
+        sha256: 4dccfefed049bb6bf101036be271b9b95dbf21c8025b3b0baf1972022814f06e
+
   - name: bullet
     # The cmake + ninja buildsystem doesn't install the required binaries correctly
     buildsystem: cmake
@@ -163,8 +181,8 @@ modules:
     buildsystem: cmake-ninja
     sources:
       - type: archive
-        url: https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip
-        sha256: 4d5e664a7fb2d7445fc548cc8c0e1aa7b1a496540eb382d137e2cc263e6d3ef5
+        url: https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.zip
+        sha256: 334e80ab7b52e14c23f94e041c74bab0742f2281aad55f66be2f19f4b7747071
 
   - name: LuaJIT
     buildsystem: simple

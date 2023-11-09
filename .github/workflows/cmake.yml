@@ -84,3 +84,26 @@ jobs:
         run: |
           cd build 
           make -j $(sysctl -n hw.logicalcpu) package
+
+  Flatpak:
+    name: "Flatpak"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-23.08
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: palette.flatpak
+          manifest-path: CI/org.openmw.OpenMW.devel.yaml
+          cache-key: flatpak-builder-${{ github.sha }}
+#      - name: Configure
+#        run: |
+#          flatpak-builder --ccache --force-clean --repo=repo build CI/org.openmw.OpenMW.devel.yaml
+#          flatpak build-bundle ./repo openmw.flatpak org.openmw.OpenMW.devel
+#
+#          flatpak install -y flathub org.kde.Platform/x86_64/5.15-21.08
+#          flatpak install -y flathub org.kde.Sdk/x86_64/5.15-21.08
+#          flatpak-builder --ccache --force-clean --repo=repo build CI/org.openmw.OpenMW.devel.yaml
+#          flatpak build-bundle ./repo openmw.flatpak org.openmw.OpenMW.devel
