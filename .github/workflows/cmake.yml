@@ -36,7 +36,14 @@ jobs:
           -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=TRUE \
           -DOPENMW_USE_SYSTEM_VSG=FALSE \
           -DOPENMW_USE_SYSTEM_VSGXCHANGE=FALSE \
-          -DCMAKE_INSTALL_PREFIX=install
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_OPENCS=FALSE \
+          -DBUILD_BSATOOL=FALSE \
+          -DBUILD_LAUNCHER=FALSE \
+          -DBUILD_WIZARD=FALSE \
+          -DBUILD_ESMTOOL=FALSE \
+          -DBUILD_NAVMESHTOOL=FALSE \
+          -DBUILD_BULLETOBJECTTOOL=FALSE
 
       - name: Build
         run: make -j3
@@ -83,7 +90,8 @@ jobs:
       - name: Build
         run: |
           cd build 
-          make -j $(sysctl -n hw.logicalcpu) package
+          make -j $(sysctl -n hw.logicalcpu)
+          #make -j $(sysctl -n hw.logicalcpu) package  # figure out packaging first
 
   Flatpak:
     name: "Flatpak"

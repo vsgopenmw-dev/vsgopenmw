@@ -197,8 +197,17 @@ modules:
     builddir: true
     buildsystem: cmake-ninja
     config-opts:
+      - "-DBUILD_OPENCS=no"
+      - "-DBUILD_BSATOOL=no"
+      - "-DBUILD_LAUNCHER=no"
+      - "-DBUILD_WIZARD=no"
       - "-DBUILD_BSATOOL=no"
       - "-DBUILD_ESMTOOL=no"
+      - "-DBUILD_ESMTOOL=no"
+      - "-DBUILD_ESSIMPORTER=no"
+      - "-DBUILD_NIFTEST=no"
+      - "-DBUILD_NAVMESHTOOL=no"
+      - "-DBUILD_BULLETOBJECTTOOL=no"
       - "-DCMAKE_BUILD_TYPE=Release"
       - "-DICONDIR=/app/share/icons"
       - "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=yes"
