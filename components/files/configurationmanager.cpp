@@ -295,7 +295,7 @@ namespace Files
         const auto pos = str.find('?', 1);
         if (pos != std::u8string::npos && pos != 0)
         {
-            auto tokenIt = mTokensMapping.find(std::u8string(Misc::StringUtils::stringToU8String(str.substr(0, pos + 1))));
+            auto tokenIt = mTokensMapping.find(std::u8string(str.substr(0, pos + 1)));
             if (tokenIt != mTokensMapping.end())
             {
                 auto tempPath(((mFixedPath).*(tokenIt->second))());

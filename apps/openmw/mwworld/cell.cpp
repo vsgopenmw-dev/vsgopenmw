@@ -52,9 +52,4 @@ namespace MWWorld
         ,mWaterHeight(cell.mWater)
     {
     }
-
-    std::string Cell::getDescription() const
-    {
-        return getEsm3().getDescription();
-    }
 }

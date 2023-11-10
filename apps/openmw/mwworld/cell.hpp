@@ -7,6 +7,8 @@
 #include <components/esm/refid.hpp>
 #include <components/esm3/cellid.hpp>
 
+#include <components/esm3/loadcell.hpp>
+
 namespace ESM
 {
     struct Cell;
@@ -46,7 +48,7 @@ namespace MWWorld
         const ESM::RefId& getRegion() const { return mRegion; }
         std::string_view getNameId() const { return mNameID; }
         std::string_view getDisplayName() const { return mDisplayname; }
-        std::string getDescription() const;
+        std::string getDescription() const { return getEsm3().getDescription(); }
         const MoodData& getMood() const { return mMood; }
         float getWaterHeight() const { return mWaterHeight; }
 
