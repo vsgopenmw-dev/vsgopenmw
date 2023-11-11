@@ -857,18 +857,6 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
         set(OPENCS_PLUGINS ${OPENCS_PLUGINS} "${INSTALLED_OPENCS_APP}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}")
     endif ()
 
-    install(CODE "
-        function(gp_item_default_embedded_path_override item  default_embedded_path_var)
-            if (\${item} MATCHES ${OSG_PLUGIN_PREFIX_DIR})
-              set(path \"@executable_path/../PlugIns/${OSG_PLUGIN_PREFIX_DIR}\")
-              set(\${default_embedded_path_var} \"\${path}\" PARENT_SCOPE)
-            endif()
-        endfunction()
-
-        fixup_bundle(\"${INSTALLED_OPENMW_APP}\" \"${PLUGINS}\" \"\")
-        fixup_bundle(\"${INSTALLED_OPENCS_APP}\" \"${OPENCS_PLUGINS}\" \"\")
-        " COMPONENT Runtime)
-
     set(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_SOURCE_DIR}/cmake/SignMacApplications.cmake)
 
     include(CPack)
