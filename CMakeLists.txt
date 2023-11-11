@@ -133,14 +133,6 @@ else()
 endif()
 option(BULLET_STATIC "Link static build of Bullet into the binaries" ${_bullet_static_default})
 
-option(OPENMW_USE_SYSTEM_OSG "Use system provided OpenSceneGraph libraries" ON)
-if(OPENMW_USE_SYSTEM_OSG)
-    set(_osg_static_default OFF)
-else()
-    set(_osg_static_default ON)
-endif()
-option(OSG_STATIC "Link static build of OpenSceneGraph into the binaries" ${_osg_static_default})
-
 option(OPENMW_USE_SYSTEM_VSG "Use system provided VulkanSceneGraph libraries" ON)
 if(OPENMW_USE_SYSTEM_VSG)
     find_package(vsg 1.0.9 REQUIRED)
@@ -244,29 +236,6 @@ if (USE_QT)
     message(STATUS "Using Qt${QT_VERSION}")
 endif()
 
-set(USED_OSG_COMPONENTS
-    osgAnimation
-    osgDB
-    osgGA
-    osgFX
-    osgParticle
-    osgText
-    osgUtil
-    osgShadow
-    osgSim
-    osgViewer
-    )
-set(USED_OSG_PLUGINS
-    osgdb_bmp
-    osgdb_dae
-    osgdb_dds
-    osgdb_freetype
-    osgdb_jpeg
-    osgdb_osg
-    osgdb_png
-    osgdb_serializers_osg
-    osgdb_tga)
-
 #[[
 if(NOT COLLADA_DOM_VERSION_MAJOR)
     set(COLLADA_DOM_VERSION_MAJOR 2)
@@ -364,6 +333,9 @@ if (USE_SYSTEM_TINYXML)
     include_directories(SYSTEM ${TinyXML_INCLUDE_DIRS})
 endif()
 
+# OSG Headers
+include_directories(${CMAKE_SOURCE_DIR}/extern/osg)
+
 # Platform specific
 if (WIN32)
     if(NOT MINGW)
@@ -433,27 +405,6 @@ if(NOT HAVE_STDINT_H)
     unset(HAVE_STDINT_H CACHE)
     message(FATAL_ERROR "stdint.h was not found" )
 endif()
-
-#[[
-if(OPENMW_USE_SYSTEM_OSG)
-    find_package(OpenSceneGraph 3.6.5 REQUIRED ${USED_OSG_COMPONENTS})  # Bump to 3.6.6 when released
-
-    if(OSG_STATIC)
-        find_package(OSGPlugins REQUIRED COMPONENTS ${USED_OSG_PLUGINS})
-    endif()
-endif()
-
-include_directories(BEFORE SYSTEM ${OPENSCENEGRAPH_INCLUDE_DIRS})
-
-if(OSG_STATIC)
-    add_definitions(-DOSG_LIBRARY_STATIC)
-endif()
-
-include(cmake/CheckOsgMultiview.cmake)
-if(HAVE_MULTIVIEW)
-    add_definitions(-DOSG_HAS_MULTIVIEW)
-endif(HAVE_MULTIVIEW)
-#]]
 
 set(BOOST_COMPONENTS system filesystem program_options iostreams)
 if(WIN32)
@@ -652,7 +603,7 @@ if (BUILD_ESMTOOL)
 endif()
 
 if (BUILD_LAUNCHER)
-    #add_subdirectory( apps/launcher )
+    add_subdirectory( apps/launcher )
 endif()
 
 if (BUILD_MWINIIMPORTER)

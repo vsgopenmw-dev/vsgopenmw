@@ -228,16 +228,7 @@ if(APPLE AND BUILD_OPENCS)
 endif()
 
 target_link_libraries(openmw-cs-lib
-    # CMake's built-in OSG finder does not use pkgconfig, so we have to
-    # manually ensure the order is correct for inter-library dependencies.
-    # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21701
-    ${OSGVIEWER_LIBRARIES}
-    ${OSGFX_LIBRARIES}
-    ${OSGGA_LIBRARIES}
-    ${OSGUTIL_LIBRARIES}
-    ${OSGTEXT_LIBRARIES}
-    ${OSG_LIBRARIES}
+    # <insert vsg libs here>
     ${EXTERN_OSGQT_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     components_qt

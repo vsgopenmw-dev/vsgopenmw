@@ -12,10 +12,10 @@ if (APPLE)
         message(STATUS "Re-signing ${app_name}.app")
         # Apple's codesign utility does not like directories with periods (.) in their names, so we'll remove it and
         # create a symlink using the original name, which codesign is fine with.
-        file(GLOB OSG_PLUGINS_DIR "${FULL_APP_PATH}/Contents/PlugIns/osgPlugins*")
-        file(RENAME "${OSG_PLUGINS_DIR}" "${FULL_APP_PATH}/Contents/PlugIns/osgPlugins")
-        execute_process(COMMAND "ln" "-s" "osgPlugins" "${OSG_PLUGINS_DIR}"
-                        WORKING_DIRECTORY "${FULL_APP_PATH}/Contents/PlugIns/")
+        #file(GLOB OSG_PLUGINS_DIR "${FULL_APP_PATH}/Contents/PlugIns/osgPlugins*")
+        #file(RENAME "${OSG_PLUGINS_DIR}" "${FULL_APP_PATH}/Contents/PlugIns/osgPlugins")
+        #execute_process(COMMAND "ln" "-s" "osgPlugins" "${OSG_PLUGINS_DIR}"
+        #                WORKING_DIRECTORY "${FULL_APP_PATH}/Contents/PlugIns/")
         execute_process(COMMAND "codesign" "--force" "--deep" "-s" "-" "${FULL_APP_PATH}")
     endforeach(app_name)
 endif (APPLE)

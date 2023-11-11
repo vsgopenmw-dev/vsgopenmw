@@ -73,28 +73,6 @@ modules:
     cleanup:
       - "/share/ffmpeg"
 
-  - name: openscenegraph
-    buildsystem: cmake-ninja
-    config-opts:
-      - "-DBUILD_OSG_PLUGINS_BY_DEFAULT=0"
-      - "-DBUILD_OSG_PLUGIN_OSG=1"
-      - "-DBUILD_OSG_PLUGIN_DDS=1"
-      - "-DBUILD_OSG_PLUGIN_DAE=1"
-      - "-DBUILD_OSG_PLUGIN_TGA=1"
-      - "-DBUILD_OSG_PLUGIN_BMP=1"
-      - "-DBUILD_OSG_PLUGIN_JPEG=1"
-      - "-DBUILD_OSG_PLUGIN_PNG=1"
-      - "-DBUILD_OSG_DEPRECATED_SERIALIZERS=0"
-      - "-DBUILD_OSG_APPLICATIONS=0"
-      - "-DCMAKE_BUILD_TYPE=Release"
-    build-options:
-      env:
-        COLLADA_DIR: /app/include/collada-dom2.5
-    sources:
-      - type: archive
-        url: https://github.com/openmw/osg/archive/76e061739610bc9a3420a59e7c9395e742ce2f97.zip
-        sha256: fa1100362eae260192819d65d90b29ec0b88fdf80e30cee677730b7a0d68637e
-
   - name: vulkanscenegraph
     buildsystem: cmake-ninja
     config-opts:
@@ -199,8 +177,6 @@ modules:
     config-opts:
       - "-DBUILD_OPENCS=no"
       - "-DBUILD_BSATOOL=no"
-      - "-DBUILD_LAUNCHER=no"
-      - "-DBUILD_WIZARD=no"
       - "-DBUILD_BSATOOL=no"
       - "-DBUILD_ESMTOOL=no"
       - "-DBUILD_ESMTOOL=no"
