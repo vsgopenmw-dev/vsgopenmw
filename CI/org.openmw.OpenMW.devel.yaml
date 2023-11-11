@@ -1,7 +1,7 @@
 ---
 app-id: org.openmw.OpenMW.devel
 runtime: org.kde.Platform
-runtime-version: '5.15-21.08'
+runtime-version: '5.15-23.08'
 sdk: org.kde.Sdk
 command: openmw-launcher
 rename-appdata-file: openmw.appdata.xml
@@ -72,6 +72,15 @@ modules:
         sha256: 46e4e64f1dd0233cbc0934b9f1c0da676008cad34725113fb7f802cfa84ccddb
     cleanup:
       - "/share/ffmpeg"
+
+  - name: glslang
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+    sources:
+      - type: archive
+        url: https://github.com/KhronosGroup/glslang/archive/refs/tags/13.1.1.zip
+        sha256: 2facbb705fbf7fe4e1a23bb511c88e99ec5733240ab87bfa76c6ce56ae0b8c37
 
   - name: vulkanscenegraph
     buildsystem: cmake-ninja
