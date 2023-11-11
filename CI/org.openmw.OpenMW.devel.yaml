@@ -219,9 +219,9 @@ modules:
           - "sed -i 's:/wiki:/old-wiki:' ./files/openmw.appdata.xml"
           - "sed -i 's:>org.openmw.launcher.desktop<:>org.openmw.OpenMW.devel.desktop<:' ./files/openmw.appdata.xml"
           - "sed -i 's:Icon=openmw:Icon=org.openmw.OpenMW.devel.png:' ./files/org.openmw.launcher.desktop"
-          - "sed -i 's:Icon=openmw-cs:Icon=org.openmw.OpenMW.OpenCS.devel.png:' ./files/org.openmw.cs.desktop"
+          #- "sed -i 's:Icon=openmw-cs:Icon=org.openmw.OpenMW.OpenCS.devel.png:' ./files/org.openmw.cs.desktop"
     post-install:
       - "mv /app/share/applications/org.openmw.launcher.desktop /app/share/applications/org.openmw.OpenMW.devel.desktop"
-      - "mv /app/share/applications/org.openmw.cs.desktop /app/share/applications/org.openmw.OpenMW.OpenCS.devel.desktop"
+      #- "mv /app/share/applications/org.openmw.cs.desktop /app/share/applications/org.openmw.OpenMW.OpenCS.devel.desktop"
       - "mv /app/share/icons/openmw.png /app/share/icons/org.openmw.OpenMW.devel.png"
-      - "mv /app/share/icons/openmw-cs.png /app/share/icons/org.openmw.OpenMW.OpenCS.devel.png"
+      #- "mv /app/share/icons/openmw-cs.png /app/share/icons/org.openmw.OpenMW.OpenCS.devel.png"
