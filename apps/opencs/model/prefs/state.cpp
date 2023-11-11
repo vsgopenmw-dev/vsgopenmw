@@ -647,7 +647,7 @@ void CSMPrefs::State::setDefault(const std::string& key, const std::string& defa
 
 CSMPrefs::State::State(const Files::ConfigurationManager& configurationManager)
     : mConfigFile("openmw-cs.cfg")
-    , mDefaultConfigFile("defaults-cs.bin")
+    , mDefaultConfigFile("defaults-cs.cfg")
     , mConfigurationManager(configurationManager)
     , mCurrentCategory(mCategories.end())
 {

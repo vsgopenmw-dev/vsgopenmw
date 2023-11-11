@@ -111,7 +111,7 @@ namespace Settings
         }
         else
         {
-            defaultSettingsFile = "defaults-cs.bin";
+            defaultSettingsFile = "defaults-cs.cfg";
             userSettingsFile = "openmw-cs.cfg";
         }
 
@@ -159,7 +159,7 @@ namespace Settings
 
         std::string error("Trying to retrieve a non-existing setting: ");
         error += setting;
-        error += ".\nMake sure the defaults.bin file was properly installed.";
+        error += ".\nMake sure the defaults.cfg file was properly installed.";
         throw std::runtime_error(error);
     }
 

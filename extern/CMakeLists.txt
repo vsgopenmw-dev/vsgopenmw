@@ -134,8 +134,8 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
     # master on 13 Mar 2021
     include(FetchContent)
     FetchContent_Declare(mygui
-        URL https://github.com/MyGUI/mygui/archive/59c1388b942721887d18743ada15f1906ff11a1f.zip
-        URL_HASH SHA512=56b112b261fdc4c9b782de8ef8a9d239af3a75b8cfaa617daecc77c38ecd6521624cf5c17e6ac839b0870be5c31608d4f2a1574165d9d049f14f9e6ae03a8f98
+        URL https://github.com/MyGUI/mygui/archive/refs/tags/MyGUI3.4.2.zip
+        URL_HASH SHA256=9941c14479c162f467041303ae163a5f7c8d0c7761a261f972a89df3ca115350
         SOURCE_DIR fetched/mygui
     )
     FetchContent_MakeAvailableExcludeFromAll(mygui)
