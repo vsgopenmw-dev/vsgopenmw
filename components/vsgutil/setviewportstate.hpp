@@ -2,6 +2,7 @@
 #define VSGOPENMW_VSGUTIL_SETVIEWPORTSTATE_H
 
 #include <vsg/commands/Command.h>
+#include <vsg/state/ViewportState.h>
 
 namespace vsgUtil
 {
