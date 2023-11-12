@@ -91,12 +91,6 @@ jobs:
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: palette.flatpak
+          bundle: openmw.flatpak
           manifest-path: CI/org.openmw.OpenMW.devel.yaml
           cache-key: flatpak-builder-${{ github.sha }}
-
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: openmw.flatpak
-          path: openmw.flatpak
