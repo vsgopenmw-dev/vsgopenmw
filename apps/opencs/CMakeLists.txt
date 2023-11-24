@@ -157,7 +157,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if(APPLE)
     set (OPENCS_MAC_ICON "${CMAKE_SOURCE_DIR}/files/mac/openmw-cs.icns")
-    set (OPENCS_CFG "${OpenMW_BINARY_DIR}/defaults-cs.bin")
+    set (OPENCS_CFG "${OpenMW_BINARY_DIR}/defaults-cs.cfg")
     set (OPENCS_DEFAULT_FILTERS_FILE "${OpenMW_BINARY_DIR}/resources/defaultfilters")
     set (OPENCS_OPENMW_CFG "${OpenMW_BINARY_DIR}/openmw.cfg")
 else()
@@ -228,16 +228,7 @@ if(APPLE AND BUILD_OPENCS)
 endif()
 
 target_link_libraries(openmw-cs-lib
-    # CMake's built-in OSG finder does not use pkgconfig, so we have to
-    # manually ensure the order is correct for inter-library dependencies.
-    # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/21701
-    ${OSGVIEWER_LIBRARIES}
-    ${OSGFX_LIBRARIES}
-    ${OSGGA_LIBRARIES}
-    ${OSGUTIL_LIBRARIES}
-    ${OSGTEXT_LIBRARIES}
-    ${OSG_LIBRARIES}
+    # <insert vsg libs here>
     ${EXTERN_OSGQT_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     components_qt
@@ -259,7 +250,7 @@ if (WIN32 AND BUILD_OPENCS)
         SET(INSTALL_SOURCE "${OpenMW_BINARY_DIR}")
     endif ()
 
-    INSTALL(FILES "${INSTALL_SOURCE}/defaults-cs.bin" DESTINATION ".")
+    INSTALL(FILES "${INSTALL_SOURCE}/defaults-cs.cfg" DESTINATION ".")
 endif()
 
 if (MSVC)

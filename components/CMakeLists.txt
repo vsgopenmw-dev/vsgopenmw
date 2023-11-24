@@ -344,7 +344,7 @@ add_component_dir (debug
     #vsgopenmw-fixme(global-state)
     #vsgopenmw-fixme(escape-pipe)
     #vsgopenmw-fixme(stdio-newlines)
-    #debugging
+    debugging
     #vsgopenmw-delete-me
     #gldebug
     )
@@ -487,7 +487,7 @@ add_component_dir(navmeshtool
 
 add_component_dir(platform
     #vsgopenmw-delete-me
-    #platform
+    platform
     file
     )
 
@@ -555,6 +555,7 @@ target_link_libraries(components
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
     vsg::vsg
+    vsgXchange::vsgXchange
     ${SDL2_LIBRARIES}
     ${MyGUI_LIBRARIES}
     ${LUA_LIBRARIES}
@@ -565,7 +566,7 @@ target_link_libraries(components
     SQLite::SQLite3
     #smhasher
     ${ICU_LIBRARIES}
-    yaml-cpp
+    yaml-cpp::yaml-cpp
     )
 
 if(Boost_VERSION_STRING VERSION_GREATER_EQUAL 1.77.0)
@@ -595,15 +596,6 @@ if (GIT_CHECKOUT)
     add_dependencies (components git-version)
 endif (GIT_CHECKOUT)
 
-if (OSG_STATIC AND CMAKE_SYSTEM_NAME MATCHES "Linux")
-    find_package(X11 REQUIRED COMPONENTS Xinerama Xrandr)
-    target_link_libraries(components ${CMAKE_DL_LIBS} X11::X11 X11::Xinerama X11::Xrandr)
-    find_package(Fontconfig MODULE)
-    if(Fontconfig_FOUND)
-        target_link_libraries(components Fontconfig::Fontconfig)
-    endif()
-endif()
-
 if (WIN32)
     target_link_libraries(components shlwapi)
 endif()
@@ -623,34 +615,6 @@ endif()
 set(COMPONENT_FILES ${COMPONENT_FILES} PARENT_SCOPE)
 
 target_compile_definitions(components PUBLIC BT_USE_DOUBLE_PRECISION)
-
-if(OSG_STATIC)
-    unset(_osg_plugins_static_files)
-    add_library(components_osg_plugins INTERFACE)
-    foreach(_plugin ${USED_OSG_PLUGINS})
-        string(TOUPPER ${_plugin} _plugin_uc)
-        if(OPENMW_USE_SYSTEM_OSG)
-            list(APPEND _osg_plugins_static_files ${${_plugin_uc}_LIBRARY})
-        else()
-            list(APPEND _osg_plugins_static_files $<TARGET_FILE:${${_plugin_uc}_LIBRARY}>)
-            target_link_libraries(components_osg_plugins INTERFACE $<TARGET_PROPERTY:${${_plugin_uc}_LIBRARY},LINK_LIBRARIES>)
-            add_dependencies(components_osg_plugins ${${_plugin_uc}_LIBRARY})
-        endif()
-    endforeach()
-    # We use --whole-archive because OSG plugins use registration.
-    get_whole_archive_options(_opts ${_osg_plugins_static_files})
-    target_link_options(components_osg_plugins INTERFACE ${_opts})
-    target_link_libraries(components components_osg_plugins)
-
-    if(OPENMW_USE_SYSTEM_OSG)
-        # OSG plugin pkgconfig files are missing these dependencies.
-        # https://github.com/openscenegraph/OpenSceneGraph/issues/1052
-        find_package(Freetype REQUIRED)
-        find_package(JPEG REQUIRED)
-        find_package(PNG REQUIRED)
-        target_link_libraries(components Freetype::Freetype JPEG::JPEG PNG::PNG)
-    endif()
-endif(OSG_STATIC)
 
 if(USE_QT)
     set_property(TARGET components_qt PROPERTY AUTOMOC ON)

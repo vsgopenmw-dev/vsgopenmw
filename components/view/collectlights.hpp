@@ -18,7 +18,7 @@ namespace View
         void traverse(vsg::ConstVisitor& visitor) const override {}
 
         void compile(vsg::Context&) override {}
-        void pack() override;
+        void pack();
     };
 }
 

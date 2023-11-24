@@ -1,6 +1,7 @@
 #ifndef VSGOPENMW_ANIMATION_BONES_H
 #define VSGOPENMW_ANIMATION_BONES_H
 
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <string>

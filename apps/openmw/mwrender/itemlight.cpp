@@ -65,7 +65,7 @@ namespace MWRender
         auto citr = ctrls.begin();
         while (citr != ctrls.end())
         {
-            if (citr->second == l->second.node)
+            if (citr->second == l->second.node.get())
                 citr = ctrls.erase(citr);
             else
                 ++citr;

@@ -9,14 +9,11 @@ endif()
 if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_RECASTNAVIGATION)")
 endif()
-if(NOT OPENMW_USE_SYSTEM_MYGUI)
-    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
-endif()
+#if(NOT OPENMW_USE_SYSTEM_MYGUI)
+#    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
+#endif()
 if(NOT OPENMW_USE_SYSTEM_SQLITE3)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_SQLITE3)")
-endif()
-if(NOT OPENMW_USE_SYSTEM_OSG)
-    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_OSG)")
 endif()
 if(NOT OPENMW_USE_SYSTEM_ICU)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_ICU)")
@@ -31,7 +28,6 @@ if(BUILD_BENCHMARKS AND NOT OPENMW_USE_SYSTEM_BENCHMARK)
     message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_USE_SYSTEM_BENCHMARK)")
 endif()
 
-#[[
 # Like `FetchContent_MakeAvailable` but passes EXCLUDE_FROM_ALL to `add_subdirectory`.
 macro(FetchContent_MakeAvailableExcludeFromAll)
     foreach(contentName IN ITEMS ${ARGV})
@@ -46,6 +42,27 @@ macro(FetchContent_MakeAvailableExcludeFromAll)
         endif()
     endforeach()
 endmacro()
+
+if (NOT OPENMW_USE_SYSTEM_VSG)
+    include(FetchContent)
+    FetchContent_Declare(vsg
+            URL https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/tags/v1.0.9.zip
+            URL_HASH SHA3_256=d6a9cb1058fabf8c9174138e7c111b365e17c5a34468709144b7e765fb2c9d6e
+            SOURCE_DIR fetched/vsg
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsg)
+endif()
+
+if (NOT OPENMW_USE_SYSTEM_VSGXCHANGE)
+    include(FetchContent)
+    FetchContent_Declare(vsgXchange
+            URL https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
+            URL_HASH SHA3_256=05fcbe8b0c4bde28d295f20b26ebcd7a6a4df540f459639e73a4c9db5b42ee20
+            SOURCE_DIR fetched/vsgXchange
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsgXchange)
+    add_dependencies(vsg vsgXchange)
+endif()
 
 if(NOT OPENMW_USE_SYSTEM_BULLET)
     cmake_minimum_required(VERSION 3.11) # for FetchContent
@@ -114,8 +131,8 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
     # master on 13 Mar 2021
     include(FetchContent)
     FetchContent_Declare(mygui
-        URL https://github.com/MyGUI/mygui/archive/59c1388b942721887d18743ada15f1906ff11a1f.zip
-        URL_HASH SHA512=56b112b261fdc4c9b782de8ef8a9d239af3a75b8cfaa617daecc77c38ecd6521624cf5c17e6ac839b0870be5c31608d4f2a1574165d9d049f14f9e6ae03a8f98
+        URL https://github.com/MyGUI/mygui/archive/refs/tags/MyGUI3.4.2.zip
+        URL_HASH SHA256=9941c14479c162f467041303ae163a5f7c8d0c7761a261f972a89df3ca115350
         SOURCE_DIR fetched/mygui
     )
     FetchContent_MakeAvailableExcludeFromAll(mygui)
@@ -124,81 +141,7 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
     set(MyGUI_LIBRARIES MyGUIEngine PARENT_SCOPE)
 endif()
 
-if(NOT OPENMW_USE_SYSTEM_OSG)
-    cmake_minimum_required(VERSION 3.11) # for FetchContent
-
-    set(BUILD_OSG_APPLICATIONS OFF CACHE BOOL "")
-    set(BUILD_OSG_DEPRECATED_SERIALIZERS OFF CACHE BOOL "")
-    set(OSG_FIND_3RD_PARTY_DEPS OFF CACHE BOOL "")
-
-    set(BUILD_OSG_PLUGINS_BY_DEFAULT OFF CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_BMP ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_DAE ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_DDS ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_FREETYPE ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_JPEG ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_KTX ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_OSG ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_PNG ON CACHE BOOL "")
-    set(BUILD_OSG_PLUGIN_TGA ON CACHE BOOL "")
-
-    set(OSG_USE_FLOAT_MATRIX ON CACHE BOOL "")
-    set(OSG_USE_FLOAT_PLANE ON CACHE BOOL "")
-    set(OSG_USE_FLOAT_QUAT ON CACHE BOOL "")
-
-    set(OPENGL_PROFILE "GL2" CACHE STRING "")
-
-    if(OSG_STATIC)
-        set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-        set(DYNAMIC_OPENTHREADS OFF CACHE BOOL "" FORCE)
-        set(DYNAMIC_OPENSCENEGRAPH OFF CACHE BOOL "" FORCE)
-    else()
-        set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-        set(DYNAMIC_OPENTHREADS ON CACHE BOOL "" FORCE)
-        set(DYNAMIC_OPENSCENEGRAPH ON CACHE BOOL "" FORCE)
-    endif()
-    mark_as_advanced(DYNAMIC_OPENTHREADS DYNAMIC_OPENSCENEGRAPH)
-
-    if(WIN32)
-        # OSG here inherits C++17 language level because it doesn't specify its own.
-        #
-        # OSG's `using namespace std` interferes with Windows header files.
-        #
-        # See https://developercommunity.visualstudio.com/t/error-c2872-byte-ambiguous-symbol/93889
-        #
-        # An alternative way to work around this without changing the language level is:
-        #
-        # add_compile_definitions(_HAS_STD_BYTE=0)
-        #
-        # TODO: Put OSG into its own scope so that this does not leak into Recast below.
-        set(CMAKE_CXX_STANDARD 11)
-
-        if(MSVC)
-            set(OSG_MSVC_VERSIONED_DLL OFF CACHE BOOL "")
-        endif()
-    endif()
-
-    # OSGoS branch 3.6
-    include(FetchContent)
-    FetchContent_Declare(osg
-        URL https://github.com/OpenMW/osg/archive/01cc2b585c8456a4ff843066b7e1a8715558289f.zip
-        URL_HASH SHA512=9b0a94c1c1d99c767f1857629d43c7a53bfcb74ef760993a121567831e168a1ebbfc10b0c67d7f2241c7b6c6dab2d0e6b876d9f17aca0fabe1a8c86b2279f956
-        SOURCE_DIR fetched/osg
-    )
-    FetchContent_MakeAvailableExcludeFromAll(osg)
-
-    set(OPENSCENEGRAPH_INCLUDE_DIRS ${osg_SOURCE_DIR}/include ${osg_BINARY_DIR}/include PARENT_SCOPE)
-    set(OSG_LIBRARIES OpenThreads osg PARENT_SCOPE)
-    foreach(_name ${USED_OSG_COMPONENTS})
-        string(TOUPPER ${_name} _name_uc)
-        set(${_name_uc}_LIBRARIES ${_name} PARENT_SCOPE)
-    endforeach()
-    foreach(_name ${USED_OSG_PLUGINS})
-        string(TOUPPER ${_name} _name_uc)
-        set(${_name_uc}_LIBRARY ${_name} PARENT_SCOPE)
-    endforeach()
-endif()
-
+#[[
 if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
     if(RECASTNAVIGATION_STATIC)
         set(BUILD_SHARED_LIBS OFF)

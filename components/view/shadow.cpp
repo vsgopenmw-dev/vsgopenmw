@@ -7,6 +7,7 @@
 #include <vsg/state/ColorBlendState.h>
 #include <vsg/state/DescriptorImage.h>
 #include <vsg/state/RasterizationState.h>
+#include <vsg/state/ViewDependentState.h>
 #include <vsg/vk/Context.h>
 
 #include <components/pipeline/viewbindings.hpp>

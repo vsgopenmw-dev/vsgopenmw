@@ -28,7 +28,7 @@ int runLauncher(int argc, char* argv[])
     configurationManager.addCommonOptions(description);
     configurationManager.readConfiguration(variables, description, true);
 
-    setupLogging(configurationManager.getLogPath(), "Launcher");
+    //setupLogging(configurationManager.getLogPath(), "Launcher");
 
     try
     {

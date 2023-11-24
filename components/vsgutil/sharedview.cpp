@@ -2,6 +2,7 @@
 
 #include <vsg/nodes/Bin.h>
 #include <vsg/state/DynamicState.h>
+#include <vsg/state/ViewDependentState.h>
 
 #include "setviewportstate.hpp"
 

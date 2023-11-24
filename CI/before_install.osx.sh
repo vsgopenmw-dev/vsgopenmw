@@ -19,6 +19,7 @@ command -v qmake >/dev/null 2>&1 || brew install qt@5
 
 # Install deps
 brew install icu4c yaml-cpp sqlite
+brew install vulkan-headers vulkan-loader vulkan-tools vulkan-extensionlayer vulkan-validationlayers
 export PATH="/usr/local/opt/qt@5/bin:$PATH"  # needed to use qmake in none default path as qt now points to qt6
 
 ccache --version

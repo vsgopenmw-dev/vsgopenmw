@@ -75,7 +75,6 @@ TEST_FRAMEWORK=""
 GOOGLE_INSTALL_ROOT=""
 INSTALL_PREFIX="."
 BUILD_BENCHMARKS=""
-OSG_MULTIVIEW_BUILD=""
 USE_WERROR=""
 USE_CLANG_TIDY=""
 
@@ -144,9 +143,6 @@ while [ $# -gt 0 ]; do
 			b )
 				BUILD_BENCHMARKS=true ;;
 
-			M )
-				OSG_MULTIVIEW_BUILD=true ;;
-
 			E )
 				USE_WERROR=true ;;
 
@@ -191,8 +187,6 @@ Options:
 		CMake install prefix
 	-b
 		Build benchmarks
-	-M
-		Use a multiview build of OSG
 	-E
 		Use warnings as errors (/WX)
 	-T
@@ -327,16 +321,6 @@ add_runtime_dlls() {
 	RUNTIME_DLLS[$CONFIG]="${RUNTIME_DLLS[$CONFIG]} $@"
 }
 
-declare -A OSG_PLUGINS
-OSG_PLUGINS["Release"]=""
-OSG_PLUGINS["Debug"]=""
-OSG_PLUGINS["RelWithDebInfo"]=""
-add_osg_dlls() {
-	local CONFIG=$1
-	shift
-	OSG_PLUGINS[$CONFIG]="${OSG_PLUGINS[$CONFIG]} $@"
-}
-
 declare -A QT_PLATFORMS
 QT_PLATFORMS["Release"]=""
 QT_PLATFORMS["Debug"]=""
@@ -373,7 +357,6 @@ case $VS_VERSION in
 		MSVC_VER="14.3"
 		MSVC_DISPLAY_YEAR="2022"
 
-		OSG_MSVC_YEAR="2019"
 		MYGUI_MSVC_YEAR="2019"
 		LUA_MSVC_YEAR="2019"
 		QT_MSVC_YEAR="2019"
@@ -391,7 +374,6 @@ case $VS_VERSION in
 		MSVC_VER="14.2"
 		MSVC_DISPLAY_YEAR="2019"
 
-		OSG_MSVC_YEAR="2019"
 		MYGUI_MSVC_YEAR="2019"
 		LUA_MSVC_YEAR="2019"
 		QT_MSVC_YEAR="2019"
@@ -561,16 +543,6 @@ LZ4_VER="1.9.2"
 OPENAL_VER="1.23.0"
 QT_VER="5.15.2"
 
-OSG_ARCHIVE_NAME="OSGoS 3.6.5"
-OSG_ARCHIVE="OSGoS-3.6.5-dd803bc-msvc${OSG_MSVC_YEAR}-win${BITS}"
-OSG_ARCHIVE_REPO_URL="https://gitlab.com/OpenMW/openmw-deps/-/raw/main"
-if ! [ -z $OSG_MULTIVIEW_BUILD ]; then
-	OSG_ARCHIVE_NAME="OSG-3.6-multiview"
-	OSG_ARCHIVE="OSG-3.6-multiview-d2ee5aa8-msvc${OSG_MSVC_YEAR}-win${BITS}"
-	OSG_ARCHIVE_REPO_URL="https://gitlab.com/madsbuvi/openmw-deps/-/raw/openmw-vr-ovr_multiview"
-fi
-
-
 echo
 echo "==================================="
 echo "Starting prebuild on MSVC${MSVC_DISPLAY_YEAR} WIN${BITS}"
@@ -621,17 +593,6 @@ if [ -z $SKIP_DOWNLOAD ]; then
 	download "OpenAL-Soft ${OPENAL_VER}" \
 	  "https://gitlab.com/OpenMW/openmw-deps/-/raw/main/windows/OpenAL-Soft-${OPENAL_VER}.zip" \
 		"OpenAL-Soft-${OPENAL_VER}.zip"
-
-	# OSGoS
-	download "${OSG_ARCHIVE_NAME}" \
-		"${OSG_ARCHIVE_REPO_URL}/windows/${OSG_ARCHIVE}.7z" \
-		"${OSG_ARCHIVE}.7z"
-
-	if [ -n "$PDBS" ]; then
-		download "${OSG_ARCHIVE_NAME} symbols" \
-			"${OSG_ARCHIVE_REPO_URL}/windows/${OSG_ARCHIVE}-sym.7z" \
-			"${OSG_ARCHIVE}-sym.7z"
-	fi
 
 	# SDL2
 	download "SDL 2.24.0" \
@@ -817,53 +778,6 @@ printf "OpenAL-Soft ${OPENAL_VER}... "
 		-DOPENAL_LIBRARY="${OPENAL_SDK}/libs/Win${BITS}/OpenAL32.lib"
 	for config in ${CONFIGURATIONS[@]}; do
 		add_runtime_dlls $config "$(pwd)/openal-soft-${OPENAL_VER}-bin/bin/WIN${BITS}/soft_oal.dll:OpenAL32.dll"
-	done
-	echo Done.
-}
-cd $DEPS
-echo
-printf "${OSG_ARCHIVE_NAME}... "
-{
-	cd $DEPS_INSTALL
-	if [ -d OSG ] && \
-		grep "OPENSCENEGRAPH_MAJOR_VERSION    3" OSG/include/osg/Version > /dev/null && \
-		grep "OPENSCENEGRAPH_MINOR_VERSION    6" OSG/include/osg/Version > /dev/null && \
-		grep "OPENSCENEGRAPH_PATCH_VERSION    5" OSG/include/osg/Version > /dev/null
-	then
-	printf "Exists. "
-	elif [ -z $SKIP_EXTRACT ]; then
-		rm -rf OSG
-		eval 7z x -y "${DEPS}/${OSG_ARCHIVE}.7z" $STRIP
-		[ -n "$PDBS" ] && eval 7z x -y "${DEPS}/${OSG_ARCHIVE}-sym.7z" $STRIP
-		mv "${OSG_ARCHIVE}" OSG
-	fi
-	OSG_SDK="$(real_pwd)/OSG"
-	add_cmake_opts -DOSG_DIR="$OSG_SDK"
-	for CONFIGURATION in ${CONFIGURATIONS[@]}; do
-		if [ $CONFIGURATION == "Debug" ]; then
-			SUFFIX="d"
-			SUFFIX_UPCASE="D"
-		else
-			SUFFIX=""
-			SUFFIX_UPCASE=""
-		fi
-
-		if ! [ -z $OSG_MULTIVIEW_BUILD ]; then
-			add_runtime_dlls $CONFIGURATION "$(pwd)/OSG/bin/"{ot21-OpenThreads,zlib,libpng16}${SUFFIX}.dll \
-				"$(pwd)/OSG/bin/osg162-osg"{,Animation,DB,FX,GA,Particle,Text,Util,Viewer,Shadow,Sim}${SUFFIX}.dll
-		else
-			add_runtime_dlls $CONFIGURATION "$(pwd)/OSG/bin/"{OpenThreads,icuuc58,libpng16,zlib}${SUFFIX}.dll \
-				"$(pwd)/OSG/bin/libxml2"${SUFFIX_UPCASE}.dll \
-				"$(pwd)/OSG/bin/osg"{,Animation,DB,FX,GA,Particle,Text,Util,Viewer,Shadow,Sim}${SUFFIX}.dll
-			add_runtime_dlls $CONFIGURATION "$(pwd)/OSG/bin/icudt58.dll"
-			if [ $CONFIGURATION == "Debug" ]; then
-				add_runtime_dlls $CONFIGURATION "$(pwd)/OSG/bin/"{boost_filesystem-vc141-mt-gd-1_63,boost_system-vc141-mt-gd-1_63,collada-dom2.4-dp-vc141-mt-d}.dll
-			else
-				add_runtime_dlls $CONFIGURATION "$(pwd)/OSG/bin/"{boost_filesystem-vc141-mt-1_63,boost_system-vc141-mt-1_63,collada-dom2.4-dp-vc141-mt}.dll
-			fi
-		fi
-		add_osg_dlls $CONFIGURATION "$(pwd)/OSG/bin/osgPlugins-3.6.5/osgdb_"{bmp,dae,dds,freetype,jpeg,osg,png,tga}${SUFFIX}.dll
-		add_osg_dlls $CONFIGURATION "$(pwd)/OSG/bin/osgPlugins-3.6.5/osgdb_serializers_osg"{,animation,fx,ga,particle,text,util,viewer,shadow}${SUFFIX}.dll
 	done
 	echo Done.
 }
@@ -1085,13 +999,6 @@ fi
 			fi
 			echo "    ${TARGET}."
 			cp "$DLL" "${DLL_PREFIX}$TARGET"
-		done
-		echo
-		echo "- OSG Plugin DLLs..."
-		mkdir -p ${DLL_PREFIX}osgPlugins-3.6.5
-		for DLL in ${OSG_PLUGINS[$CONFIGURATION]}; do
-			echo "    $(basename $DLL)."
-			cp "$DLL" ${DLL_PREFIX}osgPlugins-3.6.5
 		done
 		echo
 		echo "- Qt Platform DLLs..."

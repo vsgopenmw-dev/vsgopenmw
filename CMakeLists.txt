@@ -133,13 +133,14 @@ else()
 endif()
 option(BULLET_STATIC "Link static build of Bullet into the binaries" ${_bullet_static_default})
 
-option(OPENMW_USE_SYSTEM_OSG "Use system provided OpenSceneGraph libraries" ON)
-if(OPENMW_USE_SYSTEM_OSG)
-    set(_osg_static_default OFF)
-else()
-    set(_osg_static_default ON)
+option(OPENMW_USE_SYSTEM_VSG "Use system provided VulkanSceneGraph libraries" ON)
+if(OPENMW_USE_SYSTEM_VSG)
+    find_package(vsg 1.0.9 REQUIRED)
 endif()
-option(OSG_STATIC "Link static build of OpenSceneGraph into the binaries" ${_osg_static_default})
+option(OPENMW_USE_SYSTEM_VSGXCHANGE "Use system provided VulkanSceneGraph plugins" ON)
+if(OPENMW_USE_SYSTEM_VSGXCHANGE)
+    find_package(vsgXchange 1.0.5 REQUIRED)
+endif()
 
 option(OPENMW_USE_SYSTEM_MYGUI "Use system provided mygui library" ON)
 if(OPENMW_USE_SYSTEM_MYGUI)
@@ -223,9 +224,6 @@ if(MSVC)
 endif()
 
 # Dependencies
-find_package(vsg 1.0.9 REQUIRED)
-find_package(vsgXchange REQUIRED)
-
 find_package(LZ4 REQUIRED)
 
 if (USE_QT)
@@ -237,29 +235,6 @@ if (USE_QT)
     endif()
     message(STATUS "Using Qt${QT_VERSION}")
 endif()
-
-set(USED_OSG_COMPONENTS
-    osgAnimation
-    osgDB
-    osgGA
-    osgFX
-    osgParticle
-    osgText
-    osgUtil
-    osgShadow
-    osgSim
-    osgViewer
-    )
-set(USED_OSG_PLUGINS
-    osgdb_bmp
-    osgdb_dae
-    osgdb_dds
-    osgdb_freetype
-    osgdb_jpeg
-    osgdb_osg
-    osgdb_png
-    osgdb_serializers_osg
-    osgdb_tga)
 
 #[[
 if(NOT COLLADA_DOM_VERSION_MAJOR)
@@ -358,6 +333,9 @@ if (USE_SYSTEM_TINYXML)
     include_directories(SYSTEM ${TinyXML_INCLUDE_DIRS})
 endif()
 
+# OSG Headers
+include_directories(${CMAKE_SOURCE_DIR}/extern/osg)
+
 # Platform specific
 if (WIN32)
     if(NOT MINGW)
@@ -427,27 +405,6 @@ if(NOT HAVE_STDINT_H)
     unset(HAVE_STDINT_H CACHE)
     message(FATAL_ERROR "stdint.h was not found" )
 endif()
-
-#[[
-if(OPENMW_USE_SYSTEM_OSG)
-    find_package(OpenSceneGraph 3.6.5 REQUIRED ${USED_OSG_COMPONENTS})  # Bump to 3.6.6 when released
-
-    if(OSG_STATIC)
-        find_package(OSGPlugins REQUIRED COMPONENTS ${USED_OSG_PLUGINS})
-    endif()
-endif()
-
-include_directories(BEFORE SYSTEM ${OPENSCENEGRAPH_INCLUDE_DIRS})
-
-if(OSG_STATIC)
-    add_definitions(-DOSG_LIBRARY_STATIC)
-endif()
-
-include(cmake/CheckOsgMultiview.cmake)
-if(HAVE_MULTIVIEW)
-    add_definitions(-DOSG_HAS_MULTIVIEW)
-endif(HAVE_MULTIVIEW)
-#]]
 
 set(BOOST_COMPONENTS system filesystem program_options iostreams)
 if(WIN32)
@@ -597,7 +554,6 @@ if(OPENMW_LTO_BUILD)
     endif()
 endif()
 
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(OPENMW_CXX_FLAGS "-Wall -Wextra -Wundef -Wextra-semi -Wno-unused-parameter -pedantic -Wno-long-long -Wnon-virtual-dtor -Wunused -Wno-mismatched-tags ${OPENMW_CXX_FLAGS}")
     add_definitions( -DBOOST_NO_CXX11_SCOPED_ENUMS=ON )
@@ -647,7 +603,7 @@ if (BUILD_ESMTOOL)
 endif()
 
 if (BUILD_LAUNCHER)
-    #add_subdirectory( apps/launcher )
+    add_subdirectory( apps/launcher )
 endif()
 
 if (BUILD_MWINIIMPORTER)
@@ -819,19 +775,21 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
         message(FATAL_ERROR "macOS packaging requires CMake 3.19 or higher to sign macOS app bundles.")
     endif ()
 
-    get_property(QT_COCOA_PLUGIN_PATH TARGET Qt${QT_VERSION_MAJOR}::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_filename_component(QT_COCOA_PLUGIN_DIR "${QT_COCOA_PLUGIN_PATH}" DIRECTORY)
-    get_filename_component(QT_COCOA_PLUGIN_GROUP "${QT_COCOA_PLUGIN_DIR}" NAME)
-    get_filename_component(QT_COCOA_PLUGIN_NAME "${QT_COCOA_PLUGIN_PATH}" NAME)
-    configure_file("${QT_COCOA_PLUGIN_PATH}" "${APP_BUNDLE_DIR}/Contents/PlugIns/${QT_COCOA_PLUGIN_GROUP}/${QT_COCOA_PLUGIN_NAME}" COPYONLY)
+    if (BUILD_OPENCS OR BUILD_LAUNCHER OR BUILD_WIZARD)
+        get_property(QT_COCOA_PLUGIN_PATH TARGET Qt${QT_VERSION_MAJOR}::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
+        get_filename_component(QT_COCOA_PLUGIN_DIR "${QT_COCOA_PLUGIN_PATH}" DIRECTORY)
+        get_filename_component(QT_COCOA_PLUGIN_GROUP "${QT_COCOA_PLUGIN_DIR}" NAME)
+        get_filename_component(QT_COCOA_PLUGIN_NAME "${QT_COCOA_PLUGIN_PATH}" NAME)
+        configure_file("${QT_COCOA_PLUGIN_PATH}" "${APP_BUNDLE_DIR}/Contents/PlugIns/${QT_COCOA_PLUGIN_GROUP}/${QT_COCOA_PLUGIN_NAME}" COPYONLY)
 
-    get_property(QT_QMACSTYLE_PLUGIN_PATH TARGET Qt${QT_VERSION_MAJOR}::QMacStylePlugin PROPERTY LOCATION_RELEASE)
-    get_filename_component(QT_QMACSTYLE_PLUGIN_DIR "${QT_QMACSTYLE_PLUGIN_PATH}" DIRECTORY)
-    get_filename_component(QT_QMACSTYLE_PLUGIN_GROUP "${QT_QMACSTYLE_PLUGIN_DIR}" NAME)
-    get_filename_component(QT_QMACSTYLE_PLUGIN_NAME "${QT_QMACSTYLE_PLUGIN_PATH}" NAME)
-    configure_file("${QT_QMACSTYLE_PLUGIN_PATH}" "${APP_BUNDLE_DIR}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}" COPYONLY)
+        get_property(QT_QMACSTYLE_PLUGIN_PATH TARGET Qt${QT_VERSION_MAJOR}::QMacStylePlugin PROPERTY LOCATION_RELEASE)
+        get_filename_component(QT_QMACSTYLE_PLUGIN_DIR "${QT_QMACSTYLE_PLUGIN_PATH}" DIRECTORY)
+        get_filename_component(QT_QMACSTYLE_PLUGIN_GROUP "${QT_QMACSTYLE_PLUGIN_DIR}" NAME)
+        get_filename_component(QT_QMACSTYLE_PLUGIN_NAME "${QT_QMACSTYLE_PLUGIN_PATH}" NAME)
+        configure_file("${QT_QMACSTYLE_PLUGIN_PATH}" "${APP_BUNDLE_DIR}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}" COPYONLY)
 
-    configure_file("${OpenMW_SOURCE_DIR}/files/mac/qt.conf" "${APP_BUNDLE_DIR}/Contents/Resources/qt.conf" COPYONLY)
+        configure_file("${OpenMW_SOURCE_DIR}/files/mac/qt.conf" "${APP_BUNDLE_DIR}/Contents/Resources/qt.conf" COPYONLY)
+    endif ()
 
     if (BUILD_OPENCS)
         get_property(OPENCS_BUNDLE_NAME_TMP TARGET openmw-cs PROPERTY OUTPUT_NAME)
@@ -850,7 +808,9 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
     set(CPACK_PACKAGE_VERSION_PATCH ${OPENMW_VERSION_RELEASE})
 
     set(INSTALLED_OPENMW_APP "\${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
-    set(INSTALLED_OPENCS_APP "\${CMAKE_INSTALL_PREFIX}/${OPENCS_BUNDLE_NAME}")
+    if (BUILD_OPENCS)
+        set(INSTALLED_OPENCS_APP "\${CMAKE_INSTALL_PREFIX}/${OPENCS_BUNDLE_NAME}")
+    endif ()
 
     install(CODE "
         set(BU_CHMOD_BUNDLE_ITEMS ON)
@@ -860,25 +820,6 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
     " COMPONENT Runtime)
 
     set(ABSOLUTE_PLUGINS "")
-
-    set(OSGPlugins_DONT_FIND_DEPENDENCIES 1)
-    find_package(OSGPlugins REQUIRED COMPONENTS ${USED_OSG_PLUGINS})
-
-    foreach (PLUGIN_NAME ${USED_OSG_PLUGINS})
-        string(TOUPPER ${PLUGIN_NAME} PLUGIN_NAME_UC)
-        if(${PLUGIN_NAME_UC}_LIBRARY_RELEASE)
-            set(PLUGIN_ABS ${${PLUGIN_NAME_UC}_LIBRARY_RELEASE})
-        elseif(${PLUGIN_NAME_UC}_LIBRARY)
-            set(PLUGIN_ABS ${${PLUGIN_NAME_UC}_LIBRARY})
-        else()
-            message(FATAL_ERROR "Can't find library file for ${PLUGIN_NAME}")
-            # We used to construct the path manually from OSGPlugins_LIB_DIR and the plugin name.
-            # Maybe that could be restored as a fallback?
-        endif()
-        set(ABSOLUTE_PLUGINS ${PLUGIN_ABS} ${ABSOLUTE_PLUGINS})
-    endforeach ()
-
-    set(OSG_PLUGIN_PREFIX_DIR "osgPlugins-${OPENSCENEGRAPH_VERSION}")
 
     # installs used plugins in bundle at given path (bundle_path must be relative to ${CMAKE_INSTALL_PREFIX})
     # and returns list of install paths for all installed plugins
@@ -904,24 +845,17 @@ if (OPENMW_OSX_DEPLOYMENT AND APPLE)
     endfunction (install_plugins_for_bundle)
 
     install_plugins_for_bundle("${APP_BUNDLE_NAME}" PLUGINS)
-    install_plugins_for_bundle("${OPENCS_BUNDLE_NAME}" OPENCS_PLUGINS)
+    if (BUILD_OPENCS)
+        install_plugins_for_bundle("${OPENCS_BUNDLE_NAME}" OPENCS_PLUGINS)
+    endif ()
 
     set(PLUGINS ${PLUGINS} "${INSTALLED_OPENMW_APP}/Contents/PlugIns/${QT_COCOA_PLUGIN_GROUP}/${QT_COCOA_PLUGIN_NAME}")
     set(PLUGINS ${PLUGINS} "${INSTALLED_OPENMW_APP}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}")
-    set(OPENCS_PLUGINS ${OPENCS_PLUGINS} "${INSTALLED_OPENCS_APP}/Contents/PlugIns/${QT_COCOA_PLUGIN_GROUP}/${QT_COCOA_PLUGIN_NAME}")
-    set(OPENCS_PLUGINS ${OPENCS_PLUGINS} "${INSTALLED_OPENCS_APP}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}")
 
-    install(CODE "
-        function(gp_item_default_embedded_path_override item  default_embedded_path_var)
-            if (\${item} MATCHES ${OSG_PLUGIN_PREFIX_DIR})
-              set(path \"@executable_path/../PlugIns/${OSG_PLUGIN_PREFIX_DIR}\")
-              set(\${default_embedded_path_var} \"\${path}\" PARENT_SCOPE)
-            endif()
-        endfunction()
-
-        fixup_bundle(\"${INSTALLED_OPENMW_APP}\" \"${PLUGINS}\" \"\")
-        fixup_bundle(\"${INSTALLED_OPENCS_APP}\" \"${OPENCS_PLUGINS}\" \"\")
-        " COMPONENT Runtime)
+    if (BUILD_OPENCS)
+        set(OPENCS_PLUGINS ${OPENCS_PLUGINS} "${INSTALLED_OPENCS_APP}/Contents/PlugIns/${QT_COCOA_PLUGIN_GROUP}/${QT_COCOA_PLUGIN_NAME}")
+        set(OPENCS_PLUGINS ${OPENCS_PLUGINS} "${INSTALLED_OPENCS_APP}/Contents/PlugIns/${QT_QMACSTYLE_PLUGIN_GROUP}/${QT_QMACSTYLE_PLUGIN_NAME}")
+    endif ()
 
     set(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_SOURCE_DIR}/cmake/SignMacApplications.cmake)
 
