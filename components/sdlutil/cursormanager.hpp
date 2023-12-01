@@ -18,9 +18,9 @@ namespace SDLUtil
 
         /// \brief Tell the manager that the cursor has changed, giving the
         ///        name of the cursor we changed to ("arrow", "ibeam", etc)
-        void cursorChanged(const std::string& name);
+        void cursorChanged(std::string_view name);
 
-        void createCursor(const std::string& name, int rotDegrees, SDL_Surface* surface, Uint8 hotspot_x,
+        void createCursor(std::string_view name, int rotDegrees, SDL_Surface* surface, Uint8 hotspot_x,
             Uint8 hotspot_y, Uint8 w, Uint8 h);
 
     private:

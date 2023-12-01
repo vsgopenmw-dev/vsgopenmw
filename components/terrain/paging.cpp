@@ -1,6 +1,7 @@
 #include "paging.hpp"
 
 #include <components/misc/mathutil.hpp>
+#include <components/vsgutil/convert.hpp>
 
 #include "storage.hpp"
 #include "lod.hpp"
@@ -58,7 +59,7 @@ namespace Terrain
             view.viewDistance = viewDistance;
 
             const double cellWorldSize = mStorage->cellWorldSize;
-            vsg::dvec2 viewCell = vsg::dvec2(viewPoint.x, viewPoint.y) / cellWorldSize;
+            vsg::dvec2 viewCell = vsgUtil::toVec2(viewPoint) / cellWorldSize;
             double cellViewDistance = viewDistance / cellWorldSize;
             int batchSize = getBatchSize(cellViewDistance);
 

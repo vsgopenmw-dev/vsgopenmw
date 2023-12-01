@@ -18,11 +18,11 @@ namespace ESMTerrain
         Map mMap;
     };
 
-    LandObject::LandObject(const ESM::Land* land, int loadFlags)
-        : mLand(land)
+    LandObject::LandObject(const ESM::Land& land, int loadFlags)
+        : mLand(&land)
         , mLoadFlags(loadFlags)
     {
-        mLand->loadData(mLoadFlags, &mData);
+        mLand->loadData(mLoadFlags, mData);
     }
 
     LandObject::~LandObject() {}
@@ -34,7 +34,7 @@ namespace ESMTerrain
     {
     }
 
-    void Storage::fixNormal(vsg::vec3& normal, int cellX, int cellY, int col, int row, LandCache& cache) const
+    void Storage::fixNormal(vsg::vec3& normal, int cellX, int cellY, int col, int row, LandCache& cache)
     {
         while (col >= ESM::Land::LAND_SIZE - 1)
         {
@@ -69,7 +69,7 @@ namespace ESMTerrain
             normal = vsg::vec3(0, 0, 1);
     }
 
-    void Storage::averageNormal(vsg::vec3& normal, int cellX, int cellY, int col, int row, LandCache& cache) const
+    void Storage::averageNormal(vsg::vec3& normal, int cellX, int cellY, int col, int row, LandCache& cache)
     {
         vsg::vec3 n1, n2, n3, n4;
         fixNormal(n1, cellX, cellY, col + 1, row, cache);
@@ -79,7 +79,7 @@ namespace ESMTerrain
         normal = vsg::normalize(n1 + n2 + n3 + n4);
     }
 
-    void Storage::fixColour(vsg::ubvec4& color, int cellX, int cellY, int col, int row, LandCache& cache) const
+    void Storage::fixColour(vsg::ubvec4& color, int cellX, int cellY, int col, int row, LandCache& cache)
     {
         if (col == ESM::Land::LAND_SIZE - 1)
         {
@@ -106,7 +106,7 @@ namespace ESMTerrain
         }
     }
 
-    Storage::VertexData Storage::getVertexData(int lodLevel, const Terrain::Bounds& bounds) const
+    Storage::VertexData Storage::getVertexData(int lodLevel, const Terrain::Bounds& bounds)
     {
         // LOD level n means every 2^n-th vertex is kept
         size_t increment = static_cast<size_t>(1) << lodLevel;
@@ -235,7 +235,7 @@ namespace ESMTerrain
         return { heights, normals, colours };
     }
 
-    Storage::PluginTexture Storage::getVtexIndexAt(int cellX, int cellY, int x, int y, LandCache& cache) const
+    Storage::PluginTexture Storage::getVtexIndexAt(int cellX, int cellY, int x, int y, LandCache& cache)
     {
         // For the first/last row/column, we need to get the texture from the neighbour cell
         // to get consistent blending at the borders
@@ -297,7 +297,7 @@ namespace ESMTerrain
         return layerInfos;
     }
 
-    vsg::ref_ptr<vsg::Data> Storage::getBlendmap(const Terrain::Bounds& bounds) const
+    vsg::ref_ptr<vsg::Data> Storage::getBlendmap(const Terrain::Bounds& bounds)
     {
         int cellX = static_cast<int>(std::floor(bounds.min.x));
         int cellY = static_cast<int>(std::floor(bounds.min.y));
@@ -328,12 +328,11 @@ namespace ESMTerrain
         return image;
     }
 
-    float Storage::getHeightAt(const vsg::vec3& worldPos) const
+    float Storage::getHeightAt(const vsg::vec3& worldPos, ESM::RefId worldspace)
     {
         int cellX = static_cast<int>(std::floor(worldPos.x / cellWorldSize));
         int cellY = static_cast<int>(std::floor(worldPos.y / cellWorldSize));
-
-        auto land = getLand(cellX, cellY);
+        auto land = getLand({ cellX, cellY, worldspace });
         if (!land)
             return defaultHeight;
 
@@ -409,14 +408,14 @@ namespace ESMTerrain
         return (-plane.getNormal().x() * nX - plane.getNormal().y() * nY - plane[3]) / plane.getNormal().z() * cellWorldSize;
     }
 
-    const LandObject* Storage::getLand(int cellX, int cellY, LandCache& cache) const
+    const LandObject* Storage::getLand(int cellX, int cellY, LandCache& cache)
     {
         LandCache::Map::iterator found = cache.mMap.find(std::make_pair(cellX, cellY));
         if (found != cache.mMap.end())
             return found->second;
         else
         {
-            found = cache.mMap.insert(std::make_pair(std::make_pair(cellX, cellY), getLand(cellX, cellY))).first;
+            found = cache.mMap.insert(std::make_pair(std::make_pair(cellX, cellY), getLand({ cellX, cellY, {} }))).first;
             return found->second;
         }
     }

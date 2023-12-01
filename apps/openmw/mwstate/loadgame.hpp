@@ -155,7 +155,7 @@ namespace MWState
                     case ESM::REC_CREA:
                     case ESM::REC_CONT:
                     case ESM::REC_RAND:
-                        MWBase::Environment::get().getWorld()->readRecord(reader, n.toInt(), contentFileMap);
+                        MWBase::Environment::get().getWorld()->readRecord(reader, n.toInt());
                         break;
 
                     case ESM::REC_CAM_:
@@ -163,8 +163,7 @@ namespace MWState
                         break;
 
                     case ESM::REC_GSCR:
-                        MWBase::Environment::get().getScriptManager()->getGlobalScripts().readRecord(
-                            reader, n.toInt(), contentFileMap);
+                        MWBase::Environment::get().getScriptManager()->getGlobalScripts().readRecord(reader, n.toInt());
                         break;
 
                     case ESM::REC_GMAP:
@@ -217,7 +216,7 @@ namespace MWState
 
             if (ptr.isInCell())
             {
-                const ESM::CellId& cellId = ptr.getCell()->getCell()->getCellId();
+                const auto& cellId = ptr.getCell()->getCell()->getId();
 
                 // Use detectWorldSpaceChange=false, otherwise some of the data we just loaded would be cleared again
                 MWBase::Environment::get().getWorld()->changeToCell(
@@ -228,17 +227,17 @@ namespace MWState
                 // Cell no longer exists (i.e. changed game files), choose a default cell
                 Log(Debug::Warning)
                     << "Warning: Player character's cell no longer exists, changing to the default cell";
-                MWWorld::CellStore* cell = MWBase::Environment::get().getWorldModel()->getExterior(0, 0);
-                float x, y;
-                MWBase::Environment::get().getWorld()->indexToPosition(0, 0, x, y, false);
+                ESM::ExteriorCellLocation loc = { 0, 0, ESM::Cell::sDefaultWorldspaceId };
+                auto& cell = MWBase::Environment::get().getWorldModel()->getExterior(loc);
+                auto p = ESM::indexToPosition(loc, false);
                 ESM::Position pos;
-                pos.pos[0] = x;
-                pos.pos[1] = y;
-                pos.pos[2] = 0; // should be adjusted automatically (adjustPlayerPos=true)
-                pos.rot[0] = 0;
-                pos.rot[1] = 0;
-                pos.rot[2] = 0;
-                MWBase::Environment::get().getWorld()->changeToCell(cell->getCell()->getCellId(), pos, true, false);
+                pos.pos[0] = p.x();
+                pos.pos[1] = p.y();
+                pos.pos[2] = 0.f; // should be adjusted automatically (adjustPlayerPos=true)
+                pos.rot[0] = 0.f;
+                pos.rot[1] = 0.f;
+                pos.rot[2] = 0.f;
+                MWBase::Environment::get().getWorld()->changeToCell(cell.getCell()->getId(), pos, true, false);
             }
 
             MWBase::Environment::get().getWorld()->updateProjectilesCasters();

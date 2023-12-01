@@ -1,14 +1,14 @@
 #ifndef VSGOPENMW_MWANIMATION_LIGHTEFFECT_H
 #define VSGOPENMW_MWANIMATION_LIGHTEFFECT_H
 
-#include <vsg/nodes/Group.h>
-
 namespace MWAnim
 {
+    class Object;
+
     /*
      * Optionally lights node.
      */
-    void setLightEffect(vsg::Group& group, float intensity);
+    void setLightEffect(MWAnim::Object& obj, float intensity);
 }
 
 #endif

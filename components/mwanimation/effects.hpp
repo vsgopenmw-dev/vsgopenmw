@@ -7,11 +7,19 @@
 
 #include <components/vsgutil/attachable.hpp>
 
+namespace Anim
+{
+    class Transform;
+}
 namespace MWAnim
 {
-    class Context;
+    class Object;
     class Effect;
 
+    /*
+     * Meta object that can be added to a node/scene graph's auxiliary container for keeping track of active effects attached to that scene graph.
+     * During update(dt), any expired effects will be removed automatically.
+     */
     class Effects : public vsgUtil::Attachable<Effects, vsg::Node>
     {
     public:
@@ -30,7 +38,7 @@ namespace MWAnim
      *              you need to remove it manually using removeEffect when the effect should end.
      * @param texture override the texture specified in the model's materials - if empty, do not override
      */
-    void addEffect(const Context& ctx, vsg::Node& root, vsg::Group& attachTo, vsg::ref_ptr<vsg::Node> node,
+    void addEffect(MWAnim::Object& obj, vsg::Group* attachBone, vsg::ref_ptr<vsg::Node> node, const std::vector<Anim::Transform*>& worldAttachmentPath,
         int effectId, bool loop = false, const std::string& overrideTexture = {}, bool overrideAllTextures = false);
     void updateEffects(vsg::Node& root, float dt);
     void removeEffect(vsg::Node& root, std::optional<int> effectId);

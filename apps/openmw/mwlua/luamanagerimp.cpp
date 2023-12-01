@@ -124,7 +124,7 @@ namespace MWLua
     void LuaManager::update(float frameDuration)
     {
         if (Settings::lua().mGcStepsPerFrame > 0)
-            lua_gc(mLua.sol(), LUA_GCSTEP, Settings::lua().mGcStepsPerFrame);
+            lua_gc(mLua.sol(), LUA_GCSTEP, static_cast<int>(Settings::lua().mGcStepsPerFrame));
 
         if (mPlayer.isEmpty())
             return; // The game is not started yet.
@@ -170,7 +170,6 @@ namespace MWLua
         mEngineEvents.callEngineHandlers();
         if (!timeManager.isPaused())
         {
-            float frameDuration = MWBase::Environment::get().getFrameDuration();
             for (LocalScripts* scripts : mActiveLocalScripts)
                 scripts->update(frameDuration);
             mGlobalScripts.update(frameDuration);

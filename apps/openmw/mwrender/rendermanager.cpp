@@ -361,7 +361,7 @@ namespace MWRender
 
     void RenderManager::setViewMode(ViewMode mode, bool enable)
     {
-        vsg::Mask mask;
+        vsg::Mask mask = vsg::MASK_OFF;
         if (mode == ViewMode::Scene)
             mask = ~Mask_GUI;
 
@@ -831,9 +831,10 @@ namespace MWRender
         }
     }
 
-    float RenderManager::getTerrainHeightAt(const osg::Vec3f& pos)
+    //TODO: if there is only ever one worldspace active at a time, isn't the worldspace parameter redundant
+    float RenderManager::getTerrainHeightAt(const osg::Vec3f& pos, ESM::RefId worldspace)
     {
-        return mTerrainStorage->getHeightAt(toVsg(pos));
+        return mTerrainStorage->getHeightAt(toVsg(pos), worldspace);
     }
 
     void RenderManager::overrideFieldOfView(float val)

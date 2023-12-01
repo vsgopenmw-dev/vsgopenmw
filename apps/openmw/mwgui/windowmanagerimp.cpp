@@ -198,13 +198,12 @@ namespace MWGui
         SDL_Vulkan_GetDrawableSize(window, &dw, &dh);
 
         */
-        mScalingFactor = Settings::gui().mScalingFactor * (dw / w);
+        mScalingFactor = Settings::gui().mScalingFactor;// * (dw / w);
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
         mGuiPlatform = std::make_unique<MyGUIPlatform::Platform>(MyGUI::IntSize{ w, h }, compile,
             mResourceSystem->imageOptions, mResourceSystem->shaderOptions, mScalingFactor, mResourceSystem->getVFS(),
             logpath / "MyGUI.log");
->>>>>>> 954897300b (vsgopenmw-openmw)
 
         mGui = std::make_unique<MyGUI::Gui>();
         mGui->initialise({});
@@ -248,7 +247,7 @@ namespace MWGui
         mKeyboardNavigation->setEnabled(keyboardNav);
         Gui::ImageButton::setDefaultNeedKeyFocus(keyboardNav);
 
-        auto stretch = Settings::gui().mStretchMenuBackground;
+        bool stretch = Settings::gui().mStretchMenuBackground;
         auto loadingScreen = std::make_unique<LoadingScreen>(mResourceSystem->getVFS());
         mLoadingScreen = loadingScreen.get();
         mLoadingScreen->setVisible(false);

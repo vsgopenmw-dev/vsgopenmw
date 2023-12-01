@@ -156,13 +156,13 @@ add_component_dir (mwanimation
 #add_base_dir(vsgutil
 add_component_dir (vsgutil
     # Object extensions.
-    attachable name id operation image
+    attachable name id operation image debugmessenger
     # Nodes.
     setviewportstate projection viewrelative computebin nullbin suspendrenderpass
     # Algorithms.
-    bounds transform computetransform intersectnormal toggle group compilecontext compileop updatethreads arraytexture
+    convert bounds transform computetransform intersectnormal toggle group compilecontext compileop updatethreads arraytexture
     # Visitors.
-    traverse traversestate nodepath sharebuffer cullnode searchbyname searchbytype cameradistanceintersector arraystate
+    traverse traversestate nodepath cullnode searchbyname searchbytype cameradistanceintersector arraystate
     # I/O.
     cache virtualfile imageio readimage decompress readnode readshader share shareimage deletionqueue
     # Temporary workarounds.
@@ -206,8 +206,8 @@ add_component_dir (resource
     resourcesystem
     # ReaderWriters.
     shadersettings fallback decompress bulletshape bulletshapereader
-    niffilemanager resourcemanager #vsgopenmw-delete-me
-    objectcache multiobjectcache # bulletshapemanager #vsgopenmw-delete-me
+     resourcemanager #vsgopenmw-delete-me
+    objectcache multiobjectcache # bulletshapemanager niffilemanager #vsgopenmw-delete-me
     # foreachbulletobject stats # vsgopenmw-fixme(find-my-place)
     )
 #</vsgopenmw-code-style>
@@ -402,6 +402,8 @@ add_component_dir (stereo
 ]]
 
 #vsgopenmw-delete-me
+# Note, Debug::Log is deprecated because of syntax and compatibility issues with redirecting std::cout/std::cerr.
+# Use std::cout/std::cerr or vsg::Logger instead.
 add_component_dir (debug
     debuglog writeflags
     #debugging gldebug debugdraw
@@ -657,7 +659,7 @@ target_link_libraries(components
     ${Boost_IOSTREAMS_LIBRARY}
     vsg::vsg
     ${SDL2_LIBRARIES}
-    ${MyGUI_LIBRARIES}
+    ${MyGUI_LIBRARY}
     ${LUA_LIBRARIES}
     LZ4::LZ4
     RecastNavigation::DebugUtils

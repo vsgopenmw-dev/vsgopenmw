@@ -595,4 +595,14 @@ namespace MWAnim
         }
         return false;
     }
+
+    void Play::listAnimationGroups(std::function<void(const std::string&)> handler) const
+    {
+        for (const auto& src : mAnimSources)
+        {
+            const auto& groups = src->tags->getGroups();
+            for (const auto& group : groups)
+                handler(group);
+        }
+    }
 }

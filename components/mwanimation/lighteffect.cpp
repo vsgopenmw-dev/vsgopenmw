@@ -1,8 +1,11 @@
 #include "lighteffect.hpp"
 
 #include <vsg/nodes/Light.h>
+#include <vsg/nodes/Group.h>
 
 #include <components/vsgutil/removechild.hpp>
+
+#include "object.hpp"
 
 namespace
 {
@@ -10,27 +13,29 @@ namespace
 }
 namespace MWAnim
 {
-    void setLightEffect(vsg::Group& node, float intensity)
+    void setLightEffect(MWAnim::Object& obj, float intensity)
     {
+        auto auxNode = obj.node();
+        auto group = obj.nodeToAddChildrenTo();
         if (intensity == 0)
         {
-            if (!node.getAuxiliary())
+            if (!auxNode->getAuxiliary())
                 return;
-            if (auto light = node.getObject<vsg::PointLight>(lightEffect))
+            if (auto light = auxNode->getObject<vsg::PointLight>(lightEffect))
             {
-                vsgUtil::removeChild(&node, light);
-                node.removeObject(lightEffect);
+                vsgUtil::removeChild(group, light);
+                auxNode->removeObject(lightEffect);
             }
         }
         else
         {
-            auto light = node.getObject<vsg::PointLight>(lightEffect);
+            auto light = auxNode->getObject<vsg::PointLight>(lightEffect);
             if (!light)
             {
                 auto l = vsg::PointLight::create();
-                node.setObject(lightEffect, l);
+                auxNode->setObject(lightEffect, l);
                 light = l;
-                node.addChild(l);
+                group->addChild(l);
                 // light->colorType = Ambient;
                 light->color = vsg::vec3(1.5, 1.5, 1.5);
             }

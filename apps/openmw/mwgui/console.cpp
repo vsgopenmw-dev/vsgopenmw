@@ -130,11 +130,14 @@ namespace MWGui
                     mNames.push_back(it->mName);
             }
 
+            /*
             for (const auto& cell : esmStore.get<ESM4::Cell>())
             {
                 if (!cell.mEditorId.empty())
                     mNames.push_back(cell.mEditorId);
             }
+
+            */
 
             // sort
             std::sort(mNames.begin(), mNames.end());

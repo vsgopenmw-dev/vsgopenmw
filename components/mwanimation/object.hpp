@@ -12,6 +12,8 @@
 namespace vsg
 {
     class Node;
+    class Group;
+    class StateGroup;
 }
 namespace Anim
 {
@@ -24,11 +26,13 @@ namespace MWAnim
     class Context;
 
     /*
-     * Contains animation scene graph.
+     * Object is a container class for an animation scene graph.
+     * Several important members are public, this is a conscious choice to allow the scene graph to be extended through composition, and to avoid the Object class hierarchy from being cluttered with rarely used features like extra lights, effects, decorations and transparency etc.
      */
     class Object
     {
     protected:
+        vsg::ref_ptr<vsg::StateGroup> mStateGroup;
         vsg::ref_ptr<Anim::Transform> mTransform;
         const Context& mContext;
 
@@ -63,9 +67,27 @@ namespace MWAnim
 
         Anim::Bone* searchBone(const std::string& name);
 
+        /*
+         * The transform node is used to attach and place the object within the scene, and is a member of the Object class for convenience.
+         */
         Anim::Transform* transform() { return mTransform.get(); }
         const Anim::Transform* transform() const { return mTransform.get(); }
+
+        /*
+         * node() returns the topmost node that should be used to attach the Object to the scene graph, currently the transform() node.
+         * It is expected to remain for the lifetime of the Object and can also be used to attach metadata to its auxiliary container.
+         */
         vsg::ref_ptr<vsg::Node> node();
+
+        /*
+         * An optional StateGroup is provided for extensions. When a StateGroup is created, existing children are re-parented to it.
+         */
+        vsg::StateGroup* getOrCreateStateGroup();
+        vsg::StateGroup* getStateGroup();
+        /*
+         * Returns the node that children should be added to and removed from. This node will change if a StateGroup is created.
+         */
+        vsg::Group* nodeToAddChildrenTo();
     };
 }
 

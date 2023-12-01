@@ -7,6 +7,8 @@
 #include <components/lua/utilpackage.hpp>
 #include <components/misc/convert.hpp>
 #include <components/misc/mathutil.hpp>
+#include <components/vsgutil/bounds.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include "../mwworld/cellstore.hpp"
 #include "../mwworld/class.hpp"
@@ -16,7 +18,7 @@
 #include "../mwworld/scene.hpp"
 #include "../mwworld/worldmodel.hpp"
 
-#include "../mwrender/renderingmanager.hpp"
+#include "../mwrender/rendermanager.hpp"
 
 #include "../mwmechanics/creaturestats.hpp"
 
@@ -245,11 +247,12 @@ namespace MWLua
             objectT["startingRotation"] = sol::readonly_property([](const ObjectT& o) -> LuaUtil::TransformQ {
                 return { toQuat(o.ptr().getCellRef().getPosition(), o.ptr().getClass().isActor()) };
             });
-            objectT["getBoundingBox"] = [](const ObjectT& o) {
-                MWRender::RenderingManager* renderingManager
-                    = MWBase::Environment::get().getWorld()->getRenderingManager();
-                osg::BoundingBox bb = renderingManager->getCullSafeBoundingBox(o.ptr());
-                return LuaUtil::Box{ bb.center(), bb._max - bb.center() };
+            objectT["getBoundingBox"] = [context](const ObjectT& o) {
+                //osg::BoundingBox bb = renderingManager->getCullSafeBoundingBox(o.ptr());
+                // Note, getBoundingBox isn't thread safe so needs adjusting if we ever want to enable Lua threading.
+                auto bb = context.mRenderManager->getBoundingBox(o.ptr());
+                auto center = vsgUtil::center(bb);
+                return LuaUtil::Box{ toOsg(center), toOsg(bb.max - center) };
             };
 
             objectT["type"] = sol::readonly_property(

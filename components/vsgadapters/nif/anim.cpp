@@ -58,28 +58,28 @@ namespace vsgAdapters
         return rotate;
     }
 
-    void convertTrafo(Anim::Transform& trans, const Nif::Transformation& trafo)
+    void convertTrafo(Anim::Transform& trans, const Nif::NiTransform& trafo)
     {
-        trans.translation = toVsg(trafo.pos);
-        trans.setScale(trafo.scale);
+        trans.translation = toVsg(trafo.mTranslation);
+        trans.setScale(trafo.mScale);
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
-                trans.rotation(j, i) = trafo.rotation.mValues[i][j]; //[j][i];
+                trans.rotation(j, i) = trafo.mRotation.mValues[i][j]; //[j][i];
     }
 
     vsg::ref_ptr<Anim::Tags> handleTextKeys(const Nif::NiTextKeyExtraData& keys)
     {
         auto tags = vsg::ref_ptr{ new Anim::Tags };
-        for (size_t i = 0; i < keys.list.size(); i++)
+        for (size_t i = 0; i < keys.mList.size(); i++)
         {
             std::vector<std::string> results;
-            Misc::StringUtils::split(keys.list[i].text, results, "\r\n");
+            Misc::StringUtils::split(keys.mList[i].mText, results, "\r\n");
             for (std::string& result : results)
             {
                 Misc::StringUtils::trim(result);
                 Misc::StringUtils::lowerCaseInPlace(result);
                 if (!result.empty())
-                    tags->emplace(keys.list[i].time, std::move(result));
+                    tags->emplace(keys.mList[i].mTime, std::move(result));
             }
         }
         return tags;
@@ -100,12 +100,12 @@ namespace vsgAdapters
 
     vsg::ref_ptr<Anim::TransformController> handlePathController(const Nif::NiPathController& pathctrl)
     {
-        if (pathctrl.posData.empty() || pathctrl.floatData.empty())
+        if (pathctrl.mPathData.empty() || pathctrl.mPercentData.empty())
             return {};
         auto ctrl = Anim::TransformController::create();
         auto path = Anim::make_channel<Anim::Path>();
-        path->path = handleKeyframes<vsg::vec3>(pathctrl, pathctrl.posData->mKeyList, { vsg::vec3() });
-        path->percent = handleKeyframes<float>(pathctrl, pathctrl.floatData->mKeyList, { 0.f });
+        path->path = handleKeyframes<vsg::vec3>(pathctrl, pathctrl.mPathData->mKeyList, { vsg::vec3() });
+        path->percent = handleKeyframes<float>(pathctrl, pathctrl.mPercentData->mKeyList, { 0.f });
         ctrl->translate = path;
         return ctrl;
     }
@@ -133,10 +133,10 @@ namespace vsgAdapters
         return ctrl;
     }
 
-    bool hasTransformController(const Nif::Node& n)
+    bool hasTransformController(const Nif::NiAVObject& node)
     {
         bool hasTransformCtrl = false;
-        callActiveControllers(n.controller, [&hasTransformCtrl](auto& ctrl) {
+        callActiveControllers(node.mController, [&hasTransformCtrl](auto& ctrl) {
             if (ctrl.recType == Nif::RC_NiKeyframeController || ctrl.recType == Nif::RC_NiPathController || ctrl.recType == Nif::RC_NiRollController)
                 hasTransformCtrl = true;
         });

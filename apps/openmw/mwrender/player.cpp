@@ -7,6 +7,8 @@
 #include <components/pipeline/override.hpp>
 #include <components/vsgutil/compilecontext.hpp>
 
+#include "env.hpp"
+
 namespace MWRender
 {
     Player::Player(

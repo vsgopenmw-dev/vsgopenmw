@@ -8,6 +8,7 @@
 #include <components/esm3/weatherstate.hpp>
 #include <components/vsgadapters/osgcompat.hpp>
 
+#include "../mwworld/datetimemanager.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"
 #include "../mwbase/world.hpp"
@@ -719,7 +720,7 @@ namespace MWWorld
             mCurrentWindSpeed = mResult.mCurrentWindSpeed;
             mNextWindSpeed = mResult.mNextWindSpeed;
             // rotate the stars by 360 degrees every 4 days
-            mAtmosphereNightRoll += MWBase::Environment::get().getWorld()->getTimeScaleFactor() * duration
+            mAtmosphereNightRoll += MWBase::Environment::get().getWorld()->getTimeManager()->getGameTimeScale() * duration
                 * osg::DegreesToRadians(360.f) / (3600 * 96.f);
             mRendering.getSky()->setAtmosphereNightRoll(mAtmosphereNightRoll);
         }

@@ -8,7 +8,7 @@
 namespace OMW
 {
     /*
-     * Varies per invocation.
+     * Arguments is simply a struct of options that can vary per invocation/run of the game/application, typically specified on the command line.
      */
     struct Arguments
     {
@@ -17,7 +17,6 @@ namespace OMW
         std::vector<std::string> archives;
         std::filesystem::path resourceDir;
         ToUTF8::FromType encoding = ToUTF8::WINDOWS_1252;
-        bool fsStrict = false;
 
         bool useSound = true;
         bool grabMouse = true;

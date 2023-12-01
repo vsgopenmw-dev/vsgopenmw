@@ -19,6 +19,7 @@
 #include "mwstate/gamestate.hpp"
 #include "mwstate/statemanagerimp.hpp"
 #include "mwworld/class.hpp"
+#include "mwworld/datetimemanager.hpp"
 #include "mwworld/localscripts.hpp"
 #include "mwworld/worldimp.hpp"
 #include "mwworld/scene.hpp"
@@ -138,7 +139,7 @@ namespace OMW
                 showCursor = guiActive;
                 if (!guiActive)
                 {
-                    double hours = (dt * mWorld->getTimeScaleFactor()) / 3600.0;
+                    double hours = (dt * mWorld->getTimeManager()->getGameTimeScale()) / 3600.0;
                     mWorld->advanceTime(hours, true);
                     mWorld->rechargeItems(dt, true);
                 }

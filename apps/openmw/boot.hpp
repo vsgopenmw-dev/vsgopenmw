@@ -40,7 +40,7 @@ namespace OMW
             mEnvironment.setWorldScene(mWorld->getWorldScene());
 
             const MWWorld::Store<ESM::GameSetting>& gmst = mEnvironment.getWorld()->getStore().get<ESM::GameSetting>();
-            mL10nManager->setGmstLoader(
+            mEngine.mL10nManager->setGmstLoader(
                 [gmst, misses = std::set<std::string, std::less<>>()](std::string_view gmstName) mutable {
                 const ESM::GameSetting* res = gmst.search(gmstName);
                 if (res && res->mValue.getType() == ESM::VT_String)

@@ -16,7 +16,7 @@
 #include <components/detournavigator/heightfieldshape.hpp>
 #include <components/detournavigator/navigator.hpp>
 #include <components/detournavigator/updateguard.hpp>
-#include <components/esm/esmterrain.hpp>
+#include <components/esm3/loadland.hpp>
 #include <components/esm/records.hpp>
 #include <components/esm3/loadcell.hpp>
 #include <components/misc/convert.hpp>
@@ -376,14 +376,14 @@ namespace MWWorld
 
         if (cellVariant.isExterior())
         {
-            auto land = mRendering.getLandManager()->getLand(cellX, cellY);
-            const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VHGT) : nullptr;
+            auto land = mRendering.getLandManager()->getLand(cellIndex);
+            const auto* data = land ? land->getData(ESM::Land::DATA_VHGT) : nullptr;
             const int verts = ESM::Land::LAND_SIZE;
             const int worldsize = ESM::Land::REAL_SIZE;
             if (data)
             {
-                mPhysics->addHeightField(data->getHeights().data(), cellX, cellY, worldsize, verts,
-                    data->getMinHeight(), data->getMaxHeight(), land.get());
+                mPhysics->addHeightField(data->mHeights, cellX, cellY, worldsize, verts,
+                    data->mMinHeight, data->mMaxHeight, land.get());
             }
             else if (!ESM::isEsm4Ext(worldspace))
             {
@@ -405,10 +405,10 @@ namespace MWWorld
                     else
                     {
                         DetourNavigator::HeightfieldSurface heights;
-                        heights.mHeights = data->getHeights().data();
-                        heights.mSize = static_cast<std::size_t>(data->getLandSize());
-                        heights.mMinHeight = data->getMinHeight();
-                        heights.mMaxHeight = data->getMaxHeight();
+                        heights.mHeights = data->mHeights;
+                        heights.mSize = static_cast<std::size_t>(Constants::CellSizeInUnits);
+                        heights.mMinHeight = data->mMinHeight;
+                        heights.mMaxHeight = data->mMaxHeight;
                         return heights;
                     }
                 }();
@@ -425,9 +425,10 @@ namespace MWWorld
                        [&](const ESM4::Cell& cell) {},
                    },
             *cell.getCell());
+
             */
-        if (const auto pathgrid = mWorld.getStore().get<ESM::Pathgrid>().search(*cell->getCell()))
-            mNavigator.addPathgrid(cell->getCell()->getEsm3(), *pathgrid);
+        if (const auto pathgrid = mWorld.getStore().get<ESM::Pathgrid>().search(*cell.getCell()))
+            mNavigator.addPathgrid(cell.getCell()->getEsm3(), *pathgrid);
 
         // register local scripts
         // do this before insertCell, to make sure we don't add scripts from levelled creature spawning twice
@@ -436,7 +437,7 @@ namespace MWWorld
         if (respawn)
             cell.respawn();
 
-        insertCell(*cell, navigatorUpdateGuard);
+        insertCell(cell, navigatorUpdateGuard);
 
         mRendering.addCell(&cell);
 
@@ -576,12 +577,6 @@ namespace MWWorld
 
         auto cellsPositionsToLoad = cellsToLoad(mActiveCells, mHalfGridSize);
 
-        Loading::ScopedLoad load(loadingListener);
-        loadingListener->setLabel("#{OMWEngine:LoadingExterior}");
-        loadingListener->setProgressRange(refsToLoad);
-
-=======
->>>>>>> 954897300b (vsgopenmw-openmw)
         const auto getDistanceToPlayerCell = [&](const std::pair<int, int>& cellPosition) {
             return std::abs(cellPosition.first - playerCellX) + std::abs(cellPosition.second - playerCellY);
         };
@@ -748,7 +743,7 @@ namespace MWWorld
 
         MWWorld::Ptr player = mWorld.getPlayerPtr();
         mRendering.updatePlayerPtr(player);
-        mWorld.addContainerScripts(player, cell);
+        mWorld.addContainerScripts(player, &cell);
 
         // The player is loaded before the scene and by default it is grounded, with the scene fully loaded,
         // we validate and correct this. Only run once, during initial cell load.
@@ -941,7 +936,7 @@ namespace MWWorld
 
     bool Scene::isCellActive(const CellStore& cell)
     {
-        return mActiveCells.contains(&cell);
+        return mActiveCells.contains(const_cast<CellStore*>(&cell));
     }
 
     Ptr Scene::searchPtrViaActorId(int actorId)
@@ -1126,10 +1121,10 @@ namespace MWWorld
             {
                 for (int dy = -mHalfGridSize; dy <= mHalfGridSize; ++dy)
                 {
-                    auto cell = mWorld.getWorldModel().getExterior(ESM::ExteriorCellLocation(x + dx, y + dy, cell.getCell()->getWorldSpace()));
-                    if (mActiveCells.find(&cell) != mActiveCells.end())
+                    auto& c = mWorld.getWorldModel().getExterior(ESM::ExteriorCellLocation(x + dx, y + dy, cell.getCell()->getWorldSpace()));
+                    if (mActiveCells.find(&c) != mActiveCells.end())
                         continue;
-                    progress += mPreloader->preload(cell);
+                    progress += mPreloader->preload(c);
                     if (++numpreloaded >= mPreloader->getMaxCacheSize())
                         break;
                 }

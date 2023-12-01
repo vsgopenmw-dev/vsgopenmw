@@ -59,6 +59,9 @@ namespace Resource
 
         VisualCollisionType mVisualCollisionType = VisualCollisionType::None;
 
+        BulletShape() = default;
+        BulletShape(const BulletShape& other);
+
         void setLocalScaling(const btVector3& scale);
 
         bool isAnimated() const { return !mAnimatedShapes.empty(); }

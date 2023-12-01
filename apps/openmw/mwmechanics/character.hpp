@@ -7,6 +7,7 @@
 #include <components/esm3/loadweap.hpp>
 
 #include "../mwworld/ptr.hpp"
+#include "../mwworld/movementdirection.hpp"
 
 #include <components/animation/tags.hpp>
 #include <components/mwanimation/groups.hpp>

@@ -8,6 +8,8 @@
 #include <vsg/core/ref_ptr.h>
 #include <vsg/maths/vec3.h>
 
+#include <components/esm/refid.hpp>
+
 namespace Terrain
 {
     class Bounds;
@@ -30,14 +32,14 @@ namespace Terrain
             vsg::ref_ptr<vsg::vec3Array2D> normals;
             vsg::ref_ptr<vsg::ubvec4Array2D> colors;
         };
-        virtual VertexData getVertexData(int lodLevel, const Bounds& bounds) const = 0;
+        virtual VertexData getVertexData(int lodLevel, const Bounds& bounds) = 0;
 
         /// Create textures holding layer blend values for a terrain chunk.
-        virtual vsg::ref_ptr<vsg::Data> getBlendmap(const Bounds& bounds) const = 0;
+        virtual vsg::ref_ptr<vsg::Data> getBlendmap(const Bounds& bounds) = 0;
 
         virtual std::vector<LayerInfo> getLayers() = 0;
 
-        virtual float getHeightAt(const vsg::vec3& worldPos) const = 0;
+        virtual float getHeightAt(const vsg::vec3& worldPos, ESM::RefId worldspace) = 0;
 
         /// The transformation factor for mapping cell units to world units.
         const float cellWorldSize;

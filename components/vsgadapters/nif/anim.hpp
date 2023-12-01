@@ -50,11 +50,11 @@ namespace vsgAdapters
     {
         switch (mode)
         {
-            case Nif::Controller::ExtrapolationMode::Cycle:
+            case Nif::NiTimeController::ExtrapolationMode::Cycle:
                 return Anim::ExtrapolationMode::Cycle;
-            case Nif::Controller::ExtrapolationMode::Reverse:
+            case Nif::NiTimeController::ExtrapolationMode::Reverse:
                 return Anim::ExtrapolationMode::Reverse;
-            case Nif::Controller::ExtrapolationMode::Constant:
+            case Nif::NiTimeController::ExtrapolationMode::Constant:
             default:
                 return Anim::ExtrapolationMode::Constant;
         }
@@ -62,19 +62,19 @@ namespace vsgAdapters
 
     template <class T>
     inline void addExtrapolatorIfRequired(
-        const Nif::Controller& ctrl, Anim::channel_ptr<T>& channel, float startKey, float stopKey)
+        const Nif::NiTimeController& ctrl, Anim::channel_ptr<T>& channel, float startKey, float stopKey)
     {
-        Anim::ExtrapolationMode mode = convertExtrapolationMode((ctrl.flags & 0x6) >> 1);
+        Anim::ExtrapolationMode mode = convertExtrapolationMode(ctrl.extrapolationMode());
 
-        if (ctrl.timeStop - ctrl.timeStart <= 0)
+        if (ctrl.mTimeStop - ctrl.mTimeStart <= 0)
         {
-            channel = Anim::make_constant(channel->value(ctrl.timeStart)); // vsgopenmw-optimization-nif-constant-channel
+            channel = Anim::make_constant(channel->value(ctrl.mTimeStart)); // vsgopenmw-optimization-nif-constant-channel
             return;
         }
-        if (ctrl.frequency == 1 && ctrl.phase == 0 && mode == Anim::ExtrapolationMode::Constant && ctrl.timeStart <= startKey && ctrl.timeStop >= stopKey)
+        if (ctrl.mFrequency == 1 && ctrl.mPhase == 0 && mode == Anim::ExtrapolationMode::Constant && ctrl.mTimeStart <= startKey && ctrl.mTimeStop >= stopKey)
             return; // vsgopenmw-optimization-nif-prune-extrapolator
 
-        channel = Anim::makeExtrapolator<T>(channel, { ctrl.frequency, ctrl.phase, ctrl.timeStart, ctrl.timeStop }, mode);
+        channel = Anim::makeExtrapolator<T>(channel, { ctrl.mFrequency, ctrl.mPhase, ctrl.mTimeStart, ctrl.mTimeStop }, mode);
     }
 
     template <class T, class Src>
@@ -94,7 +94,7 @@ namespace vsgAdapters
 
     template <class T, class Src>
     inline Anim::channel_ptr<T> handleKeyframes(
-        const Nif::Controller& ctrl, const Src& src, const std::optional<T> defaultValue = {})
+        const Nif::NiTimeController& ctrl, const Src& src, const std::optional<T> defaultValue = {})
     {
         if (!src || src->mKeys.empty())
         {
@@ -113,29 +113,29 @@ namespace vsgAdapters
     }
 
     template <class F>
-    void callActiveControllers(const Nif::ControllerPtr controller, F func)
+    void callActiveControllers(const Nif::NiTimeControllerPtr controller, F func)
     {
-        for (Nif::ControllerPtr ctrl = controller; !ctrl.empty() && ctrl->isActive(); ctrl = ctrl->next)
+        for (Nif::NiTimeControllerPtr ctrl = controller; !ctrl.empty() && ctrl->isActive(); ctrl = ctrl->mNext)
             func(*(ctrl.getPtr()));
     }
 
     template <class T>
-    const T* searchController(const Nif::ControllerPtr controller, int recType)
+    const T* searchController(const Nif::NiTimeControllerPtr controller, int recType)
     {
-        for (Nif::ControllerPtr ctrl = controller; !ctrl.empty() && ctrl->isActive(); ctrl = ctrl->next)
+        for (Nif::NiTimeControllerPtr ctrl = controller; !ctrl.empty() && ctrl->isActive(); ctrl = ctrl->mNext)
             if (ctrl->recType == recType)
                 return static_cast<const T*>(ctrl.getPtr());
         return nullptr;
     }
 
-    void convertTrafo(Anim::Transform& trans, const Nif::Transformation& trafo);
+    void convertTrafo(Anim::Transform& trans, const Nif::NiTransform& trafo);
 
     vsg::ref_ptr<Anim::Tags> handleTextKeys(const Nif::NiTextKeyExtraData& keys);
 
     vsg::ref_ptr<Anim::TransformController> handleKeyframeController(const Nif::NiKeyframeController& keyctrl);
     vsg::ref_ptr<Anim::TransformController> handlePathController(const Nif::NiPathController& pathctrl);
     vsg::ref_ptr<Anim::Roll> handleRollController(const Nif::NiRollController& rollctrl);
-    bool hasTransformController(const Nif::Node& n);
+    bool hasTransformController(const Nif::NiAVObject& n);
 }
 
 #endif

@@ -47,7 +47,7 @@ namespace MyGUIPlatform
         throw std::runtime_error("unimplemented(getDataListNames)");
     }
 
-    const std::string& vfs::getDataPath(const std::string& name) const
+    std::string vfs::getDataPath(const std::string& name) const
     {
         static std::string result;
         result.clear();

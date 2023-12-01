@@ -24,6 +24,10 @@ namespace osg
 {
     class Stats;
 }
+namespace MWRender
+{
+    class RenderManager;
+}
 namespace MWLua
 {
     // \brief LuaManager is the central interface through which the engine invokes lua scripts.

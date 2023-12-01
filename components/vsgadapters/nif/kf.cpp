@@ -32,13 +32,13 @@ namespace vsgAdapters
                 if (root && root->recType == Nif::RC_NiSequenceStreamHelper)
                 {
                     auto seq = static_cast<const Nif::NiSequenceStreamHelper&>(*root);
-                    Nif::ExtraPtr extra = seq.extra;
+                    Nif::ExtraPtr extra = seq.mExtra;
                     controllers->tags = handleTextKeys(static_cast<const Nif::NiTextKeyExtraData&>(*extra.getPtr()));
 
-                    extra = extra->next;
-                    Nif::ControllerPtr ctrl = seq.controller;
+                    extra = extra->mNext;
+                    auto ctrl = seq.mController;
                     for (; !extra.empty() && !ctrl.empty() /* && (ctrl->active()*/;
-                         (extra = extra->next), (ctrl = ctrl->next))
+                         (extra = extra->mNext), (ctrl = ctrl->mNext))
                     {
                         if (extra->recType != Nif::RC_NiStringExtraData
                             || ctrl->recType != Nif::RC_NiKeyframeController)
@@ -48,7 +48,7 @@ namespace vsgAdapters
                         if (!keyctrl)
                             continue;
                         auto& strdata = static_cast<const Nif::NiStringExtraData&>(*extra.getPtr());
-                        controllers->map./*insert_or_assign*/ emplace(strdata.string, std::move(keyctrl));
+                        controllers->map./*insert_or_assign*/ emplace(strdata.mData, std::move(keyctrl));
                     }
                 }
             }

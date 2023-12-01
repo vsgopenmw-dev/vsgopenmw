@@ -12,6 +12,9 @@ namespace VFS
 namespace MyGUIPlatform
 {
 
+    /*
+     * vfs DataManager adapts components/vfs to MyGUI.
+     */
     class vfs : public MyGUI::DataManager
     {
     public:
@@ -48,7 +51,7 @@ namespace MyGUIPlatform
             @param _name Resource name.
             @return Return full path to specified data.
         */
-        const std::string& getDataPath(const std::string& _name) const override;
+        std::string getDataPath(const std::string& _name) const override;
 
     private:
         const VFS::Manager* mVfs;

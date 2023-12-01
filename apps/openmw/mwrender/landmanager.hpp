@@ -4,7 +4,7 @@
 
 #include <components/esm/util.hpp>
 #include <components/esm3terrain/storage.hpp>
-#include <components/resource/resourcemanager.hpp>
+#include <components/vsgutil/cache.hpp>
 
 namespace ESM
 {
@@ -12,23 +12,22 @@ namespace ESM
 }
 namespace MWRender
 {
-<<<<<<< HEAD
 
-    class LandManager : public Resource::GenericResourceManager<ESM::ExteriorCellLocation>
-=======
-    class LandManager : public Resource::GenericResourceManager<std::pair<int, int>>
->>>>>>> 954897300b (vsgopenmw-openmw)
+    class LandManager
     {
     public:
         LandManager(int loadFlags);
 
         /// @note Will return nullptr if not found.
-        vsg::ref_ptr<ESMTerrain::LandObject> getLand(ESM::ExteriorCellLocation cellIndex);
+        vsg::ref_ptr<ESMTerrain::LandObject> getLand(ESM::ExteriorCellLocation cellIndex) const;
 
-        void reportStats(unsigned int frameNumber, osg::Stats* stats) const override;
+        vsg::ref_ptr<ESMTerrain::LandObject> create(ESM::ExteriorCellLocation cellIndex) const;
+
+        void pruneCache() { mCache.prune(); }
 
     private:
         int mLoadFlags;
+        mutable vsgUtil::RefCache<ESM::ExteriorCellLocation, ESMTerrain::LandObject> mCache;
     };
 }
 

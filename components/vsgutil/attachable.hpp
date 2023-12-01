@@ -6,7 +6,8 @@
 namespace vsgUtil
 {
     /*
-     * Attaches to other objects.
+     * Base class providing type safety for objects to be attached to other objects' vsg::Auxiliary container.
+     * Derived classes must define the sAttachKey string.
      */
     template <class Derived, class Target = vsg::Object>
     class Attachable : public vsg::Object

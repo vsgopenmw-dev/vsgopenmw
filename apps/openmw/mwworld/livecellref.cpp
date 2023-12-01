@@ -22,6 +22,7 @@ MWWorld::LiveCellRefBase::LiveCellRefBase(unsigned int type, const ESM::CellRef&
 {
 }
 
+/*vsgopenmw-fixme(find-my-place)
 MWWorld::LiveCellRefBase::LiveCellRefBase(unsigned int type, const ESM4::Reference& cref)
     : mClass(&Class::get(type))
     , mRef(cref)
@@ -35,6 +36,8 @@ MWWorld::LiveCellRefBase::LiveCellRefBase(unsigned int type, const ESM4::ActorCh
     , mData(cref)
 {
 }
+
+*/
 
 MWWorld::LiveCellRefBase::~LiveCellRefBase()
 {

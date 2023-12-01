@@ -27,6 +27,7 @@
 #include "../mwworld/inventorystore.hpp"
 
 #include "../mwmechanics/npcstats.hpp"
+#include "../mwmechanics/actorutil.hpp"
 
 #include "../mwrender/preview.hpp"
 

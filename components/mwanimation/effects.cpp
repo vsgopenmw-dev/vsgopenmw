@@ -1,6 +1,7 @@
 #include "effects.hpp"
 
 #include "effect.hpp"
+#include "object.hpp"
 
 namespace MWAnim
 {
@@ -36,26 +37,30 @@ namespace MWAnim
             effects->update(dt);
     }
 
-    void addEffect(const Context& mwctx, vsg::Node& root, vsg::Group& attachTo, vsg::ref_ptr<vsg::Node> node,
+    void addEffect(MWAnim::Object& obj, vsg::Group* attachBone, vsg::ref_ptr<vsg::Node> prototype, const std::vector<Anim::Transform*>& worldAttachmentPath,
         int effectId, bool loop, const std::string& overrideTexture, bool overrideAllTextures)
     {
-        auto effects = Effects::getOrCreate(root);
+        auto effects = Effects::getOrCreate(*obj.node());
         for (auto& e : effects->effects)
         {
-            if (loop && e.loop && e.parent == &attachTo)
+            if (loop && e.loop && e.parentBone == attachBone)
                 return;
         }
 
         // node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
-        Effect effect{ .node = node,
-            .mwctx = mwctx,
-            .effectId = effectId,
-            .loop = loop,
-            .overrideTexture = overrideTexture,
-            .overrideAllTextures = overrideAllTextures };
-        effect.compile();
-        effect.attachTo(&attachTo);
+        Effect effect;
+        effect.mwctx = obj.context();
+        effect.effectId = effectId;
+        effect.loop = loop;
+
+        auto [anim, node] = Effect::load(obj.context(), prototype, overrideTexture, overrideAllTextures);
+        effect.compile(anim, node, worldAttachmentPath, { node });
+
+        if (attachBone)
+            effect.attachTo(attachBone);
+        else
+            effect.attachTo(&obj);
 
         effects->effects.push_back(effect);
     }

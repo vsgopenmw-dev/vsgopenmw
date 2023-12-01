@@ -393,7 +393,7 @@ namespace MWGui
         MyGUI::IntCoord coord1(0, 0, mSkillList->getWidth(), 18);
 
         const MWWorld::ESMStore& store = *MWBase::Environment::get().getESMStore();
-        const ESM::Race* race = store.get<ESM::Race>().find(mCurrentRaceId);
+        const ESM::Race* race = store.get<ESM::Race>().find(mProto.mRace);
         for (const auto& bonus : race->mData.mBonus)
         {
             ESM::RefId skill = ESM::Skill::indexToRefId(bonus.mSkill);
@@ -426,7 +426,7 @@ namespace MWGui
         MyGUI::IntCoord coord(0, 0, mSpellPowerList->getWidth(), lineHeight);
 
         const MWWorld::ESMStore& store = *MWBase::Environment::get().getESMStore();
-        const ESM::Race* race = store.get<ESM::Race>().find(mCurrentRaceId);
+        const ESM::Race* race = store.get<ESM::Race>().find(mProto.mRace);
 
         int i = 0;
         for (const ESM::RefId& spellpower : race->mPowers.mList)

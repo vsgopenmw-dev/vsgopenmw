@@ -22,6 +22,7 @@
 #include <components/esm3/loadstat.hpp>
 #include <components/esm3/loadweap.hpp>
 
+/*
 #include <components/esm4/loadacti.hpp>
 #include <components/esm4/loadalch.hpp>
 #include <components/esm4/loadammo.hpp>
@@ -40,6 +41,8 @@
 #include <components/esm4/loadstat.hpp>
 #include <components/esm4/loadtree.hpp>
 #include <components/esm4/loadweap.hpp>
+
+*/
 
 #include "../mwworld/cellstore.hpp"
 #include "../mwworld/worldmodel.hpp"
@@ -204,6 +207,7 @@ namespace MWLua
                             cell.mStore->template forEachType<ESM::CreatureLevList>(visitor);
                             break;
 
+                            /*
                         case ESM::REC_ACTI4:
                             cell.mStore->template forEachType<ESM4::Activator>(visitor);
                             break;
@@ -253,6 +257,7 @@ namespace MWLua
                             cell.mStore->template forEachType<ESM4::Weapon>(visitor);
                             break;
 
+                            */
                         default:
                             ok = false;
                     }

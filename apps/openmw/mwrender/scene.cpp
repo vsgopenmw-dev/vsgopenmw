@@ -107,15 +107,18 @@ namespace MWRender
         const ESM::Light* light{};
         if (allowLight && ptr.getType() == ESM::Light::sRecordId)
             light = ptr.get<ESM::Light>()->mBase;
-        vsg::ref_ptr<vsg::Group> decoration;
-        if (auto color = getGlowColor(ptr))
-            decoration = createEnv(*color);
 
         MWAnim::Context& ctx = allowLight ? context : noParticlesContext;
 
-        auto anim = MWAnim::createObject(mesh, ptr.getClass().useAnim(), light, decoration, ctx);
+        auto anim = MWAnim::createObject(mesh, ptr.getClass().useAnim(), light, ctx);
 
         loadTransform(ptr, *anim->transform());
+
+        if (auto color = getGlowColor(ptr))
+        {
+            auto sg = createEnv(*color);
+            anim->getOrCreateStateGroup()->stateCommands = sg->stateCommands;
+        }
 
         if (!context.compileContext->compile(anim->node()))
             return;

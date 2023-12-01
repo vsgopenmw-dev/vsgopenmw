@@ -33,22 +33,23 @@ namespace MWRender
         std::optional<vsg::vec4> glowColor, const std::string textureOverride,
         const std::vector<std::string> additionalModels)
     {
-        Projectile p{ .effect = { .node = mContext.readNode(model), .mwctx=mContext } };
+        std::vector<vsg::ref_ptr<vsg::Node>> replaceDummyNodes;
+        for (auto& m : additionalModels)
+            replaceDummyNodes.push_back(mContext.readNode(m));
+
+        auto [anim, node] = MWAnim::Effect::load(mContext, mContext.readNode(model), textureOverride, true, replaceDummyNodes);
+
+        Projectile p;
+        p.effect.mwctx = mContext;
         p.handle = std::make_shared<ProjectileHandle>(ProjectileHandle{ pos, orient });
         p.transform = Anim::Transform::create();
         p.transform->translation = pos;
         p.transform->setAttitude(orient);
 
-        auto meta = Anim::Meta::get(*p.effect.node);
-        addEnv(p.effect.node, glowColor);
-        if (meta)
-            meta->attachTo(*p.effect.node);
+        addEnv(node, glowColor);
 
-        p.effect.overrideTexture = textureOverride;
-        for (auto& m : additionalModels)
-            p.effect.replaceDummyNodes.push_back(mContext.readNode(m));
-        p.effect.compile();
-
+        std::vector<Anim::Transform*> worldAttachmentPath = { p.transform.get() };
+        std::vector<vsg::Node*> localAttachmentPath = { node.get() };
         if (autoRotate)
         {
             auto rotateNode = Anim::Transform::create();
@@ -58,10 +59,11 @@ namespace MWRender
             ctrl->attachTo(*rotateNode);
             p.effect.update.add(ctrl, rotateNode);
             p.transform->children = { rotateNode };
-            rotateNode->children = { p.effect.node };
+            rotateNode->children = { node };
+            worldAttachmentPath.push_back(rotateNode.get());
         }
         else
-            p.transform->children = { p.effect.node };
+            p.transform->children = { node };
 
         if (lightColor)
         {
@@ -72,7 +74,8 @@ namespace MWRender
             p.transform->addChild(light);
         }
 
-        p.effect.node = p.transform;
+        p.effect.compile(anim, p.transform, worldAttachmentPath, localAttachmentPath);
+
         p.effect.attachTo(mNode);
         mProjectiles.push_back(p);
         return p.handle;

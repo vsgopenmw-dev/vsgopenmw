@@ -69,8 +69,6 @@ namespace MWWorld
     class World final : public MWBase::World
     {
     private:
-        Resource::ResourceSystem* mResourceSystem;
-
         ESM::ReadersCache mReaders;
         MWWorld::ESMStore mStore;
         //GroundcoverStore mGroundcoverStore;
@@ -430,7 +428,7 @@ const std::filesystem::path& userDataPath);
 
         bool toggleVanityMode(bool enable) override;
 
-        MWRender::Camera* getCamera() override;
+        //MWRender::Camera* getCamera() override;
         bool vanityRotateCamera(const float* rot) override;
 
         void applyDeferredPreviewRotationToPlayer(float dt) override;

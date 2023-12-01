@@ -6,10 +6,6 @@
 #include <components/esm4/loadrefr.hpp>
 
 */
-#include <components/sceneutil/positionattitudetransform.hpp>
-=======
->>>>>>> 954897300b (vsgopenmw-openmw)
-
 #include "customdata.hpp"
 
 #include "../mwbase/environment.hpp"

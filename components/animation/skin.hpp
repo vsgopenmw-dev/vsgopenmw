@@ -18,27 +18,31 @@ namespace Anim
     class Transform;
 
     /*
-     * Accumulates bone matrices.
+     * Controller class for accumulating bone matrices for use by skinning shaders.
+     * The link(..) method will find the parent Cull/DepthSorted and StateGroup nodes, for updating the bounds automatically, and setting up a SoftwareSkin object for the StateGroup to use for intersections on the CPU.
      */
     class Skin : public MUpdateData<Skin, vsg::mat4Array>
     {
         void optimizePaths();
         /*
-         * Automatically updates bounds of untransformed parent cull node.
+         * Automatically updates bounds of untransformed parent Cull/DepthSorted nodes.
          */
         void updateBounds();
         class PrivateBoneData;
         std::vector<PrivateBoneData> mBones;
         std::vector<const Transform*> mReferenceFrame;
-        vsg::dsphere* mDynamicBounds{};
-        vsg::dsphere* mDynamicDepthSortedBounds{};
+        std::vector<vsg::dsphere*> mDynamicBounds;
     public:
         Skin();
         ~Skin();
+        /*
+         * Bone information set by users.
+         */
         std::vector<BoneData> bones;
         vsg::ref_ptr<vsg::vec4Array> boneIndices;
         vsg::ref_ptr<vsg::vec4Array> boneWeights;
         std::optional<vsg::mat4> transform;
+
         void apply(vsg::mat4Array& array, float);
         /*
          * Links to parent cull node and StateGroup.

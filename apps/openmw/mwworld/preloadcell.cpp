@@ -78,7 +78,7 @@ namespace MWWorld
             {
                 try
                 {
-                    mPreloadedObjects.insert(mLandManager->getLand(mX, mY));
+                    mPreloadedObjects.insert(mLandManager->getLand({ mX, mY, {} }));
                 }
                 catch (std::exception&) {}
                 ++mProgress;

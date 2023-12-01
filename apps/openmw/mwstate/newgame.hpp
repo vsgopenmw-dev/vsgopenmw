@@ -35,9 +35,17 @@ namespace MWState
                 }
                 else
                 {
-                    ESM::Position pos{};
-                    world->indexToPosition(0, 0, pos.pos[0], pos.pos[1], true);
-                    world->changeToExteriorCell(pos, true);
+                    ESM::ExteriorCellLocation loc = { 0, 0, ESM::Cell::sDefaultWorldspaceId };
+                    auto& cell = MWBase::Environment::get().getWorldModel()->getExterior(loc);
+                    auto p = ESM::indexToPosition(loc, true);
+                    ESM::Position pos;
+                    pos.pos[0] = p.x();
+                    pos.pos[1] = p.y();
+                    pos.pos[2] = 0.f; // should be adjusted automatically (adjustPlayerPos=true)
+                    pos.rot[0] = 0.f;
+                    pos.rot[1] = 0.f;
+                    pos.rot[2] = 0.f;
+                    MWBase::Environment::get().getWorld()->changeToCell(cell.getCell()->getId(), pos, true);
                 }
             }
             return false;
@@ -82,10 +90,10 @@ namespace MWState
                     if (!startCell.empty())
                     {
                         ESM::Position pos;
-                        if (MWBase::Environment::get().getWorld()->findExteriorPosition(startCell, pos))
+                        auto c = MWBase::Environment::get().getWorld()->findExteriorPosition(startCell, pos);
+                        if (!c.empty())
                         {
-                            world->changeToExteriorCell(pos, true);
-                            world->adjustPosition(world->getPlayerPtr(), false);
+                            world->changeToCell(c, pos, true);
                         }
                         else
                         {

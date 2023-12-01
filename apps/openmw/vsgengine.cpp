@@ -19,6 +19,7 @@
 #include "mwgui/windowmanagerimp.hpp"
 #include "mwinput/inputmanagerimp.hpp"
 #include "mwrender/rendermanager.hpp"
+#include "mwrender/bin.hpp"
 #include "mwsound/soundmanagerimp.hpp"
 #include "mwstate/loadingscreen.hpp"
 #include "mwstate/statemanagerimp.hpp"
@@ -230,6 +231,8 @@ namespace OMW
         traits->width = width;
         traits->height = height;
         traits->debugLayer = getenv("VSGOPENMW_VALIDATION") != 0;
+        if (traits->debugLayer && vsg::isExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            traits->instanceExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         traits->queueFlags |= VK_QUEUE_COMPUTE_BIT;
         traits->depthFormat = Render::compatibleDepthFormat;
         traits->swapchainPreferences.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
@@ -289,12 +292,12 @@ namespace OMW
 
         Misc::Rng::init(args.randomSeed);
 
-        mVFS = std::make_unique<VFS::Manager>(args.fsStrict);
+        mVFS = std::make_unique<VFS::Manager>();
 
         mDataDirs = args.dataDirs;
         mCfgMgr.filterOutNonExistingPaths(mDataDirs);
         mDataDirs.insert(mDataDirs.begin(), args.resourceDir / "vfs");
-        mFileCollections = Files::Collections(mDataDirs, !args.fsStrict);
+        mFileCollections = Files::Collections(mDataDirs);
         VFS::registerArchives(mVFS.get(), mFileCollections, args.archives, true);
 
         auto physicalDevice = mRenderEngine->getOrCreatePhysicalDevice();
@@ -302,7 +305,7 @@ namespace OMW
         if (auto overrideString = getenv("VSGOPENMW_DECOMPRESS_BC"))
             useTextureCompression = overrideString == std::string("0");
         mResourceSystem = std::make_unique<Resource::ResourceSystem>(mVFS.get(), args.resourceDir / "shaders",
-            createDefaultSampler(physicalDevice, mRenderEngine->getEnabledFeatures().samplerAnisotropy), useTextureCompression);
+            createDefaultSampler(physicalDevice, mRenderEngine->getEnabledFeatures().samplerAnisotropy), useTextureCompression, MWRender::Bin_Compute, MWRender::Bin_DepthSorted);
 
         setWindowIcon(args.resourceDir / "openmw.png");
 
@@ -360,7 +363,7 @@ namespace OMW
 
         mWindowManager = std::make_unique<MWGui::WindowManager>(mWindow, compile, mResourceSystem.get(),
             mCfgMgr.getLogPath(), args.scriptConsoleMode, mTranslationDataStorage, args.encoding,
-            Version::getOpenmwVersionDescription(args.resourceDir), mCfgMgr);
+            Version::getOpenmwVersionDescription(), mCfgMgr);
         mEnvironment.setWindowManager(*mWindowManager);
 
         mInputManager = std::make_unique<MWInput::InputManager>(

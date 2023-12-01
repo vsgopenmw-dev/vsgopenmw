@@ -49,17 +49,17 @@ namespace SDLUtil
         mCursorMap.clear();
     }
 
-    void CursorManager::cursorChanged(const std::string& name)
+    void CursorManager::cursorChanged(std::string_view name)
     {
-        auto it = mCursorMap.find(name);
+        auto it = mCursorMap.find(std::string(name));
         if (it != mCursorMap.end())
             SDL_SetCursor(it->second);
     }
 
-    void CursorManager::createCursor(const std::string& name, int rotDegrees, SDL_Surface* surface, Uint8 hotspot_x,
+    void CursorManager::createCursor(std::string_view name, int rotDegrees, SDL_Surface* surface, Uint8 hotspot_x,
         Uint8 hotspot_y, Uint8 w, Uint8 h)
     {
-        if (mCursorMap.find(name) != mCursorMap.end())
+        if (mCursorMap.find(std::string(name)) != mCursorMap.end())
             return;
         SDL_Cursor* curs;
         if (rotDegrees == 0)

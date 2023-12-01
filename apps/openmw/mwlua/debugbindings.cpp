@@ -14,8 +14,8 @@
 #include <components/resource/scenemanager.hpp>
 #include <components/shader/shadermanager.hpp>
 */
-#include "../mwrender/navmeshmode.hpp"
 
+#include <components/settings/navmeshrendermode.hpp>
 #include <components/lua/luastate.hpp>
 
 namespace MWLua

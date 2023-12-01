@@ -25,27 +25,30 @@ namespace MWRender
         const std::string& bone, const std::string& overrideTexture)
     {
         auto world = MWBase::Environment::get().getWorld();
-        auto anim = world->getAnimation(ptr);
-        if (!anim || !anim->animation) // if (!hasCharacterController)
+        auto object = world->getAnimation(ptr);
+        if (!object || !object->animation) // if (!hasCharacterController)
             return;
 
         auto static_ = world->getStore().get<ESM::Static>().search(effect);
         if (!static_ || static_->mModel.empty())
             return;
 
-        auto ctx = anim->context();
+        auto ctx = object->context();
         ctx.compileContext = ctx.compileContext->clone(Mask_Effect);
 
         auto node = ctx.readEffect(static_->mModel);
         auto meta = Anim::Meta::get(*node);
 
-        vsg::Group* attachTo = anim->transform();
+        vsg::Group* attachBone{};
+        std::vector<Anim::Transform*> worldAttachmentPath = { object->transform() };
         if (!bone.empty())
         {
-            auto b = anim->searchBone(bone);
+            auto b = object->searchBone(bone);
             if (!b)
                 return;
-            attachTo = Anim::getOrAttachBone(attachTo, b->path);
+            attachBone = Anim::getOrAttachBone(object->nodeToAddChildrenTo(), b->path);
+            for (auto& n : b->path)
+                worldAttachmentPath.emplace_back(n);
         }
         else if (!ptr.getClass().isNpc())
         {
@@ -72,11 +75,11 @@ namespace MWRender
         if (meta)
             meta->attachTo(*node);
 
-        MWAnim::addEffect(ctx, *anim->transform(), *attachTo, node, magicEffectId, loop, overrideTexture);
+        MWAnim::addEffect(*object, attachBone, node, worldAttachmentPath, magicEffectId, loop, overrideTexture);
     }
     void removeEffect(const MWWorld::Ptr& ptr, std::optional<int> effectId)
     {
         if (auto anim = MWBase::Environment::get().getWorld()->getAnimation(ptr))
-            MWAnim::removeEffect(*anim->transform(), effectId);
+            MWAnim::removeEffect(*anim->node(), effectId);
     }
 }

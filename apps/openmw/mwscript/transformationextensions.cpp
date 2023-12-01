@@ -435,7 +435,7 @@ namespace MWScript
                     if (isPlayer)
                     {
                         ESM::Position pos { { x, y, z }, { rot.x(), rot.y(), rot.z() } };
-                        world->changeToCell(store->getCell()->getCellId(), pos, true);
+                        world->changeToCell(store->getCell()->getId(), pos, true);
                     }
                     else
                     {

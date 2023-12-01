@@ -14,6 +14,7 @@
 #include <components/misc/constants.hpp>
 #include <components/misc/convert.hpp>
 #include <components/vsgadapters/osgcompat.hpp>
+#include <components/vsgutil/convert.hpp>
 
 #include <components/settings/values.hpp>
 
@@ -121,19 +122,16 @@ namespace
     vsg::vec3 getMagicBoltLightDiffuseColor(const ESM::EffectList& effects)
     {
         // Calculate combined light diffuse color from magical effects
-        float lightDiffuseRed = 0.0f;
-        float lightDiffuseGreen = 0.0f;
-        float lightDiffuseBlue = 0.0f;
+        vsg::vec4 lightDiffuseColor = {};
         for (std::vector<ESM::ENAMstruct>::const_iterator iter(effects.mList.begin()); iter != effects.mList.end();
              ++iter)
         {
             const ESM::MagicEffect* magicEffect
-                = MWBase::Environment::get().getESMStore()->get<ESM::MagicEffect>().find(enam.mEffectID);
-            lightDiffuseColor += magicEffect->getColor();
+                = MWBase::Environment::get().getESMStore()->get<ESM::MagicEffect>().find(iter->mEffectID);
+            lightDiffuseColor += toVsg(magicEffect->getColor());
         }
         int numberOfEffects = effects.mList.size();
-        return { lightDiffuseRed / numberOfEffects, lightDiffuseGreen / numberOfEffects,
-            lightDiffuseBlue / numberOfEffects };
+        return vsgUtil::toVec3(lightDiffuseColor) / static_cast<float>(numberOfEffects);
     }
 }
 

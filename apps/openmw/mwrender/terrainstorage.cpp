@@ -16,17 +16,20 @@ namespace MWRender
               ESM::Land::DATA_VCLR | ESM::Land::DATA_VHGT | ESM::Land::DATA_VNML | ESM::Land::DATA_VTEX))
         , mResourceSystem(resourceSystem)
     {
-        mResourceSystem->addResourceManager(mLandManager.get());
     }
 
     TerrainStorage::~TerrainStorage()
     {
-        mResourceSystem->removeResourceManager(mLandManager.get());
     }
 
     LandManager* TerrainStorage::getLandManager() const
     {
         return mLandManager.get();
+    }
+
+    void TerrainStorage::pruneCache()
+    {
+        mLandManager->pruneCache();
     }
 
     vsg::ref_ptr<const ESMTerrain::LandObject> TerrainStorage::getLand(ESM::ExteriorCellLocation cellLocation)

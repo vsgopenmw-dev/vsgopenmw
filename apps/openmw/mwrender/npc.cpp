@@ -28,10 +28,10 @@
 
 #include "bodyparts.hpp"
 #include "env.hpp"
+#include "transparency.hpp"
 
 namespace MWRender
 {
-
     Npc::Npc(const MWAnim::Context& mwctx, const MWWorld::Ptr& ptr, ViewMode viewMode)
         : Wielding(mwctx)
         , mPtr(ptr)
@@ -67,7 +67,7 @@ namespace MWRender
     {
         const MWWorld::Class& cls = ptr.getClass();
         Npc::NpcType curType = NpcType::Normal;
-        if (cls.getCreatureStats(ptr).getMagicEffects().get(ESM::MagicEffect::Vampirism).getMagnitude() > 0)
+        if (cls.getCreatureStats(ptr).getMagicEffects().getOrDefault(ESM::MagicEffect::Vampirism).getMagnitude() > 0)
             curType = NpcType::Vampire;
         if (cls.getNpcStats(ptr).isWerewolf())
             curType = NpcType::Werewolf;
@@ -329,7 +329,8 @@ namespace MWRender
         auto node = vsgUtil::readNode(model, mPartContext->partBoneOptions[type]);
         bool mirror = bonename.find("Left") != std::string::npos;
         auto result = MWAnim::decorate(node, light, mirror);
-        addEnv(node, glowColor);
+        if (glowColor)
+            addEnv(node, glowColor, getTransparency(*this));
         if (type == ESM::PRT_Weapon)
         {
             mAttachAmmo = result.placeholders.attachAmmo;
@@ -338,11 +339,11 @@ namespace MWRender
         else if (type == ESM::PRT_Shield)
             addSwitch(node, Wield::CarriedLeft);
 
-        auto path = MWAnim::attachBonesAndNode(node, *mTransform, animation->bones, bonename);
+        auto path = MWAnim::attachBonesAndNode(node, *nodeToAddChildrenTo(), animation->bones, bonename);
         if (path.empty())
             return;
 
-        Anim::Context ctx{ path, &animation->bones, &mPartContext->mask };
+        Anim::Context ctx{ { transform() }, path, &animation->bones, &mPartContext->mask };
         Anim::Update* dst = &mStaticControllers;
         if (type == ESM::PRT_Head)
         {
@@ -377,7 +378,7 @@ namespace MWRender
         if (!path.empty())
         {
             mPartContext->compileContext->detach(vsg::ref_ptr{path.back()});
-            vsgUtil::prune<vsg::Group>(path);
+            vsgUtil::prune<vsg::Group>(path, nodeToAddChildrenTo());
             path.clear();
         }
     }

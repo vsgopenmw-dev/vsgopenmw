@@ -209,7 +209,8 @@ namespace MWLua
         };
 
         const MWWorld::Store<ESM::Cell>* cells3Store = &MWBase::Environment::get().getESMStore()->get<ESM::Cell>();
-        const MWWorld::Store<ESM4::Cell>* cells4Store = &MWBase::Environment::get().getESMStore()->get<ESM4::Cell>();
+        const MWWorld::Store<ESM::Cell>* cells4Store = &MWBase::Environment::get().getESMStore()->get<ESM::Cell>();
+        //const MWWorld::Store<ESM4::Cell>* cells4Store = &MWBase::Environment::get().getESMStore()->get<ESM4::Cell>();
         sol::usertype<CellsStore> cells = context.mLua->sol().new_usertype<CellsStore>("Cells");
         cells[sol::meta_function::length]
             = [cells3Store, cells4Store](const CellsStore&) { return cells3Store->getSize() + cells4Store->getSize(); };
@@ -227,7 +228,7 @@ namespace MWLua
             }
             else
             {
-                const ESM4::Cell* cellRecord = cells4Store->at(index - cells3Store->getSize());
+                const auto cellRecord = cells4Store->at(index - cells3Store->getSize());
                 return GCell{ &MWBase::Environment::get().getWorldModel()->getCell(
                     cellRecord->mId, /*forceLoad=*/false) };
             }

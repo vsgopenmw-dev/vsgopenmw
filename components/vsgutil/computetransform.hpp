@@ -3,10 +3,13 @@
 
 #include <vsg/maths/mat4.h>
 
+#include "convert.hpp"
+
 namespace vsgUtil
 {
     /*
-     * Provides single precision devirtualized vsg::computeTransform.
+     * Provides single precision devirtualized version of vsg::computeTransform.
+     * Useful for speeding up computations when the type of vsg::Transform node that is used, such as vsg::MatrixTransform, is known.
      */
     template <class Nodes>
     inline vsg::mat4 computeTransform(const Nodes& nodes)
@@ -17,11 +20,19 @@ namespace vsgUtil
         return mat;
     }
 
+    /*
+     * Gets the translation part of a 4x4 matrix.
+     */
+    template <class T>
+    vsg::t_vec3<T> translation(const vsg::t_mat4<T> matrix)
+    {
+        return vsgUtil::toVec3(matrix[3]);
+    }
+
     template <class Nodes>
     inline vsg::vec3 computePosition(const Nodes& nodes)
     {
-        auto vec = vsgUtil::computeTransform(nodes)[3];
-        return { vec.x, vec.y, vec.z };
+        return vsgUtil::translation(vsgUtil::computeTransform(nodes));
     }
 }
 

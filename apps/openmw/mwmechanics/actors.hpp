@@ -46,6 +46,9 @@ namespace MWMechanics
     class Actors
     {
     public:
+        Actors();
+        ~Actors();
+
         void setUpdateThreads(vsg::ref_ptr<vsgUtil::UpdateThreads> threads);
 
         std::list<Actor>::const_iterator begin() const { return mActors.begin(); }

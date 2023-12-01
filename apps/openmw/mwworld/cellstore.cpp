@@ -436,6 +436,7 @@ namespace MWWorld
         list.push_back(liveCellRef);
     }
 
+    /*
     template <typename X>
     void CellRefList<X>::load(const ESM4::Reference& ref, const MWWorld::ESMStore& esmStore)
     {
@@ -448,6 +449,7 @@ namespace MWWorld
         if constexpr (isESM4ActorRec(X::sRecordId))
             loadImpl<X>(ref, esmStore, mList);
     }
+
     */
 
     template <typename X>

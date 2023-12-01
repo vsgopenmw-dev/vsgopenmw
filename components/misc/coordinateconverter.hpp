@@ -92,7 +92,8 @@ namespace Misc
 
     inline CoordinateConverter makeCoordinateConverter(const ESM::CellVariant& cell)
     {
-        return visit([](const auto& v) { return makeCoordinateConverterImpl(v); }, cell);
+        return makeCoordinateConverterImpl(cell.getEsm3());
+        //return visit([](const auto& v) { return makeCoordinateConverterImpl(v); }, cell);
     }
 }
 

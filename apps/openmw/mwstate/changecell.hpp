@@ -24,7 +24,7 @@ namespace MWState
         {
         }
         ESM::Position position;
-        ESM::RefID cell;
+        ESM::RefId cell;
         bool changeEvent{};
         std::function<void(const MWWorld::CellStore&)> onCellChanged;
 
@@ -56,7 +56,7 @@ namespace MWState
             if (cellStore.isExterior())
                 mScene.changeToExteriorCell(cell, position, changeEvent);
             else
-                mScene.changeToInteriorCell(cellStore.getNameId(), position, changeEvent);
+                mScene.changeToInteriorCell(cellStore.getCell()->getNameId(), position, changeEvent);
 
             if (onCellChanged)
                 onCellChanged(cellStore);

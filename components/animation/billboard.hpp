@@ -8,7 +8,8 @@
 namespace Anim
 {
     /*
-     * Orients towards camera more flexibly than shader billboards.
+     * Billboard node is used for billboarding effects on the CPU.
+     * Typically used when the children of the billboard node include additional transformations, so they can't use the more efficient billboarding shader on the GPU.
      */
     class Billboard : public vsg::Inherit<vsg::Transform, Billboard>
     {

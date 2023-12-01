@@ -130,6 +130,8 @@ namespace MWAnim
 
         void setLoopingEnabled(std::string_view groupname, bool enabled);
 
+        void listAnimationGroups(std::function<void(const std::string&)> handler) const;
+
         // Externally set when we have scripted animations
         int persistentPriority = -1;
 

@@ -570,8 +570,9 @@ namespace MWGui
 
         _sender->setCaptionWithReplacing(_sender->getItemNameAt(_sender->getIndexSelected()));
 
+        // TODO: should we use pushGameState(Choice(..)) here?
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(
-            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" });
+            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" }); // , block=true
 
         std::vector<std::string> currentLocales = Settings::general().mPreferredLocales;
         if (currentLocales.size() <= langPriority)
@@ -589,7 +590,7 @@ namespace MWGui
     void SettingsWindow::onGmstOverridesL10nChanged(MyGUI::Widget*)
     {
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(
-            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" }, true);
+            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" });
     }
 
     void SettingsWindow::onVSyncModeChanged(MyGUI::ComboBox* _sender, size_t pos)

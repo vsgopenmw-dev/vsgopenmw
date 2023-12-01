@@ -18,6 +18,8 @@
 #include <osg/Vec4i>
 
 #include <components/settings/settings.hpp>
+#include <components/esm3/cellref.hpp>
+#include <components/esm/refid.hpp>
 
 namespace MWWorld
 {
@@ -59,7 +61,6 @@ namespace View
 namespace ESM
 {
     class Cell;
-    class RefNum;
 }
 namespace Terrain
 {
@@ -213,7 +214,7 @@ namespace MWRender
 
         void processChangedSettings(const Settings::CategorySettingVector& settings);
 
-        float getTerrainHeightAt(const osg::Vec3f& pos);
+        float getTerrainHeightAt(const osg::Vec3f& pos, ESM::RefId worldspace);
 
         Camera* getCamera() { return mCamera.get(); }
         Projectiles* getProjectiles() { return mProjectiles.get(); }

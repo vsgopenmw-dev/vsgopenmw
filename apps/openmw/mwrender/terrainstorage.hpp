@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <components/esmterrain/storage.hpp>
+#include <components/esm3terrain/storage.hpp>
 
 #include <components/resource/resourcesystem.hpp>
 
@@ -23,6 +23,9 @@ namespace MWRender
         TerrainStorage(Resource::ResourceSystem* resourceSystem);
         ~TerrainStorage();
 
+        void pruneCache();
+
+        // TODO: wouldn't it be more efficient to pass worldspaces elsewhere? create a Storage or View object per worldspace?
         vsg::ref_ptr<const ESMTerrain::LandObject> getLand(ESM::ExteriorCellLocation cellLocation) override;
         void setStore(const MWWorld::ESMStore* store) { mEsmStore = store; }
 

@@ -12,10 +12,11 @@
 
 #include "clone.hpp"
 #include "context.hpp"
+#include "object.hpp"
 
 namespace MWAnim
 {
-    void Effect::compile()
+    std::pair<Anim::Animation, vsg::ref_ptr<vsg::Node>> Effect::load(const Context& in_mwctx, vsg::ref_ptr<vsg::Node> in_node, const std::string& overrideTexture, bool overrideAllTextures, const std::vector<vsg::ref_ptr<vsg::Node>>& replaceDummyNodes)
     {
         MWAnim::CloneResult result;
         if (!overrideTexture.empty() || !replaceDummyNodes.empty())
@@ -24,18 +25,24 @@ namespace MWAnim
             if (!overrideTexture.empty())
             {
                 auto sampler = vsg::Sampler::create();
-                vsgUtil::share_if(mwctx.textureOptions->sharedObjects, sampler);
-                auto image = vsgUtil::readImage(overrideTexture, mwctx.textureOptions);
+                vsgUtil::share_if(in_mwctx.textureOptions->sharedObjects, sampler);
+                auto image = vsgUtil::readImage(overrideTexture, in_mwctx.textureOptions);
                 texture = vsg::DescriptorImage::create(sampler, image);
-                vsgUtil::share_if(mwctx.textureOptions->sharedObjects, texture);
+                vsgUtil::share_if(in_mwctx.textureOptions->sharedObjects, texture);
             }
-            result = cloneAndReplace(node, texture, overrideAllTextures, replaceDummyNodes);
+            result = cloneAndReplace(in_node, texture, overrideAllTextures, replaceDummyNodes);
         }
         else
-            result = cloneIfRequired(node);
+            result = cloneIfRequired(in_node);
+        return std::make_pair(result, in_node);
+    }
 
-        auto ctx = Anim::Context{ {node.get()}, {}, &mwctx.mask };
-        result.link(ctx, [this](const Anim::Controller* ctrl, vsg::Object* o) {
+    void Effect::compile(Anim::Animation& animation, vsg::ref_ptr<vsg::Node> in_node, const std::vector<Anim::Transform*>& worldAttachmentPath, const std::vector<vsg::Node*>& localAttachmentPath)
+    {
+        node = in_node;
+
+        auto ctx = Anim::Context{ worldAttachmentPath, localAttachmentPath, {}, &mwctx.mask };
+        animation.link(ctx, [this](const Anim::Controller* ctrl, vsg::Object* o) {
             update.add(ctrl, o);
             duration = std::max(ctrl->hints.duration, duration);
         });
@@ -49,8 +56,15 @@ namespace MWAnim
     void Effect::attachTo(vsg::Group* p)
     {
         // assert(compiled);
-        parent = p;
-        parent->addChild(node);
+        parentBone = p;
+        parentBone->addChild(node);
+    }
+
+    void Effect::attachTo(MWAnim::Object* obj)
+    {
+        // assert(compiled);
+        parentObject = obj;
+        obj->nodeToAddChildrenTo()->addChild(node);
     }
 
     bool Effect::run(float dt)
@@ -73,10 +87,17 @@ namespace MWAnim
 
     void Effect::detach()
     {
-        if (parent)
+        if (parentBone)
         {
-            vsgUtil::removeChild(parent, node);
-            mwctx.compileContext->detach(node);
+            vsgUtil::removeChild(parentBone, node);
+            parentBone = {};
         }
+        else if (parentObject)
+        {
+            vsgUtil::removeChild(parentObject->nodeToAddChildrenTo(), node);
+            parentObject = {};
+        }
+
+        mwctx.compileContext->detach(node);
     }
 }

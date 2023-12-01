@@ -17,7 +17,7 @@ source_group(game FILES ${GAME} ${GAME_HEADER})
 
 add_openmw_dir (mwrender
     mask bin rendermode renderinginterface renderpass intersect rendermanager terrainstorage landmanager
-    animcontext bodyparts wieldingcreature npc player face scene camera itemlight effect effects projectiles spellcastglow
+    animcontext bodyparts wieldingcreature npc player face scene camera itemlight effect effects projectiles spellcastglow transparency
     env weather weatherdata
     map worldmap preview shadow
     #bulletdebugdraw ripplesimulation
@@ -65,7 +65,7 @@ add_openmw_dir (mwlua
     camerabindings vfsbindings uibindings soundbindings inputbindings nearbybindings postprocessingbindings stats debugbindings
     types/types types/door types/item types/actor types/container types/lockable types/weapon types/npc types/creature types/player types/activator types/book types/lockpick types/probe types/apparatus types/potion types/ingredient types/misc types/repair types/armor types/light types/static types/clothing types/levelledlist types/terminal
     magicbindings factionbindings
-    # worker # Lua threading doesn't work correctly and wouldn't be as beneficial as in OSG-OpenMW
+    # worker # Note, Lua threading is currently broken and wouldn't be as beneficial as in OSG-OpenMW
     )
 
 add_openmw_dir (mwsound
@@ -134,7 +134,7 @@ target_link_libraries(openmw
     ${Boost_PROGRAM_OPTIONS_LIBRARY} #vsgopenmw-replace-me
     ${OPENAL_LIBRARY}
     ${FFmpeg_LIBRARIES}
-    ${MyGUI_LIBRARIES}
+    ${MyGUI_LIBRARY}
     ${SDL2_LIBRARY}
     ${RecastNavigation_LIBRARIES}
     "osg-ffmpeg-videoplayer"

@@ -242,8 +242,7 @@ namespace MWWorld
         const std::vector<std::string>& groundcoverFiles, ToUTF8::Utf8Encoder* encoder, MWState::Loading& state,
         int activationDistanceOverride,
         const std::filesystem::path& userDataPath)
-        : mResourceSystem(resourceSystem)
-        , mLocalScripts(mStore)
+        : mLocalScripts(mStore)
         , mWorldModel(mStore, mReaders)
         , mTimeManager(std::make_unique<DateTimeManager>())
         , mGodMode(false)
@@ -864,7 +863,7 @@ namespace MWWorld
         const std::string_view cellName, const ESM::Position& position, bool adjustPlayerPos, bool changeEvent)
     {
         auto& destinationCell = mWorldModel.getInterior(cellName);
-        changeToCell(destinationCell->getCell()->getId(), position, adjustPlayerPos, changeEvent);
+        changeToCell(destinationCell.getCell()->getId(), position, adjustPlayerPos, changeEvent);
     }
 
     void World::changeToCell(
@@ -875,14 +874,14 @@ namespace MWWorld
         changeCell->position = position;
         changeCell->changeEvent = changeEvent;
         changeCell->onCellChanged = [this, position, adjustPlayerPos, changeEvent](const MWWorld::CellStore& cellStore) {
-            if (mCurrentWorldSpace != cellStore.getNameId())
+            if (mCurrentWorldSpace != cellStore.getCell()->getNameId())
             {
                 if (changeEvent)
                 {
                     mProjectileManager->clear();
                     mRendering->notifyWorldSpaceChanged();
                 }
-                mCurrentWorldSpace = cellStore.getNameId();
+                mCurrentWorldSpace = cellStore.getCell()->getNameId();
             }
             if (adjustPlayerPos)
             {
@@ -1016,7 +1015,7 @@ namespace MWWorld
                 else
                 {
                     if (mWorldScene->isCellActive(*newCell))
-                        mWorldScene->changePlayerCell(newCell);
+                        mWorldScene->changePlayerCell(*newCell);
                     else
                         changeToCell(newCell->getCell()->getId(), pos, false);
                 }
@@ -1092,8 +1091,7 @@ namespace MWWorld
             if (mWorldScene->needToChangeCellGrid(position))
             {
                 auto changeCellGrid = std::make_shared<MWState::ChangeCell>(*mWorldScene);
-                auto cellIndex = positionToCellIndex(pos.asVec3().x(), pos.asVec3().y());
-                changeCellGrid->cell = { ESM::CellId::sDefaultWorldspace, { cellIndex.x(), cellIndex.y() }, true };
+                changeCellGrid->cell = newCell->getCell()->getId();
                 changeCellGrid->position = pos;
                 auto& stateMgr = *MWBase::Environment::get().getStateManager();
                 stateMgr.pushGameState(changeCellGrid);
@@ -1945,12 +1943,12 @@ namespace MWWorld
         if (!object.getClass().isActor() && adjustPos /* && dropped.getRefData().getBaseNode()*/)
         {
             // Adjust position so the location we wanted ends up in the middle of the object bounding box
-            auto bb = mRendering->getBoundingBox(dropped);
+            auto bb = mRendering->getBoundingBox(object);
             if (bb.valid())
             {
+                ESM::Position pos = object.getRefData().getPosition();
                 bb = vsg::box(bb.min - toVsg(pos.asVec3()), bb.max - toVsg(pos.asVec3()));
                 osg::Vec3f adjust((bb.min.x + bb.max.x) / 2, (bb.min.y + bb.max.y) / 2, bb.min.z);
-                ESM::Position pos = object.getRefData().getPosition();
                 pos.pos[0] -= adjust.x();
                 pos.pos[1] -= adjust.y();
                 pos.pos[2] -= adjust.z();
@@ -2129,10 +2127,12 @@ namespace MWWorld
         mRendering->getCamera()->applyDeferredPreviewRotationToPlayer(dt);
     }
 
+    /*
     MWRender::Camera* World::getCamera()
     {
         return mRendering->getCamera();
     }
+    */
 
     bool World::vanityRotateCamera(const float* rot)
     {
@@ -2486,11 +2486,13 @@ namespace MWWorld
 
     static std::optional<ESM::Position> searchMarkerPosition(const CellStore& cellStore, std::string_view editorId)
     {
+        /*
         for (const MWWorld::LiveCellRef<ESM4::Static>& stat4 : cellStore.getReadOnlyEsm4Statics().mList)
         {
             if (Misc::StringUtils::lowerCase(stat4.mBase->mEditorId) == editorId)
                 return stat4.mRef.getPosition();
         }
+        */
         return std::nullopt;
     }
 
@@ -2504,12 +2506,15 @@ namespace MWWorld
                 continue;
             sortedDoors.push_back(&door.mRef);
         }
+        /*
         for (const MWWorld::LiveCellRef<ESM4::Door>& door : cellStore.getReadOnlyEsm4Doors().mList)
         {
             if (!door.mRef.getTeleport())
                 continue;
             sortedDoors.push_back(&door.mRef);
         }
+
+        */
 
         // Sort teleporting doors alphabetically, first by ID, then by destination cell to make search consistent
         std::sort(sortedDoors.begin(), sortedDoors.end(), [](const MWWorld::CellRef* lhs, const MWWorld::CellRef* rhs) {
@@ -2543,9 +2548,9 @@ namespace MWWorld
                 if (cellId == destDoor.mRef.getDestCell())
                     return destDoor.mRef.getDoorDest();
             }
-        }
 
         */
+        }
 
         return std::nullopt;
     }

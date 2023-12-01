@@ -6,7 +6,8 @@
 namespace Anim
 {
     /*
-     * Shortcuts calculations.
+     * Constant<T> is a channel class that returns a fixed value and avoids all calculation.
+     * Typically used to assign default values to unused channels, and to avoid the need for checking the validity of channels in Controller::run(..) implementations.
      */
     template <typename T>
     class Constant : public Channel<T>

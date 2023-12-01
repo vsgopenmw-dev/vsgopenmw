@@ -1,5 +1,6 @@
 #include "classes.hpp"
 
+/*
 #include <components/esm4/loadacti.hpp>
 #include <components/esm4/loadalch.hpp>
 #include <components/esm4/loadammo.hpp>
@@ -20,6 +21,7 @@
 #include <components/esm4/loadtree.hpp>
 #include <components/esm4/loadweap.hpp>
 
+*/
 #include "activator.hpp"
 #include "apparatus.hpp"
 #include "armor.hpp"
@@ -42,10 +44,12 @@
 #include "static.hpp"
 #include "weapon.hpp"
 
+/*
 #include "esm4base.hpp"
 #include "esm4npc.hpp"
 #include "light4.hpp"
 
+*/
 namespace MWClass
 {
     void registerClasses()

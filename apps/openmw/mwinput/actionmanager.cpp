@@ -31,12 +31,6 @@ namespace MWInput
 
     ActionManager::ActionManager(BindingsManager* bindingsManager)
         : mBindingsManager(bindingsManager)
-<<<<<<< HEAD
-        , mViewer(std::move(viewer))
-        , mScreenCaptureHandler(std::move(screenCaptureHandler))
-        , mScreenCaptureOperation(screenCaptureOperation)
-=======
->>>>>>> 954897300b (vsgopenmw-openmw)
         , mTimeIdle(0.f)
     {
     }
@@ -170,28 +164,7 @@ namespace MWInput
 
     void ActionManager::screenshot()
     {
-<<<<<<< HEAD
-        const std::string& settingStr = Settings::Manager::getString("screenshot type", "Video");
-        bool regularScreenshot = settingStr.empty() || settingStr == "regular";
-
-        if (regularScreenshot)
-        {
-            mScreenCaptureHandler->setFramesToCapture(1);
-            mScreenCaptureHandler->captureNextFrame(*mViewer);
-        }
-        else
-        {
-            osg::ref_ptr<osg::Image> screenshot(new osg::Image);
-
-            if (MWBase::Environment::get().getWorld()->screenshot360(screenshot.get()))
-            {
-                (*mScreenCaptureOperation)(*(screenshot.get()), 0);
-                // FIXME: mScreenCaptureHandler->getCaptureOperation() causes crash for some reason
-            }
-        }
-=======
         screenshotRequest = true;
->>>>>>> 954897300b (vsgopenmw-openmw)
     }
 
     void ActionManager::toggleMainMenu()

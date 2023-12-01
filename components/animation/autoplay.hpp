@@ -6,7 +6,8 @@
 namespace Anim
 {
     /*
-     * Supports random phase.
+     * AutoPlay is a composite class that manages distinct groups of controller/object pairs where each group plays with a different time offset (phase).
+     * A phase group of 0 corresponds to no time offset, for all other groups a random offset is chosen when the group is created.
      */
     struct AutoPlay
     {

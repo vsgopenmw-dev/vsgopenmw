@@ -28,7 +28,7 @@ namespace MWState
 
     void Gui::quit()
     {
-        mWm.popGuiMode(mGuiMode);
+        mWm.removeGuiMode(mGuiMode);
     }
 
     bool Gui::hasQuitRequest() const

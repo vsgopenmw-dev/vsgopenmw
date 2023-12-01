@@ -29,13 +29,16 @@ namespace vsgUtil
     }
 
     template <class Group, class Node>
-    void prune(const std::vector<Node>& path)
+    void prune(const std::vector<Node>& path, Group* root)
     {
         for (auto it = path.rbegin(); it != path.rend(); ++it)
         {
             auto pit = it + 1;
             if (pit == path.rend())
+            {
+                removeChild(root, *it);
                 break;
+            }
             auto parent = static_cast<Group*>(&**pit);
             removeChild(parent, *it);
             if (!parent->children.empty())

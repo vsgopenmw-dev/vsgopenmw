@@ -37,8 +37,9 @@ std::optional<OMW::Arguments> parseArgs(int argc, char** argv, Files::Configurat
 
     if (variables.count("version"))
     {
-        getRawStdout() << Version::getOpenmwVersionDescription() << std::endl;
-        return false;
+        std::cout << Version::getOpenmwVersionDescription() << std::endl;
+        //getRawStdout() << Version::getOpenmwVersionDescription() << std::endl;
+        return {};
     }
 
     cfgMgr.readConfiguration(variables, desc);

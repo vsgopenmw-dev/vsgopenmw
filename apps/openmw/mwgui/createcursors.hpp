@@ -28,9 +28,9 @@ namespace MWGui
             ResourceImageSetPointerFix* imgSetPointer = resource->castType<ResourceImageSetPointerFix>(false);
             if (!imgSetPointer)
                 continue;
-            std::string tex_name = imgSetPointer->getImageSet()->getIndexInfo(0, 0).texture;
+            auto tex_name = imgSetPointer->getImageSet()->getIndexInfo(0, 0).texture;
             MyGUI::IntSize pointerSize = imgSetPointer->getSize();
-            if (auto data = vsgUtil::readOptionalImage(tex_name, decompressOptions))
+            if (auto data = vsgUtil::readOptionalImage(std::string(tex_name), decompressOptions))
             {
                 auto surface = vsgAdapters::sdl::createSurface(data);
                 Uint8 hotspot_x = imgSetPointer->getHotSpot().left;

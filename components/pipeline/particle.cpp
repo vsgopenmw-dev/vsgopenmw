@@ -42,7 +42,8 @@ namespace Pipeline
             { 1, vsg::Value<VkBool32>::create(modes & ParticleMode_Color) },
             { 2, vsg::Value<VkBool32>::create(modes & ParticleMode_GravityPlane) },
             { 3, vsg::Value<VkBool32>::create(modes & ParticleMode_GravityPoint) },
-            { 4, vsg::Value<VkBool32>::create(modes & ParticleMode_CollidePlane) }
+            { 4, vsg::Value<VkBool32>::create(modes & ParticleMode_CollidePlane) },
+            { 5, vsg::Value<VkBool32>::create(modes & ParticleMode_WorldSpace) }
         };
         return vsg::BindComputePipeline::create(vsg::ComputePipeline::create(mLayout, shaderStage));
     }

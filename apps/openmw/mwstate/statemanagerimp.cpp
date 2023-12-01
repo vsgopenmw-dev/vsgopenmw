@@ -120,7 +120,7 @@ namespace MWState
         mState = State_Running;
     }
 
-    void MWState::StateManager::saveGame(const std::string& description, const Slot* slot)
+    void MWState::StateManager::saveGame(std::string_view description, const Slot* slot)
     {
         if (mState != State_Running)
             return;

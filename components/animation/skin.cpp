@@ -51,11 +51,10 @@ namespace Anim
         class GetSkinPath : public Anim::Visitor
         {
             vsg::Object* mTarget{};
-            vsg::dsphere* mCurrentCullBounds{};
-            vsg::dsphere* mCurrentDepthSortedBounds{};
+            std::vector<vsg::dsphere*> mCurrentNodeBounds{};
 
         public:
-            vsgUtil::SearchPath<const Transform*> transformPath;
+            vsgUtil::SearchPath<const Anim::Transform*> transformPath;
             vsgUtil::SearchPath<vsg::StateGroup*> statePath;
 
             GetSkinPath(vsg::Object* target)
@@ -63,32 +62,34 @@ namespace Anim
             {
                 overrideMask = vsg::MASK_ALL;
             }
-            vsg::dsphere* foundCullBounds{};
-            vsg::dsphere* foundDepthSortedBounds{};
+            std::vector<vsg::dsphere*> foundNodeBounds;
             using Visitor::apply;
             void apply(vsg::Transform& transform) override
             {
-                mCurrentCullBounds = {};
-                mCurrentDepthSortedBounds = {};
+                if (!mCurrentNodeBounds.empty())
+                {
+                    //if (childContainsSkin)
+                    //   std::cerr << "!GetSkinPath::apply(vsg::Transform&): transforming bounds is not implemented, ignoring transform node." << std::endl;
+                }
                 transformPath.accumulateCastAndTraverse(transform, *this);
             }
             void apply(vsg::DepthSorted& node) override
             {
-                mCurrentDepthSortedBounds = &node.bound;
+                mCurrentNodeBounds.push_back(&node.bound);
                 transformPath.traverseNode(node, *this);
-                mCurrentDepthSortedBounds = {};
+                mCurrentNodeBounds.pop_back();
             }
             void apply(vsg::CullNode& node) override
             {
-                mCurrentCullBounds = &node.bound;
+                mCurrentNodeBounds.push_back(&node.bound);
                 transformPath.traverseNode(node, *this);
-                mCurrentCullBounds = {};
+                mCurrentNodeBounds.pop_back();
             }
             void apply(vsg::CullGroup& node) override
             {
-                mCurrentCullBounds = &node.bound;
+                mCurrentNodeBounds.push_back(&node.bound);
                 transformPath.traverseNode(node, *this);
-                mCurrentCullBounds = {};
+                mCurrentNodeBounds.pop_back();
             }
             void apply(vsg::StateGroup& sg) override
             {
@@ -101,8 +102,7 @@ namespace Anim
                 {
                     transformPath.foundPath = transformPath.path;
                     statePath.foundPath = statePath.path;
-                    foundCullBounds = mCurrentCullBounds;
-                    foundDepthSortedBounds = mCurrentDepthSortedBounds;
+                    foundNodeBounds = mCurrentNodeBounds;
                 }
             }
         };
@@ -132,7 +132,9 @@ namespace Anim
             mBones[i].matrix = skinMatrix * vsgUtil::computeTransform(mBones[i].path);
             array.at(i) = mBones[i].matrix * mBones[i].invBindMatrix;
         }
-        updateBounds();
+
+        if (!mDynamicBounds.empty())
+            updateBounds();
     }
 
     void Skin::link(Context& context, vsg::Object& target)
@@ -172,8 +174,9 @@ namespace Anim
 
         optimizePaths();
 
-        mDynamicBounds = visitor.foundCullBounds;
-        mDynamicDepthSortedBounds = visitor.foundDepthSortedBounds;
+        mDynamicBounds = visitor.foundNodeBounds;
+        if (mDynamicBounds.empty())
+            std::cerr << "!GetSkinPath::foundNodeBounds" << std::endl;
     }
 
     void Skin::optimizePaths()
@@ -212,9 +215,7 @@ namespace Anim
             compute.add(bones[i].bounds);
         }
         auto sphere = vsgUtil::toSphere(compute.bounds);
-        if (mDynamicBounds)
-            mDynamicBounds->set(sphere.center, sphere.radius);
-        if (mDynamicDepthSortedBounds)
-            mDynamicDepthSortedBounds->set(sphere.center, sphere.radius);
+        for (auto& bound : mDynamicBounds)
+            bound->set(sphere.center, sphere.radius);
     }
 }

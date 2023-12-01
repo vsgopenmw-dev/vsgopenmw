@@ -71,7 +71,7 @@ namespace
     }
 
     vsg::ref_ptr<const vsg::Options> createNodeOptions(
-        const VFS::Manager* vfs, const Pipeline::Builder& builder, vsg::ref_ptr<const vsg::Options> textureOptions)
+        const VFS::Manager* vfs, const Pipeline::Builder& builder, vsg::ref_ptr<const vsg::Options> textureOptions, int computeBin, int depthSortedBin)
     {
         auto nodeOptions = vsg::Options::create();
         nodeOptions->sharedObjects = vsg::SharedObjects::create();
@@ -87,7 +87,7 @@ namespace
         fallback->fallbackObject = vsg::Node::create();
 
         auto vfsReader = vsg::ref_ptr{ new vsgAdapters::vfs(*vfs) };
-        vfsReader->add(vsg::ref_ptr{ new vsgAdapters::nif(builder, textureOptions) });
+        vfsReader->add(vsg::ref_ptr{ new vsgAdapters::nif(builder, textureOptions, computeBin, depthSortedBin) });
         // vfsReader->add(vsgXchange::models::create());
 
         nodeOptions->readerWriters = { vfsReader, fallback };
@@ -120,28 +120,20 @@ namespace
 
 namespace Resource
 {
-    class NifFileManager {}; // vsgopenmw-delete-me
-
     ResourceSystem::ResourceSystem(const VFS::Manager* vfs, const std::string& shaderPath,
-        vsg::ref_ptr<vsg::Sampler> defaultSampler, bool supportsCompressedImages)
+        vsg::ref_ptr<vsg::Sampler> defaultSampler, bool supportsCompressedImages, int computeBin, int depthSortedBin)
         : mVFS(vfs)
         , shaderOptions(createShaderOptions(shaderPath))
         , builder(new Pipeline::Builder(shaderOptions, defaultSampler))
         , imageOptions(createImageOptions(vfs, !supportsCompressedImages))
         , textureOptions(createTextureOptions(vfs, *imageOptions))
-        , nodeOptions(createNodeOptions(vfs, *builder, textureOptions))
+        , nodeOptions(createNodeOptions(vfs, *builder, textureOptions, computeBin, depthSortedBin))
         , animationOptions(createAnimationOptions(vfs))
     {
     }
 
     ResourceSystem::~ResourceSystem()
     {
-    }
-
-    // vsgopenmw-delete-me
-    NifFileManager* ResourceSystem::getNifFileManager()
-    {
-        return {};
     }
 
     void ResourceSystem::updateCache(double referenceTime)
@@ -153,14 +145,6 @@ namespace Resource
     }
 
     void ResourceSystem::clearCache()
-    {
-    }
-
-    void ResourceSystem::addResourceManager(BaseResourceManager* resourceMgr)
-    {
-    }
-
-    void ResourceSystem::removeResourceManager(BaseResourceManager* resourceMgr)
     {
     }
 

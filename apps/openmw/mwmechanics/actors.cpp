@@ -379,6 +379,10 @@ namespace MWMechanics
         }
     }
 
+    Actors::Actors()
+    {
+    }
+
     Actors::~Actors()
     {
     }
@@ -1221,6 +1225,7 @@ namespace MWMechanics
 
         // Fade away actors on large distance (>90% of actor's processing distance)
         float visibilityRatio = 1.0;
+        /*
         const float fadeStartDistance = actorsProcessingRange * 0.9f;
         const float fadeEndDistance = actorsProcessingRange;
         const float fadeRatio = (dist - fadeStartDistance) / (fadeEndDistance - fadeStartDistance);
@@ -1228,7 +1233,7 @@ namespace MWMechanics
             visibilityRatio -= std::max(0.f, fadeRatio);
 
         visibilityRatio = std::min(1.f, visibilityRatio);
-
+*/
         ctrl.setVisibility(visibilityRatio);
     }
 
@@ -1704,14 +1709,14 @@ namespace MWMechanics
                 }
 
                 charactersToUpdate.push_back(&ctrl);
-                //updateVisibility(actor.getPtr(), ctrl);
+                updateVisibility(actor.getPtr(), ctrl);
             }
 
             if (playerCharacter)
             {
                 charactersToUpdate.push_back(playerCharacter);
                 MWBase::Environment::get().getWorld()->applyDeferredPreviewRotationToPlayer(duration);
-                //playerCharacter->setVisibility(1.f);
+                playerCharacter->setVisibility(1.f);
                 MWBase::LuaManager::ActorControls* luaControls
                     = MWBase::Environment::get().getLuaManager()->getActorControls(player);
                 if (luaControls && player.getClass().getMovementSettings(player).mPosition[2] < 1)

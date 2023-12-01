@@ -24,6 +24,7 @@
 #include "../mwrender/effect.hpp"
 #include "../mwrender/itemlight.hpp"
 #include "../mwrender/player.hpp"
+#include "../mwrender/transparency.hpp"
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -919,7 +920,7 @@ namespace MWMechanics
              * handle knockout and death which moves the character down. */
             mAnimation->setAccumulation({ 1.0f, 1.0f, 0.0f });
 
-            MWRender::addItemLightsAndListener(*mActor->transform(), cls.getContainerStore(mPtr));
+            MWRender::addItemLightsAndListener(*mObject, cls.getContainerStore(mPtr));
 
             if (cls.hasInventoryStore(mPtr))
             {
@@ -1681,7 +1682,7 @@ namespace MWMechanics
                     mAttackVictim = MWWorld::Ptr();
                     mAttackHitPos = osg::Vec3f();
 
-                    mAnimation->play(mCurrentWeapon, priorityWeapon, MWRender::Animation::BlendMask_All, false,
+                    mAnimation->play(mCurrentWeapon, priorityWeapon, MWAnim::BlendMask_All, false,
                         weapSpeed, startKey, stopKey, 0.0f, 0);
                 }
             }
@@ -1890,7 +1891,7 @@ namespace MWMechanics
         speed = 0.f;
 
         updateMagicEffects();
-        MWAnim::updateEffects(*mObject->transform(), duration);
+        MWAnim::updateEffects(*mObject->node(), duration);
 
         bool isPlayer = mPtr == MWMechanics::getPlayer();
         bool isFirstPersonPlayer = isPlayer && MWBase::Environment::get().getWorld()->isFirstPerson();
@@ -2448,7 +2449,6 @@ namespace MWMechanics
         if (mActor)
         {
             mActor->manualAnimation(mPtr.getRefData().getPosition().rot[0], duration);
-            MWRender::updateItemLights(*mActor->transform(), duration);
             if (mWielding)
             {
                 if (mWeaponType != 0 && !mCurrentWeapon.empty())
@@ -2756,14 +2756,14 @@ namespace MWMechanics
         if (!mActor)
             return;
 
-        float light = mPtr.getClass()
-                          .getCreatureStats(mPtr)
-                          .getMagicEffects()
+        auto& stats = mPtr.getClass().getCreatureStats(mPtr);
+
+        float light = stats.getMagicEffects()
                           .getOrDefault(ESM::MagicEffect::Light)
                           .getMagnitude();
         light *= std::ceil(Constants::UnitsPerFoot)
             * /*arbitraryMultiplierToMakeCutoffLessObvious*/ 3;
-        MWAnim::setLightEffect(*mActor->transform(), light);
+        MWAnim::setLightEffect(*mObject, light);
 
         // If you're dead you don't care about whether you've started/stopped being a vampire or not
         if (stats.isDead())
@@ -2811,9 +2811,7 @@ namespace MWMechanics
             visibility = std::min(visibility, alpha);
         }
 
-        // TODO: implement a dithering shader rather than just change object transparency.
-        // createBin(ChameleonPostFxBin)
-        // mAnimation->setAlpha(visibility);
+        MWRender::setTransparency(*mObject, visibility);
     }
 
     std::string_view CharacterController::getMovementBasedAttackType() const
@@ -3085,6 +3083,9 @@ namespace MWMechanics
 
     MWWorld::MovementDirectionFlags CharacterController::getSupportedMovementDirections() const
     {
+        MWWorld::MovementDirectionFlags result = 0;
+        std::span<const std::string_view> prefixes;
+
         using namespace std::string_view_literals;
         // There are fallbacks in the CharacterController::refreshMovementAnims for certain animations. Arrays below
         // represent them.
@@ -3102,38 +3103,46 @@ namespace MWMechanics
             case CharState_Idle:
             case CharState_IdleSwim:
             case CharState_IdleSneak:
-                return mAnimation->getSupportedMovementDirections(all);
+                prefixes = all;
+                break;
             case CharState_WalkForward:
             case CharState_WalkBack:
             case CharState_WalkLeft:
             case CharState_WalkRight:
-                return mAnimation->getSupportedMovementDirections(walk);
+                prefixes = walk;
+                break;
             case CharState_SwimWalkForward:
             case CharState_SwimWalkBack:
             case CharState_SwimWalkLeft:
             case CharState_SwimWalkRight:
-                return mAnimation->getSupportedMovementDirections(swimWalk);
+                prefixes = swimWalk;
+                break;
             case CharState_RunForward:
             case CharState_RunBack:
             case CharState_RunLeft:
             case CharState_RunRight:
-                return mAnimation->getSupportedMovementDirections(run);
+                prefixes = run;
+                break;
             case CharState_SwimRunForward:
             case CharState_SwimRunBack:
             case CharState_SwimRunLeft:
             case CharState_SwimRunRight:
-                return mAnimation->getSupportedMovementDirections(swimRun);
+                prefixes = swimRun;
+                break;
             case CharState_SneakForward:
             case CharState_SneakBack:
             case CharState_SneakLeft:
             case CharState_SneakRight:
-                return mAnimation->getSupportedMovementDirections(sneak);
+                prefixes = sneak;
+                break;
             case CharState_TurnLeft:
             case CharState_TurnRight:
-                return mAnimation->getSupportedMovementDirections(all);
+                prefixes = all;
+                break;
             case CharState_SwimTurnLeft:
             case CharState_SwimTurnRight:
-                return mAnimation->getSupportedMovementDirections(swim);
+                prefixes = swim;
+                break;
             case CharState_Death1:
             case CharState_Death2:
             case CharState_Death3:
@@ -3151,9 +3160,25 @@ namespace MWMechanics
             case CharState_SwimKnockDown:
             case CharState_SwimKnockOut:
             case CharState_Block:
-                return mAnimation->getSupportedMovementDirections(all);
+                prefixes = all;
+                break;
         }
-        return 0;
+
+        auto addMovementDirections = [&result, &prefixes] (const std::string& animation) {
+            if (std::find_if(prefixes.begin(), prefixes.end(), [&](std::string_view v) { return animation.starts_with(v); }) == prefixes.end())
+                return;
+            else if (animation.ends_with("forward"))
+                result |= MWWorld::MovementDirectionFlag_Forward;
+            else if (animation.ends_with("back"))
+                result |= MWWorld::MovementDirectionFlag_Back;
+            else if (animation.ends_with("left"))
+                result |= MWWorld::MovementDirectionFlag_Left;
+            else if (animation.ends_with("right"))
+                result |= MWWorld::MovementDirectionFlag_Right;
+        };
+        mAnimation->listAnimationGroups(addMovementDirections);;
+
+        return result;
     }
 
 }

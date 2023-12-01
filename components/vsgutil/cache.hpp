@@ -9,7 +9,7 @@
 namespace vsgUtil
 {
     /*
-     * Stores created objects for reuse.
+     * Cache/RefCache are simple template classes for thread safe caching of objects in a map.
      */
     template <class Key, class Object>
     class Cache

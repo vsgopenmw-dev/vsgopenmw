@@ -6,7 +6,7 @@
 namespace vsgUtil
 {
     /*
-     * Provides clone implementation using the Curiously Recurring Template Pattern.
+     * Adds convenience functionality to vsg::ArrayState, such as an automatically provided clone(..) implementation, based on the Curiously Recurring Template Pattern.
      */
     template <class Derived>
     class ArrayState : public vsg::ArrayState

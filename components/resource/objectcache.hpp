@@ -1,21 +1,53 @@
+// Resource ObjectCache for OpenMW, forked from osgDB ObjectCache by Robert Osfield, see copyright notice below.
+// Changes:
+// - removeExpiredObjectsInCache no longer keeps a lock while the unref happens.
+// - template allows customized KeyType.
+// - objects with uninitialized time stamp are not removed.
+
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+ */
+
 #ifndef OPENMW_COMPONENTS_RESOURCE_OBJECTCACHE
 #define OPENMW_COMPONENTS_RESOURCE_OBJECTCACHE
 
-#include <vsg/core/Object.h>
-#include <vsg/core/ref_ptr.h>
+#include <osg/Node>
+#include <osg/Referenced>
+#include <osg/ref_ptr>
 
 #include <map>
 #include <mutex>
 #include <optional>
 #include <string>
 
+namespace osg
+{
+    class Object;
+    class State;
+    class NodeVisitor;
+}
+
 namespace Resource
 {
 
     template <typename KeyType>
-    class GenericObjectCache : public vsg::Object
+    class GenericObjectCache : public osg::Referenced
     {
     public:
+        GenericObjectCache()
+            : osg::Referenced(true)
+        {
+        }
+
         /** For each object in the cache which has an reference count greater than 1
          * (and therefore referenced by elsewhere in the application) set the time stamp
          * for that object in the cache to specified time.
@@ -42,7 +74,7 @@ namespace Resource
          * after the call to updateTimeStampOfObjectsInCacheWithExternalReferences(expirtyTime).*/
         void removeExpiredObjectsInCache(double expiryTime)
         {
-            std::vector<vsg::ref_ptr<vsg::Object>> objectsToRemove;
+            std::vector<osg::ref_ptr<osg::Object>> objectsToRemove;
             {
                 std::lock_guard<std::mutex> lock(_objectCacheMutex);
                 // Remove expired entries from object cache
@@ -71,7 +103,7 @@ namespace Resource
         }
 
         /** Add a key,object,timestamp triple to the Registry::ObjectCache.*/
-        void addEntryToObjectCache(const KeyType& key, vsg::Object* object, double timestamp = 0.0)
+        void addEntryToObjectCache(const KeyType& key, osg::Object* object, double timestamp = 0.0)
         {
             std::lock_guard<std::mutex> lock(_objectCacheMutex);
             _objectCache[key] = Item{ object, timestamp };
@@ -87,17 +119,17 @@ namespace Resource
         }
 
         /** Get an ref_ptr<Object> from the object cache*/
-        vsg::ref_ptr<vsg::Object> getRefFromObjectCache(const KeyType& key)
+        osg::ref_ptr<osg::Object> getRefFromObjectCache(const KeyType& key)
         {
             std::lock_guard<std::mutex> lock(_objectCacheMutex);
             typename ObjectCacheMap::iterator itr = _objectCache.find(key);
             if (itr != _objectCache.end())
                 return itr->second.mValue;
             else
-                return {};
+                return nullptr;
         }
 
-        std::optional<vsg::ref_ptr<vsg::Object>> getRefFromObjectCacheOrNone(const KeyType& key)
+        std::optional<osg::ref_ptr<osg::Object>> getRefFromObjectCacheOrNone(const KeyType& key)
         {
             const std::lock_guard<std::mutex> lock(_objectCacheMutex);
             const auto it = _objectCache.find(key);
@@ -120,11 +152,22 @@ namespace Resource
                 return false;
         }
 
-        /** call node->accept(nv); for all nodes in the objectCache.
+        /** call releaseGLObjects on all objects attached to the object cache.*/
+        void releaseGLObjects(osg::State* state)
+        {
+            std::lock_guard<std::mutex> lock(_objectCacheMutex);
+            for (typename ObjectCacheMap::iterator itr = _objectCache.begin(); itr != _objectCache.end(); ++itr)
+            {
+                osg::Object* object = itr->second.mValue.get();
+                object->releaseGLObjects(state);
+            }
+        }
+
+        /** call node->accept(nv); for all nodes in the objectCache. */
         void accept(osg::NodeVisitor& nv)
         {
             std::lock_guard<std::mutex> lock(_objectCacheMutex);
-            for(typename ObjectCacheMap::iterator itr = _objectCache.begin(); itr != _objectCache.end(); ++itr)
+            for (typename ObjectCacheMap::iterator itr = _objectCache.begin(); itr != _objectCache.end(); ++itr)
             {
                 if (osg::Object* object = itr->second.mValue.get())
                 {
@@ -134,8 +177,8 @@ namespace Resource
                 }
             }
         }
-*/
-        /** call operator()(KeyType, vsg::Object*) for each object in the cache. */
+
+        /** call operator()(KeyType, osg::Object*) for each object in the cache. */
         template <class Functor>
         void call(Functor& f)
         {
@@ -152,7 +195,7 @@ namespace Resource
         }
 
         template <class K>
-        std::optional<std::pair<KeyType, vsg::ref_ptr<vsg::Object>>> lowerBound(K&& key)
+        std::optional<std::pair<KeyType, osg::ref_ptr<osg::Object>>> lowerBound(K&& key)
         {
             const std::lock_guard<std::mutex> lock(_objectCacheMutex);
             const auto it = _objectCache.lower_bound(std::forward<K>(key));
@@ -164,18 +207,13 @@ namespace Resource
     protected:
         struct Item
         {
-            vsg::ref_ptr<vsg::Object> mValue;
+            osg::ref_ptr<osg::Object> mValue;
             double mLastUsage;
         };
 
         virtual ~GenericObjectCache() {}
 
-<<<<<<< HEAD
         using ObjectCacheMap = std::map<KeyType, Item, std::less<>>;
-=======
-        using ObjectTimeStampPair = std::pair<vsg::ref_ptr<vsg::Object>, double>;
-        using ObjectCacheMap = std::map<KeyType, ObjectTimeStampPair>;
->>>>>>> 954897300b (vsgopenmw-openmw)
 
         ObjectCacheMap _objectCache;
         mutable std::mutex _objectCacheMutex;

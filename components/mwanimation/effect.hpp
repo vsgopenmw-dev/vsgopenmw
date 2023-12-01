@@ -4,12 +4,19 @@
 #include <vsg/nodes/Group.h>
 
 #include <components/animation/autoplay.hpp>
+#include <components/animation/animation.hpp>
 #include <components/vsgutil/compilecontext.hpp>
 
 #include "context.hpp"
 
+namespace Anim
+{
+    class Transform;
+}
 namespace MWAnim
 {
+    class Object;
+
     struct Effect
     {
         vsg::ref_ptr<vsg::Node> node;
@@ -17,17 +24,17 @@ namespace MWAnim
         int effectId = -1;
         bool loop = false;
 
-        std::string overrideTexture;
-        bool overrideAllTextures;
-        std::vector<vsg::ref_ptr<vsg::Node>> replaceDummyNodes;
-
         Anim::AutoPlay update;
         float duration = 0;
 
-        vsg::Group* parent{};
+        vsg::Group* parentBone{};
+        MWAnim::Object* parentObject{};
 
-        void compile();
-        void attachTo(vsg::Group* p);
+        static std::pair<Anim::Animation, vsg::ref_ptr<vsg::Node>> load(const Context& mwctx, vsg::ref_ptr<vsg::Node> prototype, const std::string& overrideTexture, bool overrideAllTextures, const std::vector<vsg::ref_ptr<vsg::Node>>& replaceDummyNodes = {});
+
+        void compile(Anim::Animation& animation, vsg::ref_ptr<vsg::Node> node, const std::vector<Anim::Transform*>& worldAttachmentPath, const std::vector<vsg::Node*>& localAttachmentPath);
+        void attachTo(vsg::Group* bone);
+        void attachTo(MWAnim::Object* obj);
         bool run(float dt);
         void detach();
     };

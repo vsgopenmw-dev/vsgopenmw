@@ -328,7 +328,7 @@ namespace Nif
         {
             if (bone.empty())
                 throw Nif::Exception("Oops: Missing bone! Don't know how to handle this.", nif.getFilename());
-            bone->setBone();
+            bone->useFlags |= Nif::NiAVObject::Bone;
         }
     }
 

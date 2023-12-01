@@ -1,6 +1,8 @@
 #ifndef VSGOPENMW_VSGADAPTERS_NIF_CHANNEL_H
 #define VSGOPENMW_VSGADAPTERS_NIF_CHANNEL_H
 
+#include <cassert>
+
 #include <components/animation/channel.hpp>
 #include <components/nif/data.hpp>
 
@@ -20,19 +22,18 @@ namespace vsgAdapters
 
     struct VisChannel : public Anim::Channel<bool>
     {
-        VisChannel(const std::vector<Nif::NiVisData::VisData>& d)
+        VisChannel(std::shared_ptr<std::map<float, bool>> d)
             : data(d)
         {
+            assert(!data->empty());
         }
-        std::vector<Nif::NiVisData::VisData> data;
+        std::shared_ptr<std::map<float, bool>> data;
         bool value(float time) const override
         {
-            for (size_t i = 1; i < data.size(); ++i)
-            {
-                if (data[i].time > time)
-                    return data[i - 1].isSet;
-            }
-            return data.back().isSet;
+            auto iter = data->upper_bound(time);
+            if (iter != data->begin())
+                --iter;
+            return iter->second;
         }
     };
 }

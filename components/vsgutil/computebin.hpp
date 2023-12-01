@@ -7,8 +7,8 @@
 namespace vsgUtil
 {
     /*
-     * ComputeBin is a bin class that uses a nested command graph to move the execution
-     * of commands that can't run during a RenderPass, e.g. compute commands, upwards.
+     * ComputeBin is a bin class that uses a nested command graph to reorder the execution
+     * of commands that can't run during a RenderPass, e.g. compute commands.
      * The submitOrder of the nested command graph is used to control whether the
      * Bin's contents should execute before or after the parent command graph.
      * ComputeBin is useful to encapsulate compute commands within a rendering scene graph, and inherit any associated masks,

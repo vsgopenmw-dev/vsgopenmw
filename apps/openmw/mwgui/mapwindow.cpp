@@ -598,8 +598,8 @@ namespace MWGui
             bool useFog = mFogOfWarToggled && mFogOfWarEnabled;
             if (!mInterior && useFog)
             {
-                const auto cell = MWBase::Environment::get().getWorldModel()->getExterior(ESM::ExteriorCellLocation(entry.mCellX, entry.mCellY, ESM::Cell::sDefaultWorldspaceId));
-                if (!cell || (!cell->getFog() && !mLocalMapRender->isCellExplored(entry.mCellX, entry.mCellY)))
+                const auto& cell = MWBase::Environment::get().getWorldModel()->getExterior(ESM::ExteriorCellLocation(entry.mCellX, entry.mCellY, ESM::Cell::sDefaultWorldspaceId));
+                if ((!cell.getFog() && !mLocalMapRender->isCellExplored(entry.mCellX, entry.mCellY)))
                 {
                     setBlack(entry);
                     continue;
@@ -619,7 +619,7 @@ namespace MWGui
                 }
                 if (!mInterior && !entry.mMapTexture)
                     requestMapRender(
-                        MWBase::Environment::get().getWorldModel()->getExterior(entry.mCellX, entry.mCellY));
+                        &MWBase::Environment::get().getWorldModel()->getExterior(ESM::ExteriorCellLocation( entry.mCellX, entry.mCellY, {} )));
                 auto mapTex = mLocalMapRender->getMapTexture(entry.mCellX, entry.mCellY);
                 if (!mapTex)
                 {

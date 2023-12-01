@@ -1,5 +1,6 @@
 struct FrameArgs
 {
+    mat4 worldOffset;
     mat4 emitMatrix;
     ivec4 emitCount;
     vec4 time;

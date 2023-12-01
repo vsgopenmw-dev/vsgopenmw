@@ -26,12 +26,14 @@ namespace MWLua
 {
     struct Shader
     {
+        /*
         std::shared_ptr<fx::Technique> mShader;
 
         Shader(std::shared_ptr<fx::Technique> shader)
             : mShader(std::move(shader))
         {
         }
+        */
 
         std::string toString() const
         {

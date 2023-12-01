@@ -71,6 +71,17 @@ namespace Resource
         deleteShape(shape);
     }
 
+    BulletShape::BulletShape(const BulletShape& other)
+        : mCollisionShape(duplicateCollisionShape(other.mCollisionShape.get()))
+        , mAvoidCollisionShape(duplicateCollisionShape(other.mAvoidCollisionShape.get()))
+        , mCollisionBox(other.mCollisionBox)
+        , mAnimatedShapes(other.mAnimatedShapes)
+        , mFileName(other.mFileName)
+        , mFileHash(other.mFileHash)
+        , mVisualCollisionType(other.mVisualCollisionType)
+    {
+    }
+
     void BulletShape::setLocalScaling(const btVector3& scale)
     {
         mCollisionShape->setLocalScaling(scale);
