@@ -171,13 +171,14 @@ namespace MWScript
         return iter->second->mRunning;
     }
 
-    void GlobalScripts::run()
+    void GlobalScripts::run(float dt)
     {
         for (const auto& script : mScripts)
         {
             if (script.second->mRunning)
             {
                 MWScript::InterpreterContext context(script.second);
+                context.dt = dt;
                 if (!MWBase::Environment::get().getScriptManager()->run(script.first, context))
                     script.second->mRunning = false;
             }

@@ -6,7 +6,6 @@
 #include <memory>
 
 #include <components/misc/constants.hpp>
-#include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
 
 #include <components/debug/debuglog.hpp>
@@ -52,7 +51,6 @@
 #include "../mwworld/ptr.hpp"
 #include "../mwworld/worldmodel.hpp"
 
-#include "../mwrender/npcanimation.hpp"
 #include "../mwrender/objects.hpp"
 #include "../mwrender/renderinginterface.hpp"
 
@@ -434,33 +432,23 @@ namespace MWClass
     void Npc::getModelsToPreload(const MWWorld::Ptr& ptr, std::vector<std::string>& models) const
     {
         const MWWorld::LiveCellRef<ESM::NPC>* npc = ptr.get<ESM::NPC>();
-        const ESM::Race* race = MWBase::Environment::get().getESMStore()->get<ESM::Race>().search(npc->mBase->mRace);
-        if (race && race->mData.mFlags & ESM::Race::Beast)
-            models.push_back(Settings::models().mBaseanimkna);
-
-        // keep these always loaded just in case
-        models.push_back(Settings::models().mXargonianswimkna);
-        models.push_back(Settings::models().mXbaseanimfemale);
-        models.push_back(Settings::models().mXbaseanim);
-
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
 
         if (!npc->mBase->mModel.empty())
-            models.push_back(Misc::ResourceHelpers::correctMeshPath(npc->mBase->mModel, vfs));
+            models.push_back(npc->mBase->mModel);
 
         if (!npc->mBase->mHead.empty())
         {
             const ESM::BodyPart* head
                 = MWBase::Environment::get().getESMStore()->get<ESM::BodyPart>().search(npc->mBase->mHead);
             if (head)
-                models.push_back(Misc::ResourceHelpers::correctMeshPath(head->mModel, vfs));
+                models.push_back(head->mModel);
         }
         if (!npc->mBase->mHair.empty())
         {
             const ESM::BodyPart* hair
                 = MWBase::Environment::get().getESMStore()->get<ESM::BodyPart>().search(npc->mBase->mHair);
             if (hair)
-                models.push_back(Misc::ResourceHelpers::correctMeshPath(hair->mModel, vfs));
+                models.push_back(hair->mModel);
         }
 
         bool female = (npc->mBase->mFlags & ESM::NPC::Female);
@@ -499,12 +487,13 @@ namespace MWClass
                     const ESM::BodyPart* part
                         = MWBase::Environment::get().getESMStore()->get<ESM::BodyPart>().search(partname);
                     if (part && !part->mModel.empty())
-                        models.push_back(Misc::ResourceHelpers::correctMeshPath(part->mModel, vfs));
+                        models.push_back(part->mModel);
                 }
             }
         }
 
         // preload body parts
+        /*
         if (race)
         {
             const std::vector<const ESM::BodyPart*>& parts
@@ -513,9 +502,10 @@ namespace MWClass
             {
                 const ESM::BodyPart* part = *it;
                 if (part && !part->mModel.empty())
-                    models.push_back(Misc::ResourceHelpers::correctMeshPath(part->mModel, vfs));
+                    models.push_back(part->mModel);
             }
         }
+        */
     }
 
     std::string_view Npc::getName(const MWWorld::ConstPtr& ptr) const

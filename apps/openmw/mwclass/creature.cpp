@@ -172,9 +172,8 @@ namespace MWClass
     }
 
     void Creature::insertObjectRendering(
-        const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
+        const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& objects) const
     {
-        MWRender::Objects& objects = renderingInterface.getObjects();
         objects.insertCreature(ptr, model, hasInventoryStore(ptr));
     }
 
@@ -644,12 +643,10 @@ namespace MWClass
             const std::string model = getModel(ptr);
             if (!model.empty())
             {
-                const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
                 for (const ESM::Creature& creature : store.get<ESM::Creature>())
                 {
                     if (creature.mId != ourId && creature.mOriginal != ourId && !creature.mModel.empty()
-                        && Misc::StringUtils::ciEqual(
-                            model, Misc::ResourceHelpers::correctMeshPath(creature.mModel, vfs)))
+                        && Misc::StringUtils::ciEqual(model, creature.mModel))
                     {
                         const ESM::RefId& fallbackId = !creature.mOriginal.empty() ? creature.mOriginal : creature.mId;
                         sound = store.get<ESM::SoundGenerator>().begin();

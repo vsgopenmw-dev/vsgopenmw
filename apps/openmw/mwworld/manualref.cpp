@@ -1,6 +1,6 @@
 #include "manualref.hpp"
 #include <components/esm/records.hpp>
-#include <components/esm4/loadstat.hpp>
+//#include <components/esm4/loadstat.hpp>
 
 #include "esmstore.hpp"
 
@@ -89,7 +89,7 @@ MWWorld::ManualRef::ManualRef(const MWWorld::ESMStore& store, const ESM::RefId& 
             create(store.get<ESM::BodyPart>(), name, mRef, mPtr);
             break;
         case ESM::REC_STAT4:
-            create(store.get<ESM4::Static>(), name, mRef, mPtr);
+            //create(store.get<ESM4::Static>(), name, mRef, mPtr);
             break;
         case ESM::REC_TERM4:
             create(store.get<ESM4::Terminal>(), name, mRef, mPtr);

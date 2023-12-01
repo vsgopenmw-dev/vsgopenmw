@@ -137,8 +137,6 @@ namespace MWSound
             PlayMode mode, float offset);
 
         void updateSounds(float duration);
-        void updateRegionSound(float duration);
-        void updateWaterSound();
         void updateMusic(float duration);
 
         enum class WaterSoundAction
@@ -170,6 +168,9 @@ namespace MWSound
 
         bool isEnabled() const override { return mOutput->isInitialized(); }
         ///< Returns true if sound system is enabled
+
+        void updateRegionSound(float duration);
+        void updateWaterSound();
 
         void stopMusic() override;
         ///< Stops music if it's playing

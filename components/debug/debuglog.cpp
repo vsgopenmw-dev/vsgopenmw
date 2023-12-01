@@ -7,7 +7,7 @@
 
 namespace Debug
 {
-    Level CurrentDebugLevel = Level::NoLevel;
+    Level CurrentDebugLevel = Level::Info; // Level::NoLevel;
 }
 
 static std::mutex sLock;

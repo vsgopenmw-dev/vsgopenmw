@@ -361,7 +361,7 @@ namespace MWLua
     {
         return {
             { "openmw.ambient", initAmbientPackage(context) },
-            { "openmw.camera", initCameraPackage(context.mLua->sol()) },
+            { "openmw.camera", initCameraPackage(context.mLua->sol(), context.mRenderManager) },
             { "openmw.debug", initDebugPackage(context) },
             { "openmw.input", initInputPackage(context) },
             { "openmw.postprocessing", initPostprocessingPackage(context) },

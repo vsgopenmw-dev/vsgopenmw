@@ -24,8 +24,6 @@
 #include <components/misc/strings/algorithm.hpp>
 #include <components/misc/strings/format.hpp>
 #include <components/resource/resourcesystem.hpp>
-#include <components/resource/scenemanager.hpp>
-#include <components/sceneutil/lightmanager.hpp>
 #include <components/settings/values.hpp>
 #include <components/vfs/manager.hpp>
 #include <components/widgets/sharedstatebutton.hpp>
@@ -55,6 +53,8 @@ namespace
         return "#{OMWEngine:TextureFilteringOther}";
     }
 
+    //vsgopenmw-delete-me
+    /*
     std::string lightingMethodToStr(SceneUtil::LightingMethod method)
     {
         std::string result;
@@ -74,6 +74,7 @@ namespace
 
         return MyGUI::LanguageManager::getInstance().replaceTags(result);
     }
+    */
 
     void parseResolution(int& x, int& y, const std::string& str)
     {
@@ -555,7 +556,7 @@ namespace MWGui
         _sender->setCaptionWithReplacing(_sender->getItemNameAt(_sender->getIndexSelected()));
 
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(
-            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" }, true);
+            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" });
 
         Settings::shaders().mLightingMethod.set(
             Settings::parseLightingMethod(*_sender->getItemDataAt<std::string>(pos)));
@@ -570,7 +571,7 @@ namespace MWGui
         _sender->setCaptionWithReplacing(_sender->getItemNameAt(_sender->getIndexSelected()));
 
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(
-            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" }, true);
+            "#{OMWEngine:ChangeRequiresRestart}", { "#{Interface:OK}" });
 
         std::vector<std::string> currentLocales = Settings::general().mPreferredLocales;
         if (currentLocales.size() <= langPriority)
@@ -636,6 +637,8 @@ namespace MWGui
 
     void SettingsWindow::onLightsResetButtonClicked(MyGUI::Widget* _sender)
     {
+        //vsgopenmw-delete-me
+        /*
         std::vector<std::string> buttons = { "#{Interface:Yes}", "#{Interface:No}" };
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(
             "#{OMWEngine:LightingResetToDefaults}", buttons, true);
@@ -657,6 +660,7 @@ namespace MWGui
 
         apply();
         configureWidgets(mMainWidget, false);
+        */
     }
 
     void SettingsWindow::onButtonToggled(MyGUI::Widget* _sender)
@@ -825,6 +829,8 @@ namespace MWGui
 
     void SettingsWindow::updateLightSettings()
     {
+        //vsgopenmw-delete-me
+        /*
         auto lightingMethod = MWBase::Environment::get().getResourceSystem()->getSceneManager()->getLightingMethod();
         std::string lightingMethodStr = lightingMethodToStr(lightingMethod);
 
@@ -845,6 +851,7 @@ namespace MWGui
                 lightingMethodToStr(method), SceneUtil::LightManager::getLightingMethodString(method));
         }
         mLightingMethodButton->setIndexSelected(mLightingMethodButton->findItemIndexWith(lightingMethodStr));
+        */
     }
 
     void SettingsWindow::updateWindowModeSettings()

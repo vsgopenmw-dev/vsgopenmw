@@ -1,9 +1,6 @@
 #ifndef GAME_MWWORLD_WORLDIMP_H
 #define GAME_MWWORLD_WORLDIMP_H
 
-#include <osg/Timer>
-#include <osg/ref_ptr>
-
 #include <components/esm3/readerscache.hpp>
 #include <components/misc/rng.hpp>
 #include <components/settings/settings.hpp>
@@ -13,7 +10,7 @@
 #include "contentloader.hpp"
 #include "esmstore.hpp"
 #include "globals.hpp"
-#include "groundcoverstore.hpp"
+//#include "groundcoverstore.hpp"
 #include "localscripts.hpp"
 #include "ptr.hpp"
 #include "scene.hpp"
@@ -22,24 +19,12 @@
 
 namespace osg
 {
-    class Group;
     class Stats;
-}
-
-namespace osgViewer
-{
-    class Viewer;
 }
 
 namespace Resource
 {
     class ResourceSystem;
-}
-
-namespace SceneUtil
-{
-    class WorkQueue;
-    class UnrefQueue;
 }
 
 namespace ESM
@@ -55,12 +40,13 @@ namespace Files
 
 namespace MWRender
 {
-    class SkyManager;
-    class Animation;
     class Camera;
-    class PostProcessor;
+    class RenderManager;
 }
-
+namespace MWState
+{
+    class Loading;
+}
 namespace ToUTF8
 {
     class Utf8Encoder;
@@ -87,7 +73,7 @@ namespace MWWorld
 
         ESM::ReadersCache mReaders;
         MWWorld::ESMStore mStore;
-        GroundcoverStore mGroundcoverStore;
+        //GroundcoverStore mGroundcoverStore;
         LocalScripts mLocalScripts;
         MWWorld::Globals mGlobalVariables;
         Misc::Rng::Generator mPrng;
@@ -99,23 +85,19 @@ namespace MWWorld
         std::unique_ptr<MWWorld::Player> mPlayer;
         std::unique_ptr<MWPhysics::PhysicsSystem> mPhysics;
         std::unique_ptr<DetourNavigator::Navigator> mNavigator;
-        std::unique_ptr<MWRender::RenderingManager> mRendering;
+        MWRender::RenderManager* mRendering;
         std::unique_ptr<MWWorld::Scene> mWorldScene;
         std::unique_ptr<MWWorld::WeatherManager> mWeatherManager;
         std::unique_ptr<MWWorld::DateTimeManager> mTimeManager;
         std::unique_ptr<ProjectileManager> mProjectileManager;
 
-        bool mSky;
         bool mGodMode;
         bool mScriptsEnabled;
-        bool mDiscardMovements;
         std::vector<std::string> mContentFiles;
 
         std::filesystem::path mUserDataPath;
 
         int mActivationDistanceOverride;
-
-        std::string mStartCell;
 
         float mSwimHeightScale;
 
@@ -158,7 +140,7 @@ namespace MWWorld
         void processDoors(float duration);
         ///< Run physics simulation and modify \a world accordingly.
 
-        void doPhysics(float duration, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+        void doPhysics(float duration);
         ///< Run physics simulation and modify \a world accordingly.
 
         void updateNavigator();
@@ -173,11 +155,13 @@ namespace MWWorld
         void updateSkyDate();
 
         void loadContentFiles(const Files::Collections& fileCollections, const std::vector<std::string>& content,
-            ToUTF8::Utf8Encoder* encoder, Loading::Listener* listener);
+            ToUTF8::Utf8Encoder* encoder, MWState::Loading& state);
 
+        /*
         void loadGroundcoverFiles(const Files::Collections& fileCollections,
             const std::vector<std::string>& groundcoverFiles, ToUTF8::Utf8Encoder* encoder,
             Loading::Listener* listener);
+        */
 
         float feetToGameUnits(float feet);
         float getActivationDistancePlusTelekinesis();
@@ -193,16 +177,11 @@ namespace MWWorld
         void addContainerScripts(const Ptr& reference, CellStore* cell) override;
         void removeContainerScripts(const Ptr& reference) override;
 
-        World(Resource::ResourceSystem* resourceSystem, int activationDistanceOverride, const std::string& startCell,
-            const std::filesystem::path& userDataPath);
-
-        void loadData(const Files::Collections& fileCollections, const std::vector<std::string>& contentFiles,
-            const std::vector<std::string>& groundcoverFiles, ToUTF8::Utf8Encoder* encoder,
-            Loading::Listener* listener);
-
-        // Must be called after `loadData`.
-        void init(osgViewer::Viewer* viewer, osg::ref_ptr<osg::Group> rootNode, SceneUtil::WorkQueue* workQueue,
-            SceneUtil::UnrefQueue& unrefQueue);
+        World(MWRender::RenderManager& render, Resource::ResourceSystem* resourceSystem,
+            const Files::Collections& fileCollections, const std::vector<std::string>& contentFiles,
+            const std::vector<std::string>& groundcoverFiles, ToUTF8::Utf8Encoder* encoder, MWState::Loading& state,
+            int activationDistanceOverride,
+const std::filesystem::path& userDataPath);
 
         virtual ~World();
 
@@ -216,7 +195,7 @@ namespace MWWorld
         int countSavedGameRecords() const override;
         int countSavedGameCells() const override;
 
-        void write(ESM::ESMWriter& writer, Loading::Listener& progress) const override;
+        void write(ESM::ESMWriter& writer, MWState::Loading& state) const override;
 
         void readRecord(ESM::ESMReader& reader, uint32_t type) override;
 
@@ -407,8 +386,7 @@ namespace MWWorld
         ///< \return Resulting mode
 
         void update(float duration, bool paused);
-        void updatePhysics(
-            float duration, bool paused, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
+        void updatePhysics(float duration, bool paused);
 
         void updateWindowManager();
 
@@ -443,7 +421,7 @@ namespace MWWorld
         bool isWaterWalkingCastableOnTarget(const MWWorld::ConstPtr& target) const override;
         bool isOnGround(const MWWorld::Ptr& ptr) const override;
 
-        osg::Matrixf getActorHeadTransform(const MWWorld::ConstPtr& actor) const override;
+        osg::Vec3f getActorHeadPosition(const MWWorld::ConstPtr& actor) const override;
 
         void togglePOV(bool force = false) override;
 
@@ -481,12 +459,12 @@ namespace MWWorld
             const MWWorld::ConstPtr& object) override; ///< @return true if the player is colliding with \a object
         bool getActorCollidingWith(
             const MWWorld::ConstPtr& object) override; ///< @return true if any actor is colliding with \a object
-        void hurtStandingActors(const MWWorld::ConstPtr& object, float dmgPerSecond) override;
+        void hurtStandingActors(const MWWorld::ConstPtr& object, float dmg) override;
         ///< Apply a health difference to any actors standing on \a object.
-        /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-        void hurtCollidingActors(const MWWorld::ConstPtr& object, float dmgPerSecond) override;
+        /// To hurt actors, health should be a positive value. For a negative value, actors will be healed.
+        void hurtCollidingActors(const MWWorld::ConstPtr& object, float dmg) override;
         ///< Apply a health difference to any actors colliding with \a object.
-        /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
+        /// To hurt actors, health should be a positive value. For a negative value, actors will be healed.
 
         float getWindSpeed() override;
 
@@ -510,13 +488,9 @@ namespace MWWorld
         void rechargeItems(double duration, bool activeOnly);
 
         /// \todo Probably shouldn't be here
-        MWRender::Animation* getAnimation(const MWWorld::Ptr& ptr) override;
-        const MWRender::Animation* getAnimation(const MWWorld::ConstPtr& ptr) const override;
+        MWAnim::Object* getAnimation(const MWWorld::Ptr& ptr) override;
+        const MWAnim::Object* getAnimation(const MWWorld::ConstPtr& ptr) const override;
         void reattachPlayerCamera() override;
-
-        /// \todo this does not belong here
-        void screenshot(osg::Image* image, int w, int h) override;
-        bool screenshot360(osg::Image* image) override;
 
         /// Find center of exterior cell above land surface
         /// \return false if exterior with given name not exists, true otherwise
@@ -663,9 +637,9 @@ namespace MWWorld
 
         Misc::Rng::Generator& getPrng() override;
 
-        MWRender::RenderingManager* getRenderingManager() override { return mRendering.get(); }
+        //MWRender::RenderingManager* getRenderingManager() override { return mRendering.get(); }
 
-        MWRender::PostProcessor* getPostProcessor() override;
+        //MWRender::PostProcessor* getPostProcessor() override;
 
         DateTimeManager* getTimeManager() override { return mTimeManager.get(); }
 

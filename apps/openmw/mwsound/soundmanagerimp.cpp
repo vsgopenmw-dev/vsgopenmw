@@ -5,8 +5,6 @@
 #include <numeric>
 #include <sstream>
 
-#include <osg/Matrixf>
-
 #include <components/debug/debuglog.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
@@ -16,8 +14,6 @@
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
-#include "../mwbase/statemanager.hpp"
-#include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
 
 #include "../mwworld/cellstore.hpp"
@@ -389,7 +385,7 @@ namespace MWSound
             return;
 
         MWBase::World* world = MWBase::Environment::get().getWorld();
-        const osg::Vec3f pos = world->getActorHeadTransform(ptr).getTrans();
+        auto pos = world->getActorHeadPosition(ptr);
 
         stopSay(ptr);
         StreamPtr sound = playVoice(decoder, pos, (ptr == MWMechanics::getPlayer()));
@@ -1084,7 +1080,7 @@ namespace MWSound
                 if (!ptr.isEmpty())
                 {
                     MWBase::World* world = MWBase::Environment::get().getWorld();
-                    sound->setPosition(world->getActorHeadTransform(ptr).getTrans());
+                    sound->setPosition(world->getActorHeadPosition(ptr));
                 }
 
                 cull3DSound(sound);
@@ -1151,24 +1147,7 @@ namespace MWSound
     {
         if (!mOutput->isInitialized() || mPlaybackPaused)
             return;
-
-        MWBase::StateManager::State state = MWBase::Environment::get().getStateManager()->getState();
-        bool isMainMenu = MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_MainMenu)
-            && state == MWBase::StateManager::State_NoGame;
-
-        if (isMainMenu && !isMusicPlaying())
-        {
-            std::string titlefile = "music/special/morrowind title.mp3";
-            if (mVFS->exists(titlefile))
-                streamMusic(titlefile, MWSound::MusicType::Special);
-        }
-
         updateSounds(duration);
-        if (state != MWBase::StateManager::State_NoGame)
-        {
-            updateRegionSound(duration);
-            updateWaterSound();
-        }
     }
 
     void SoundManager::processChangedSettings(const Settings::CategorySettingVector& settings)

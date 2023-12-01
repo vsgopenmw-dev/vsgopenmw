@@ -85,7 +85,8 @@ namespace MWGui
 
         /// walks over the topics whose names start with the character
         virtual void visitTopicNamesStartingWith(
-            Utf8Stream::UnicodeChar character, std::function<void(std::string_view)> visitor) const = 0;
+            Utf8Stream::UnicodeChar character, std::function<void(std::string_view)> visitor) const
+            = 0;
 
         /// walks over the topic entries for the topic specified by its identifier
         virtual void visitTopicEntries(TopicId topicId, std::function<void(TopicEntry const&)> visitor) const = 0;

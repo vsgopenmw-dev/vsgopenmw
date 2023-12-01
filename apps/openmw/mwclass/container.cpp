@@ -26,7 +26,6 @@
 #include "../mwgui/tooltips.hpp"
 #include "../mwgui/ustring.hpp"
 
-#include "../mwrender/animation.hpp"
 #include "../mwrender/objects.hpp"
 #include "../mwrender/renderinginterface.hpp"
 
@@ -82,13 +81,15 @@ namespace MWClass
 
     bool Container::canBeHarvested(const MWWorld::ConstPtr& ptr) const
     {
+        return false;
+        /*
         if (!Settings::game().mGraphicHerbalism)
             return false;
         const MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(ptr);
         if (animation == nullptr)
             return false;
-
         return animation->canBeHarvested();
+        */
     }
 
     void Container::respawn(const MWWorld::Ptr& ptr) const

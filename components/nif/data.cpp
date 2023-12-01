@@ -83,8 +83,11 @@ namespace Nif
             {
                 nif->readVector(list, mNumVertices);
                 // flip the texture coordinates to convert them to the OpenGL convention of bottom-left image origin
+                /*
                 for (osg::Vec2f& uv : list)
                     uv.y() = 1.f - uv.y();
+                
+                */
             }
         }
 
@@ -286,7 +289,7 @@ namespace Nif
         {
             if (bone.empty())
                 throw Nif::Exception("Oops: Missing bone! Don't know how to handle this.", nif.getFilename());
-            bone->setBone();
+            bone->useFlags |= Nif::NiAVObject::Bone;
         }
     }
 

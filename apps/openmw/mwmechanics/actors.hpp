@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <vsg/core/ref_ptr.h>
+
 #include "actor.hpp"
 
 namespace ESM
@@ -15,6 +17,10 @@ namespace ESM
     class ESMWriter;
 }
 
+namespace vsgUtil
+{
+    class UpdateThreads;
+}
 namespace osg
 {
     class Vec3f;
@@ -40,6 +46,8 @@ namespace MWMechanics
     class Actors
     {
     public:
+        void setUpdateThreads(vsg::ref_ptr<vsgUtil::UpdateThreads> threads);
+
         std::list<Actor>::const_iterator begin() const { return mActors.begin(); }
         std::list<Actor>::const_iterator end() const { return mActors.end(); }
         std::size_t size() const { return mActors.size(); }
@@ -84,9 +92,9 @@ namespace MWMechanics
         /// Removes an actor from combat and makes all of their allies stop fighting the actor's targets
         void stopCombat(const MWWorld::Ptr& ptr) const;
 
-        void playIdleDialogue(const MWWorld::Ptr& actor) const;
+        void playIdleDialogue(const MWWorld::Ptr& actor, float dt) const;
         void updateMovementSpeed(const MWWorld::Ptr& actor) const;
-        void updateGreetingState(const MWWorld::Ptr& actor, Actor& actorState, bool turnOnly);
+        void updateGreetingState(const MWWorld::Ptr& actor, float duration, Actor& actorState, bool turnOnly);
         void turnActorToFacePlayer(const MWWorld::Ptr& actor, Actor& actorState, const osg::Vec3f& dir) const;
 
         void rest(double hours, bool sleep) const;
@@ -164,6 +172,10 @@ namespace MWMechanics
         bool isTurningToPlayer(const MWWorld::Ptr& ptr) const;
 
     private:
+        vsg::ref_ptr<vsgUtil::UpdateThreads> mUpdateThreads;
+        class RunAnimations;
+        std::vector<vsg::ref_ptr<RunAnimations>> mUpdateOperations;
+
         std::map<ESM::RefId, int> mDeathCount;
         std::list<Actor> mActors;
         std::map<const MWWorld::LiveCellRefBase*, std::list<Actor>::iterator> mIndex;
@@ -176,6 +188,7 @@ namespace MWMechanics
         float mSneakSkillTimer = 0; // Times sneak skill progress from "avoid notice"
 
         void updateVisibility(const MWWorld::Ptr& ptr, CharacterController& ctrl) const;
+        void update(const std::vector<CharacterController*>& ctrls, float dt) const;
 
         void adjustMagicEffects(const MWWorld::Ptr& creature, float duration) const;
 

@@ -27,9 +27,9 @@ namespace ESM4
     struct Cell;
 }
 
-namespace Loading
+namespace MWState
 {
-    class Listener;
+    class Loading;
 }
 
 namespace MWWorld
@@ -97,7 +97,7 @@ namespace MWWorld
 
         int countSavedGameRecords() const;
 
-        void write(ESM::ESMWriter& writer, Loading::Listener& progress) const;
+        void write(ESM::ESMWriter& writer, MWState::Loading& progress) const;
 
         bool readRecord(ESM::ESMReader& reader, uint32_t type);
 

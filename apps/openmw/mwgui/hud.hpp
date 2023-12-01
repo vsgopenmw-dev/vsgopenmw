@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "mapwindow.hpp"
-#include "spellicons.hpp"
 #include "statswatcher.hpp"
 
 namespace MWWorld
@@ -15,13 +14,14 @@ namespace MWWorld
 namespace MWGui
 {
     class DragAndDrop;
+    class SpellIcons;
     class ItemWidget;
     class SpellWidget;
 
     class HUD : public WindowBase, public LocalMapBase, public StatsListener
     {
     public:
-        HUD(CustomMarkerCollection& customMarkers, DragAndDrop* dragAndDrop, MWRender::LocalMap* localMapRender);
+        HUD(CustomMarkerCollection& customMarkers, DragAndDrop* dragAndDrop, MWRender::Map* localMapRender);
         virtual ~HUD();
         void setValue(std::string_view id, const MWMechanics::DynamicStat<float>& value) override;
 

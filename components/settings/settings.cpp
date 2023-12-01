@@ -133,7 +133,8 @@ namespace Settings
         mChangedSettings.clear();
     }
 
-    std::filesystem::path Manager::load(const Files::ConfigurationManager& cfgMgr, bool loadEditorSettings)
+    std::filesystem::path Manager::load(
+        const Files::ConfigurationManager& cfgMgr, bool /*vsgopenmw-fixme(dependency-policy)*/ loadEditorSettings)
     {
         SettingsFileParser parser;
         const std::vector<std::filesystem::path>& paths = cfgMgr.getActiveConfigPaths();
@@ -146,7 +147,7 @@ namespace Settings
 
         if (!loadEditorSettings)
         {
-            defaultSettingsFile = "defaults.bin";
+            defaultSettingsFile = "defaults.cfg";
             userSettingsFile = "settings.cfg";
         }
         else

@@ -41,6 +41,8 @@ namespace MWMechanics
         MWSound::MusicType mMusicType;
 
     public:
+        void setUpdateThreads(vsg::ref_ptr<vsgUtil::UpdateThreads> threads);
+
         void buildPlayer();
         ///< build player according to stored class/race/birthsign information. Will
         /// default to the values of the ESM::NPC object, if no explicit information is given.

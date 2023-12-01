@@ -207,8 +207,8 @@ bool MWMechanics::AiPackage::pathTo(const MWWorld::Ptr& actor, const osg::Vec3f&
     if (isDestReached || mPathFinder.checkPathCompleted()) // if path is finished
     {
         // turn to destination point
-        zTurn(actor, getZAngleToPoint(position, dest));
-        smoothTurn(actor, getXAngleToPoint(position, dest), 0);
+        zTurn(actor, duration, getZAngleToPoint(position, dest));
+        smoothTurn(actor, duration, getXAngleToPoint(position, dest), 0);
         world->removeActorPath(actor);
         return true;
     }
@@ -228,8 +228,8 @@ bool MWMechanics::AiPackage::pathTo(const MWWorld::Ptr& actor, const osg::Vec3f&
 
     // turn to next path point by X,Z axes
     float zAngleToNext = mPathFinder.getZAngleToNext(position.x(), position.y());
-    zTurn(actor, zAngleToNext);
-    smoothTurn(actor, mPathFinder.getXAngleToNext(position.x(), position.y(), position.z()), 0);
+    zTurn(actor, duration, zAngleToNext);
+    smoothTurn(actor, duration, mPathFinder.getXAngleToNext(position.x(), position.y(), position.z()), 0);
 
     const auto destination = getNextPathPoint(dest);
     mObstacleCheck.update(actor, destination, duration, supportedMovementDirections);

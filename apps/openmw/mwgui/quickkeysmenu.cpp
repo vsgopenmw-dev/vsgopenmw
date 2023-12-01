@@ -60,6 +60,8 @@ namespace MWGui
         }
     }
 
+    QuickKeysMenu::~QuickKeysMenu() {}
+
     void QuickKeysMenu::clear()
     {
         mActivated = nullptr;

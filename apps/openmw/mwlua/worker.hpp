@@ -1,15 +1,11 @@
 #ifndef OPENMW_MWLUA_WORKER_H
 #define OPENMW_MWLUA_WORKER_H
 
+#include <vector>
 #include <condition_variable>
 #include <mutex>
 #include <optional>
 #include <thread>
-
-namespace osgViewer
-{
-    class Viewer;
-}
 
 namespace MWLua
 {
@@ -18,26 +14,25 @@ namespace MWLua
     class Worker
     {
     public:
-        explicit Worker(LuaManager& manager, osgViewer::Viewer& viewer);
+        explicit Worker(LuaManager& manager);
 
         ~Worker();
 
-        void allowUpdate();
+        void allowUpdate(float dt);
 
-        void finishUpdate();
+        void finishUpdate(float dt);
 
         void join();
 
     private:
-        void update();
+        void update(float dt);
 
         void run() noexcept;
 
         LuaManager& mManager;
-        osgViewer::Viewer& mViewer;
         std::mutex mMutex;
         std::condition_variable mCV;
-        bool mUpdateRequest = false;
+        std::vector<float /*dt*/> mUpdateRequest;
         bool mJoinRequest = false;
         std::optional<std::thread> mThread;
     };

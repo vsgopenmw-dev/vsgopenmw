@@ -2,21 +2,19 @@
 #include <components/lua/luastate.hpp>
 #include <components/lua/utilpackage.hpp>
 #include <components/settings/values.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
-#include "../mwbase/environment.hpp"
-#include "../mwbase/world.hpp"
 #include "../mwrender/camera.hpp"
-#include "../mwrender/renderingmanager.hpp"
+#include "../mwrender/rendermanager.hpp"
 
 namespace MWLua
 {
 
     using CameraMode = MWRender::Camera::Mode;
 
-    sol::table initCameraPackage(sol::state_view& lua)
+    sol::table initCameraPackage(sol::state_view& lua, MWRender::RenderManager* renderingManager)
     {
-        MWRender::Camera* camera = MWBase::Environment::get().getWorld()->getCamera();
-        MWRender::RenderingManager* renderingManager = MWBase::Environment::get().getWorld()->getRenderingManager();
+        MWRender::Camera* camera = renderingManager->getCamera();
 
         sol::table api(lua, sol::create);
         api["MODE"] = LuaUtil::makeStrictReadOnly(
@@ -105,15 +103,16 @@ namespace MWLua
             return invertedViewMatrix.preMult(osg::Vec3f(x, y, -1)) - camera->getPosition();
         };
 
-        api["worldToViewportVector"] = [camera](osg::Vec3f pos) {
+        api["worldToViewportVector"] = [camera, renderingManager](osg::Vec3f pos) {
             double width = Settings::Manager::getInt("resolution x", "Video");
             double height = Settings::Manager::getInt("resolution y", "Video");
 
             osg::Matrix windowMatrix
                 = osg::Matrix::translate(1.0, 1.0, 1.0) * osg::Matrix::scale(0.5 * width, 0.5 * height, 0.5);
-            osg::Vec3f vpCoords = pos * (camera->getViewMatrix() * camera->getProjectionMatrix() * windowMatrix);
+            osg::Vec3f vpCoords = pos * (camera->getViewMatrix() * toOsg(vsg::mat4(renderingManager->getProjectionMatrix())) * windowMatrix);
 
             // Move 0,0 to top left to match viewportToWorldVector
+            // TODO: Do we still need to flip with Vulkan?
             vpCoords.y() = height - vpCoords.y();
 
             // Set the z component to be distance from camera, in world space units

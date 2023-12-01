@@ -1,6 +1,7 @@
 #include <components/debug/debuglog.hpp>
 
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
+#include <components/vsgadapters/osgcompat.hpp>
 
 #include <components/esm3/loadcell.hpp>
 
@@ -421,23 +422,33 @@ namespace MWScript
                         = ESM::positionToExteriorCellLocation(x, y, ESM::Cell::sDefaultWorldspaceId);
                     store = &worldModel->getExterior(cellIndex);
                 }
+                if (store)
+                {
+                    auto rot = ptr.getRefData().getPosition().asRotationVec3();
+                    // Note that you must specify ZRot in minutes (1 degree = 60 minutes; north = 0, east = 5400, south
+                    // = 10800, west = 16200) except for when you position the player, then degrees must be used. See
+                    // "Morrowind Scripting for Dummies (9th Edition)" pages 50 and 54 for reference.
+                    if (!isPlayer)
+                        zRot = zRot / 60.0f;
+                    rot.z() = osg::DegreesToRadians(zRot);
 
-                MWWorld::Ptr base = ptr;
-                ptr = world->moveObject(ptr, store, osg::Vec3f(x, y, z));
-                dynamic_cast<MWScript::InterpreterContext&>(runtime.getContext()).updatePtr(base, ptr);
+                    if (isPlayer)
+                    {
+                        ESM::Position pos { { x, y, z }, { rot.x(), rot.y(), rot.z() } };
+                        world->changeToCell(store->getCell()->getCellId(), pos, true);
+                    }
+                    else
+                    {
+                        MWWorld::Ptr base = ptr;
+                        ptr = world->moveObject(ptr, store, osg::Vec3f(x, y, z));
+                        dynamic_cast<MWScript::InterpreterContext&>(runtime.getContext()).updatePtr(base, ptr);
+                        world->rotateObject(ptr, rot);
 
-                auto rot = ptr.getRefData().getPosition().asRotationVec3();
-                // Note that you must specify ZRot in minutes (1 degree = 60 minutes; north = 0, east = 5400, south
-                // = 10800, west = 16200) except for when you position the player, then degrees must be used. See
-                // "Morrowind Scripting for Dummies (9th Edition)" pages 50 and 54 for reference.
-                if (!isPlayer)
-                    zRot = zRot / 60.0f;
-                rot.z() = osg::DegreesToRadians(zRot);
-                world->rotateObject(ptr, rot);
-
-                bool cellActive = MWBase::Environment::get().getWorldScene()->isCellActive(*ptr.getCell());
-                ptr.getClass().adjustPosition(ptr, isPlayer || !cellActive);
-                MWBase::Environment::get().getLuaManager()->objectTeleported(ptr);
+                        bool cellActive = MWBase::Environment::get().getWorldScene()->isCellActive(*ptr.getCell());
+                        ptr.getClass().adjustPosition(ptr, !cellActive);
+                        MWBase::Environment::get().getLuaManager()->objectTeleported(ptr);
+                    }
+                }
             }
         };
 
@@ -493,7 +504,7 @@ namespace MWScript
                 rot.z() = osg::DegreesToRadians(zRot);
                 world->rotateObject(ptr, rot);
                 bool cellActive = MWBase::Environment::get().getWorldScene()->isCellActive(*ptr.getCell());
-                ptr.getClass().adjustPosition(ptr, isPlayer || !cellActive);
+                ptr.getClass().adjustPosition(ptr, isPlayer || !cellActive); //if (isPlayer) world->changeToCell(.adjustPosition=true
                 MWBase::Environment::get().getLuaManager()->objectTeleported(ptr);
             }
         };
@@ -636,8 +647,7 @@ namespace MWScript
 
                 std::string_view axis = runtime.getStringLiteral(runtime[0].mInteger);
                 runtime.pop();
-                Interpreter::Type_Float rotation
-                    = osg::DegreesToRadians(runtime[0].mFloat * MWBase::Environment::get().getFrameDuration());
+                Interpreter::Type_Float rotation = osg::DegreesToRadians(runtime[0].mFloat * runtime.getContext().dt);
                 runtime.pop();
 
                 auto rot = ptr.getRefData().getPosition().asRotationVec3();
@@ -662,29 +672,29 @@ namespace MWScript
 
                 std::string_view axis = runtime.getStringLiteral(runtime[0].mInteger);
                 runtime.pop();
-                Interpreter::Type_Float rotation
-                    = osg::DegreesToRadians(runtime[0].mFloat * MWBase::Environment::get().getFrameDuration());
+                Interpreter::Type_Float rotation = osg::DegreesToRadians(runtime[0].mFloat * runtime.getContext().dt);
                 runtime.pop();
-
-                if (!ptr.getRefData().getBaseNode())
-                    return;
 
                 // We can rotate actors only around Z axis
                 if (ptr.getClass().isActor() && (axis == "x" || axis == "y"))
                     return;
 
-                osg::Quat rot;
+                vsg::quat rot;
                 if (axis == "x")
-                    rot = osg::Quat(rotation, -osg::X_AXIS);
+                    rot = { rotation, vsg::vec3(-1, 0, 0) };
                 else if (axis == "y")
-                    rot = osg::Quat(rotation, -osg::Y_AXIS);
+                    rot = { rotation, vsg::vec3(0, -1, 0) };
                 else if (axis == "z")
-                    rot = osg::Quat(rotation, -osg::Z_AXIS);
+                    rot = { rotation, vsg::vec3(0, 0, -1) };
                 else
                     return;
 
-                osg::Quat attitude = ptr.getRefData().getBaseNode()->getAttitude();
-                MWBase::Environment::get().getWorld()->rotateWorldObject(ptr, attitude * rot);
+                vsg::quat q;
+                if (ptr.getClass().isActor())
+                    q = MWAnim::zQuat(ptr.getRefData().getPosition());
+                else
+                    q = MWAnim::quat(ptr.getRefData().getPosition());
+                MWBase::Environment::get().getWorld()->rotateWorldObject(ptr, toOsg(q * rot));
             }
         };
 
@@ -722,7 +732,7 @@ namespace MWScript
 
                 std::string_view axis = runtime.getStringLiteral(runtime[0].mInteger);
                 runtime.pop();
-                Interpreter::Type_Float movement = (runtime[0].mFloat * MWBase::Environment::get().getFrameDuration());
+                Interpreter::Type_Float movement = (runtime[0].mFloat * runtime.getContext().dt);
                 runtime.pop();
 
                 osg::Vec3f posChange;
@@ -741,11 +751,12 @@ namespace MWScript
                 else
                     return;
 
-                // is it correct that disabled objects can't be Move-d?
-                if (!ptr.getRefData().getBaseNode())
-                    return;
-
-                osg::Vec3f diff = ptr.getRefData().getBaseNode()->getAttitude() * posChange;
+                vsg::quat q;
+                if (ptr.getClass().isActor())
+                    q = MWAnim::zQuat(ptr.getRefData().getPosition());
+                else
+                    q = MWAnim::quat(ptr.getRefData().getPosition());
+                auto diff = toOsg(q) * posChange;
 
                 // We should move actors, standing on moving object, too.
                 // This approach can be used to create elevators.
@@ -768,7 +779,7 @@ namespace MWScript
 
                 std::string_view axis = runtime.getStringLiteral(runtime[0].mInteger);
                 runtime.pop();
-                Interpreter::Type_Float movement = (runtime[0].mFloat * MWBase::Environment::get().getFrameDuration());
+                Interpreter::Type_Float movement = (runtime[0].mFloat * runtime.getContext().dt);
                 runtime.pop();
 
                 osg::Vec3f diff;

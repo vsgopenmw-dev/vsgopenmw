@@ -24,6 +24,11 @@ namespace Loading
     class Listener;
 }
 
+namespace MWRender
+{
+    class RenderManager;
+}
+
 namespace MWWorld
 {
     class CellStore;
@@ -120,7 +125,7 @@ namespace MWWorld
 
         void setSelectedSpell(const ESM::RefId& spellId);
 
-        void update();
+        void update(MWRender::RenderManager&);
     };
 }
 #endif

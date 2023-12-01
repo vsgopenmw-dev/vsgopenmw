@@ -8,7 +8,6 @@
 
 #include "bookpage.hpp"
 
-#include "../mwbase/dialoguemanager.hpp"
 #include "../mwdialogue/keywordsearch.hpp"
 
 #include <MyGUI_Delegate.h>
@@ -21,29 +20,13 @@ namespace Gui
 
 namespace MWGui
 {
-    class DialogueWindow;
-
-    class ResponseCallback : public MWBase::DialogueManager::ResponseCallback
-    {
-        DialogueWindow* mWindow;
-        bool mNeedMargin;
-
-    public:
-        ResponseCallback(DialogueWindow* win, bool needMargin = true)
-            : mWindow(win)
-            , mNeedMargin(needMargin)
-        {
-        }
-
-        void addResponse(std::string_view title, std::string_view text) override;
-
-        void updateTopics() const;
-    };
+    class ResponseCallback;
 
     class PersuasionDialog : public WindowModal
     {
     public:
         PersuasionDialog(std::unique_ptr<ResponseCallback> callback);
+        ~PersuasionDialog();
 
         void onOpen() override;
 
@@ -114,7 +97,8 @@ namespace MWGui
     {
         virtual ~DialogueText() = default;
         virtual void write(BookTypesetter::Ptr typesetter, KeywordSearchT* keywordSearch,
-            std::map<std::string, std::unique_ptr<Link>>& topicLinks) const = 0;
+            std::map<std::string, std::unique_ptr<Link>>& topicLinks) const
+            = 0;
         std::string mText;
     };
 
@@ -139,6 +123,7 @@ namespace MWGui
     {
     public:
         DialogueWindow();
+        ~DialogueWindow();
 
         void onTradeComplete();
 

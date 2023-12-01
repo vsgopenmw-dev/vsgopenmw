@@ -41,6 +41,8 @@ namespace MWGui
         mToolIcon->eventMouseButtonClick += MyGUI::newDelegate(this, &Repair::onSelectItem);
     }
 
+    Repair::~Repair() {}
+
     void Repair::onOpen()
     {
         center();

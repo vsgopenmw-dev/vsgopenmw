@@ -255,7 +255,7 @@ namespace vsgAdapters
             vsg::Group::Children nodes;
             for (size_t i = 0; i < mNif->numRoots(); ++i)
             {
-                if (const Nif::Node* nifNode = dynamic_cast<const Nif::Node*>(mNif->getRoot(i)))
+                if (const Nif::NiAVObject* nifNode = dynamic_cast<const Nif::NiAVObject*>(mNif->getRoot(i)))
                 {
                     if (auto node = handleNode(*nifNode))
                         nodes.emplace_back(node);
@@ -282,7 +282,7 @@ namespace vsgAdapters
             return ret;
         }
 
-        bool canSkipGeometry(bool isMarker, const Nif::Node& nifNode) const
+        bool canSkipGeometry(bool isMarker, const Nif::NiAVObject& nifNode) const
         {
             static const std::string markerName = "tri editormarker";
             static const std::string shadowName = "shadow";
@@ -293,10 +293,10 @@ namespace vsgAdapters
                 || Misc::StringUtils::ciCompareLen(nifNode.name, shadowName2, shadowName2.size()) == 0;
         }
 
-        bool canOptimizeTransform(const Nif::Node& nifNode)
+        bool canOptimizeTransform(const Nif::NiAVObject& nifNode)
         {
             if (!nifNode.trafo.isIdentity() || !this->mCanOptimize || hasTransformController(nifNode)
-                || nifNode.useFlags & Nif::Node::Bone)
+                || nifNode.useFlags & Nif::NiAVObject::Bone)
                 return false;
             if (Misc::StringUtils::ciEqual(nifNode.name, "BoneOffset"))
             {
@@ -311,7 +311,7 @@ namespace vsgAdapters
             return true;
         }
 
-        bool canOptimizeBillboard(const Nif::Node& nifNode)
+        bool canOptimizeBillboard(const Nif::NiAVObject& nifNode)
         {
             if (auto niNode = dynamic_cast<const Nif::NiNode*>(&nifNode))
             {
@@ -1117,7 +1117,7 @@ namespace vsgAdapters
                 || Misc::StringUtils::ciCompareLen(nodeName, mSkinFilter2, mSkinFilter2.size()) == 0;
         }
 
-        void handleEffect(const Nif::Node& nifNode)
+        void handleEffect(const Nif::NiAVObject& nifNode)
         {
             if (nifNode.recType != Nif::RC_NiTextureEffect)
             {
@@ -1154,7 +1154,7 @@ namespace vsgAdapters
             */
         }
 
-        void handleEffects(const Nif::NodeList& effects)
+        void handleEffects(const Nif::NiAVObjectList& effects)
         {
             handleList(effects, [this](auto& n) { handleEffect(n); });
         }
@@ -1165,7 +1165,7 @@ namespace vsgAdapters
         }
 
         vsg::ref_ptr<vsg::Node> handleNiNodeChildren(
-            const Nif::NodeList& children, vsg::ref_ptr<vsg::Group> group, bool hasMarkers, bool skipMeshes)
+            const Nif::NiAVObjectList& children, vsg::ref_ptr<vsg::Group> group, bool hasMarkers, bool skipMeshes)
         {
             vsg::Group::Children vsgchildren;
             for (size_t i = 0; i < children.size(); ++i)
@@ -1182,7 +1182,7 @@ namespace vsgAdapters
             return {};
         }
 
-        vsg::ref_ptr<Anim::Transform> handleTransform(const Nif::Node& nifNode)
+        vsg::ref_ptr<Anim::Transform> handleTransform(const Nif::NiAVObject& nifNode)
         {
             auto trans = Anim::Transform::create();
             convertTrafo(*trans, nifNode.trafo);
@@ -1192,7 +1192,7 @@ namespace vsgAdapters
             return trans;
         }
 
-        void handleAnimFlags(const Nif::Node& nifNode)
+        void handleAnimFlags(const Nif::NiAVObject& nifNode)
         {
             if (nifNode.recType == Nif::RC_NiBSAnimationNode || nifNode.recType == Nif::RC_NiBSParticleNode)
             {
@@ -1202,7 +1202,7 @@ namespace vsgAdapters
             }
         }
 
-        vsg::ref_ptr<vsg::Node> handleNode(const Nif::Node& nifNode, bool hasMarkers = false, bool skipMeshes = false)
+        vsg::ref_ptr<vsg::Node> handleNode(const Nif::NiAVObject& nifNode, bool hasMarkers = false, bool skipMeshes = false)
         {
             ScopedPushPop spp(mNodeStack);
 
@@ -1287,7 +1287,7 @@ namespace vsgAdapters
                     auto& niSwitchNode = static_cast<const Nif::NiSwitchNode&>(nifNode);
                     auto switchNode = vsg::Switch::create();
                     switchNode->setValue("switch", std::string(nifNode.name));
-                    const Nif::NodeList& children = niSwitchNode.children;
+                    const Nif::NiAVObjectList& children = niSwitchNode.children;
                     switchNode->children.reserve(children.size());
                     for (size_t i = 0; i < children.size(); ++i)
                     {
@@ -1316,7 +1316,7 @@ namespace vsgAdapters
                     vsg::ref_ptr<vsg::LOD> lodNode = vsg::LOD::create();
                     const double pixel_ratio = 1.0 / 1080.0;
                     const double angle_ratio = 1.0 / osg::DegreesToRadians(30.0); // assume a 60 fovy for reference
-                    const Nif::NodeList &children = niLodNode.children;
+                    const Nif::NiAVObjectList &children = niLodNode.children;
                     double minimumScreenHeightRatio = (atan2(radius, static_cast<double>(lod.getMaxRange(i))) *
                 angle_ratio);
 

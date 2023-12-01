@@ -92,18 +92,25 @@ namespace Nif
         void read(NIFStream* nif) override;
         void post(Reader& nif) override;
 
-        void setBone();
         bool isHidden() const { return mFlags & Flag_Hidden; }
         bool hasMeshCollision() const { return mFlags & Flag_MeshCollision; }
         bool hasBBoxCollision() const { return mFlags & Flag_BBoxCollision; }
         bool collisionActive() const { return mFlags & Flag_ActiveCollision; }
+
+        enum UseFlags
+        {
+            Bone = 1,
+            Emitter = (1 << 1)
+        };
+        int useFlags{ 0 };
     };
 
     struct NiNode : NiAVObject
     {
         enum BSAnimFlags
         {
-            AnimFlag_AutoPlay = 0x0020
+            AnimFlag_AutoPlay = 0x0020,
+            AnimFlag_NotRandom = 0x0040 //0x40
         };
 
         enum BSParticleFlags

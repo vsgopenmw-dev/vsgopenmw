@@ -21,19 +21,22 @@
 #include "../mwmechanics/actorutil.hpp"
 #include "../mwmechanics/npcstats.hpp"
 
+#include "../mwstate/menu.hpp"
+
 #include "actions.hpp"
 #include "bindingsmanager.hpp"
 
 namespace MWInput
 {
 
-    ActionManager::ActionManager(BindingsManager* bindingsManager,
-        osgViewer::ScreenCaptureHandler::CaptureOperation* screenCaptureOperation,
-        osg::ref_ptr<osgViewer::Viewer> viewer, osg::ref_ptr<osgViewer::ScreenCaptureHandler> screenCaptureHandler)
+    ActionManager::ActionManager(BindingsManager* bindingsManager)
         : mBindingsManager(bindingsManager)
+<<<<<<< HEAD
         , mViewer(std::move(viewer))
         , mScreenCaptureHandler(std::move(screenCaptureHandler))
         , mScreenCaptureOperation(screenCaptureOperation)
+=======
+>>>>>>> 954897300b (vsgopenmw-openmw)
         , mTimeIdle(0.f)
     {
     }
@@ -123,9 +126,6 @@ namespace MWInput
             case A_ToggleDebug:
                 windowManager->toggleDebugWindow();
                 break;
-            case A_TogglePostProcessorHUD:
-                windowManager->togglePostProcessorHud();
-                break;
             case A_QuickSave:
                 quickSave();
                 break;
@@ -170,6 +170,7 @@ namespace MWInput
 
     void ActionManager::screenshot()
     {
+<<<<<<< HEAD
         const std::string& settingStr = Settings::Manager::getString("screenshot type", "Video");
         bool regularScreenshot = settingStr.empty() || settingStr == "regular";
 
@@ -188,6 +189,9 @@ namespace MWInput
                 // FIXME: mScreenCaptureHandler->getCaptureOperation() causes crash for some reason
             }
         }
+=======
+        screenshotRequest = true;
+>>>>>>> 954897300b (vsgopenmw-openmw)
     }
 
     void ActionManager::toggleMainMenu()
@@ -204,20 +208,10 @@ namespace MWInput
             return;
         }
 
-        if (MWBase::Environment::get().getWindowManager()->isPostProcessorHudVisible())
-        {
-            MWBase::Environment::get().getWindowManager()->togglePostProcessorHud();
-            return;
-        }
-
         if (!MWBase::Environment::get().getWindowManager()->isGuiMode()) // No open GUIs, open up the MainMenu
-        {
-            MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_MainMenu);
-        }
+            MWBase::Environment::get().getStateManager()->pushGameState(std::make_shared<MWState::Menu>());
         else // Close current GUI
-        {
             MWBase::Environment::get().getWindowManager()->exitCurrentGuiMode();
-        }
     }
 
     void ActionManager::quickLoad()

@@ -3,12 +3,14 @@
 
 #include <filesystem>
 #include <list>
+#include <memory>
 #include <string>
 
 namespace MWState
 {
     struct Slot;
     class Character;
+    class GameState;
 }
 
 namespace MWBase
@@ -46,10 +48,15 @@ namespace MWBase
 
         virtual State getState() const = 0;
 
+        virtual void pushGameState(std::shared_ptr<MWState::GameState> gameState) = 0;
+        virtual void popGameState(std::shared_ptr<MWState::GameState>) = 0;
+
         virtual void newGame(bool bypass = false) = 0;
         ///< Start a new game.
         ///
         /// \param bypass Skip new game mechanics.
+
+        virtual void endGame() = 0;
 
         virtual void resumeGame() = 0;
 
