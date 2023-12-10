@@ -88,19 +88,20 @@ modules:
 #   The problem is that vsg tries to automagically pull in 3rd party lib via git; if fails silently
 #   because flatpak does not allow network access while building.
 #
-#  - name: glslang
-#    buildsystem: cmake-ninja
-#    config-opts:
-#      - "-DCMAKE_BUILD_TYPE=Release"
-#      - "-DSHADERC_SKIP_TESTS=ON"
-#      - "-DSHADERC_SKIP_EXAMPLES=ON"
-#    sources:
-#      - type: archive
-#        url: https://salsa.debian.org/debian/shaderc/-/archive/upstream/2022.4/shaderc-upstream-2022.4.tar.gz
-#        sha256: 462ba6f43f64e9e1fef8f8c2d21f99a68a627900920cf8f40ae66eb392cfb029
-#      - type: patch
-#        path: "use-system-thirdparties.patch"
-#
+  - name: glslang
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+      - "-DSHADERC_SKIP_TESTS=ON"
+      - "-DSHADERC_SKIP_EXAMPLES=ON"
+      - "-DENABLE_OPT=OFF"
+    sources:
+      - type: archive
+        url: https://salsa.debian.org/debian/shaderc/-/archive/upstream/2022.4/shaderc-upstream-2022.4.tar.gz
+        sha256: 462ba6f43f64e9e1fef8f8c2d21f99a68a627900920cf8f40ae66eb392cfb029
+      - type: patch
+        path: "use-system-thirdparties.patch"
+
 #  - name: glslc
 #    buildsystem: cmake-ninja
 #    config-opts:
@@ -131,7 +132,7 @@ modules:
 #      - "-DVSG_glslang_DIR=/app/vsg-glslang"
     sources:
       - type: archive
-        url: https://github.com/psi29a/VulkanSceneGraph/archive/refs/heads/system_glslang.zip
+        url: https://github.com/psi29a/VulkanSceneGraph/archive/refs/heads/use_system_glslang.zip
         sha256: 056f372194152609f58ea01a2196f959c96f521a13d2dca6b8f757b322a2f2b8
 
   - name: vsgXchange
