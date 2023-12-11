@@ -97,10 +97,11 @@ modules:
       - "-DENABLE_OPT=OFF"
     sources:
       - type: archive
-        url: https://salsa.debian.org/debian/shaderc/-/archive/upstream/2022.4/shaderc-upstream-2022.4.tar.gz
-        sha256: 462ba6f43f64e9e1fef8f8c2d21f99a68a627900920cf8f40ae66eb392cfb029
-      - type: patch
-        path: "use-system-thirdparties.patch"
+        #url: https://salsa.debian.org/debian/shaderc/-/archive/upstream/2022.4/shaderc-upstream-2022.4.tar.gz
+        url: https://github.com/KhronosGroup/glslang/archive/refs/tags/13.1.1.tar.gz
+        sha256: 1c4d0a5a38c8aaf89a2d7e6093be734320599f5a6775b2726beeb05b0c054e66
+      #- type: patch
+      #  path: "use-system-thirdparties.patch"
 
 #  - name: glslc
 #    buildsystem: cmake-ninja
@@ -133,7 +134,7 @@ modules:
     sources:
       - type: archive
         url: https://github.com/psi29a/VulkanSceneGraph/archive/refs/heads/use_system_glslang.zip
-        sha256: 056f372194152609f58ea01a2196f959c96f521a13d2dca6b8f757b322a2f2b8
+        sha256: 7a39645d4ff8d7e96502cfb0bad8f14b7f84a4fea8284e2e03f607b061249f85
 
   - name: vsgXchange
     buildsystem: cmake-ninja
