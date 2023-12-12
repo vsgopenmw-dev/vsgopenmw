@@ -18,6 +18,9 @@ namespace Settings
     {
         using WithIndex::WithIndex;
 
+        //vsgopenmw-settings
+        SettingValue<int> mAnimationThreads{ mIndex, "Cells", "animation threads" };
+
         SettingValue<bool> mPreloadEnabled{ mIndex, "Cells", "preload enabled" };
         SettingValue<int> mPreloadNumThreads{ mIndex, "Cells", "preload num threads", makeMaxSanitizerInt(1) };
         SettingValue<bool> mPreloadExteriorGrid{ mIndex, "Cells", "preload exterior grid" };

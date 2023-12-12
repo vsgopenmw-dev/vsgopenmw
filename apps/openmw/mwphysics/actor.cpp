@@ -4,8 +4,8 @@
 
 #include <components/debug/debuglog.hpp>
 #include <components/misc/convert.hpp>
+#include <components/mwanimation/position.hpp>
 #include <components/resource/bulletshape.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 
 #include "../mwmechanics/creaturestats.hpp"
 #include "../mwworld/class.hpp"
@@ -102,7 +102,10 @@ namespace MWPhysics
         updateScaleUnsafe();
 
         if (!mRotationallyInvariant)
-            mRotation = mPtr.getRefData().getBaseNode()->getAttitude();
+        {
+            auto q = MWAnim::zQuat(mPtr.getRefData().getPosition());
+            mRotation = { q.x, q.y, q.z, q.w };
+        }
 
         addCollisionMask(getCollisionMask());
         updateCollisionObjectPositionUnsafe();

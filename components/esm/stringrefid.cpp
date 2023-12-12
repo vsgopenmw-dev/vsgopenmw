@@ -30,7 +30,7 @@ namespace ESM
         Misc::NotNullPtr<const std::string> getOrInsertString(std::string_view id)
         {
             const auto locked = getRefIds().lock();
-            auto it = locked->find(id);
+            auto it = locked->find(std::string(id));
             if (it == locked->end())
                 it = locked->emplace(id).first;
             return &*it;
@@ -138,7 +138,7 @@ namespace ESM
     std::optional<StringRefId> StringRefId::deserializeExisting(std::string_view value)
     {
         const auto locked = getRefIds().lock();
-        auto it = locked->find(value);
+        auto it = locked->find(std::string(value));
         if (it == locked->end())
             return {};
         StringRefId id;

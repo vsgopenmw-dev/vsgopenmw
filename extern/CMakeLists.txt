@@ -2,6 +2,32 @@
 
 set(CMAKE_CXX_CLANG_TIDY "")
 
+# Note that installing external software unasked involves a security risk and may violate the software's licenses. To protect vsgopenmw's users against OpenMW's ill-chosen defaults, fetching has been disabled here.
+if(NOT OPENMW_USE_SYSTEM_BULLET)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_BULLET)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_RECASTNAVIGATION)")
+endif()
+#if(NOT OPENMW_USE_SYSTEM_MYGUI)
+#    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_MYGUI)")
+#endif()
+if(NOT OPENMW_USE_SYSTEM_SQLITE3)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_SQLITE3)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_ICU)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_ICU)")
+endif()
+if(BUILD_UNITTESTS AND NOT OPENMW_USE_SYSTEM_GOOGLETEST)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_GOOGLETEST)")
+endif()
+if(NOT OPENMW_USE_SYSTEM_YAML_CPP)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_YAML_CPP)")
+endif()
+if(BUILD_BENCHMARKS AND NOT OPENMW_USE_SYSTEM_BENCHMARK)
+    message(FATAL_ERROR "E_UNSUPPORTED(!OPENMW_USE_SYSTEM_USE_SYSTEM_BENCHMARK)")
+endif()
+
 # Like `FetchContent_MakeAvailable` but passes EXCLUDE_FROM_ALL to `add_subdirectory`.
 macro(FetchContent_MakeAvailableExcludeFromAll)
     foreach(contentName IN ITEMS ${ARGV})
@@ -16,6 +42,27 @@ macro(FetchContent_MakeAvailableExcludeFromAll)
         endif()
     endforeach()
 endmacro()
+
+if (NOT OPENMW_USE_SYSTEM_VSG)
+    include(FetchContent)
+    FetchContent_Declare(vsg
+            URL https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/tags/v1.0.9.zip
+            URL_HASH SHA3_256=d6a9cb1058fabf8c9174138e7c111b365e17c5a34468709144b7e765fb2c9d6e
+            SOURCE_DIR fetched/vsg
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsg)
+endif()
+
+if (NOT OPENMW_USE_SYSTEM_VSGXCHANGE)
+    include(FetchContent)
+    FetchContent_Declare(vsgXchange
+            URL https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
+            URL_HASH SHA3_256=05fcbe8b0c4bde28d295f20b26ebcd7a6a4df540f459639e73a4c9db5b42ee20
+            SOURCE_DIR fetched/vsgXchange
+    )
+    FetchContent_MakeAvailableExcludeFromAll(vsgXchange)
+    add_dependencies(vsg vsgXchange)
+endif()
 
 if(NOT OPENMW_USE_SYSTEM_BULLET)
 
@@ -88,6 +135,7 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
     set(MyGUI_LIBRARIES MyGUIEngine PARENT_SCOPE)
 endif()
 
+#[[
 if(NOT OPENMW_USE_SYSTEM_OSG)
 
     set(BUILD_OSG_APPLICATIONS OFF CACHE BOOL "")
@@ -161,7 +209,9 @@ if(NOT OPENMW_USE_SYSTEM_OSG)
         set(${_name_uc}_LIBRARY ${_name} PARENT_SCOPE)
     endforeach()
 endif()
+#]]
 
+#[[
 if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)
     if(RECASTNAVIGATION_STATIC)
         set(BUILD_SHARED_LIBS OFF)
@@ -311,3 +361,4 @@ if ((BUILD_UNITTESTS OR BUILD_OPENCS_TESTS) AND NOT OPENMW_USE_SYSTEM_GOOGLETEST
     add_library(GTest::GTest ALIAS gtest)
     add_library(GMock::GMock ALIAS gmock)
 endif()
+]]

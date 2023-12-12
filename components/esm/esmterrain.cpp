@@ -1,7 +1,7 @@
 #include "esmterrain.hpp"
 
 #include <components/esm3/loadland.hpp>
-#include <components/esm4/loadland.hpp>
+//#include <components/esm4/loadland.hpp>
 #include <components/misc/constants.hpp>
 
 namespace
@@ -36,6 +36,7 @@ ESM::LandData::LandData(const ESM::Land& land, int loadFlags)
 {
 }
 
+#if 0
 ESM::LandData::LandData(const ESM4::Land& land, int /*loadFlags*/)
     : mLoadFlags(land.mDataTypes) // ESM4::Land is always fully loaded. TODO: implement lazy loading
     , mHeightsData(ESM4::Land::sLandNumVerts)
@@ -70,6 +71,8 @@ ESM::LandData::LandData(const ESM4::Land& land, int /*loadFlags*/)
 
     mHeights = mHeightsData;
 }
+
+#endif
 
 namespace ESM
 {

@@ -72,8 +72,8 @@ bool MWMechanics::AiCast::execute(const MWWorld::Ptr& actor, MWMechanics::Charac
 
     osg::Vec3f dir = targetPos - actorPos;
 
-    bool turned = smoothTurn(actor, getZAngleToDir(dir), 2, osg::DegreesToRadians(3.f));
-    turned &= smoothTurn(actor, getXAngleToDir(dir), 0, osg::DegreesToRadians(3.f));
+    bool turned = smoothTurn(actor, duration, getZAngleToDir(dir), 2, osg::DegreesToRadians(3.f));
+    turned &= smoothTurn(actor, duration, getXAngleToDir(dir), 0, osg::DegreesToRadians(3.f));
 
     if (!turned)
         return false;

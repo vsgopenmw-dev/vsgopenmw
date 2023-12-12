@@ -1,6 +1,6 @@
 #include "manualref.hpp"
 #include <components/esm/records.hpp>
-#include <components/esm4/loadstat.hpp>
+//#include <components/esm4/loadstat.hpp>
 
 #include "esmstore.hpp"
 
@@ -88,12 +88,14 @@ MWWorld::ManualRef::ManualRef(const MWWorld::ESMStore& store, const ESM::RefId& 
         case ESM::REC_BODY:
             create(store.get<ESM::BodyPart>(), name, mRef, mPtr);
             break;
+            /*
         case ESM::REC_STAT4:
             create(store.get<ESM4::Static>(), name, mRef, mPtr);
             break;
         case ESM::REC_TERM4:
             create(store.get<ESM4::Terminal>(), name, mRef, mPtr);
             break;
+            */
         case 0:
             throw std::logic_error("failed to create manual cell ref for " + name.toDebugString() + " (unknown ID)");
 

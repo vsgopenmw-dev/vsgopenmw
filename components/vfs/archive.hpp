@@ -15,8 +15,6 @@ namespace VFS
         virtual ~File() = default;
 
         virtual Files::IStreamPtr open() = 0;
-
-        virtual std::filesystem::path getPath() = 0;
     };
 
     class Archive

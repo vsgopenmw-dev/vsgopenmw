@@ -1,7 +1,7 @@
 ---
 app-id: org.openmw.OpenMW.devel
 runtime: org.kde.Platform
-runtime-version: '5.15-21.08'
+runtime-version: '5.15-23.08'
 sdk: org.kde.Sdk
 command: openmw-launcher
 rename-appdata-file: openmw.appdata.xml
@@ -29,6 +29,120 @@ cleanup:
   - "*.a"
 
 modules:
+  - name: vulkan-headers
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+        - type: archive
+          url: https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+          sha256: 94993cbe2b1a604c0d5d9ea37a767e1aba4d771d2bfd4ddceefd66243095164f
+
+  - name: vulkan-loader
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/KhronosGroup/Vulkan-Loader/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+        sha256: 404fa621f1ab2731bcc68bcbff64d8c6de322faad2d87f9198641bd37255fd39
+
+# - name: vulkan-tools
+#   buildsystem: cmake-ninja
+#   config-opts:
+#     - -DCMAKE_BUILD_TYPE=Release
+#     - -DBUILD_CUBE=OFF
+#   sources:
+#     - type: archive
+#       url: https://github.com/KhronosGroup/Vulkan-Tools/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+#       sha256: 735631a595a4d7962e3221a410ceb60f5e069c98bd3309dd2ccc9f028a71788a
+
+# - name: vulkan-utility-library
+#   buildsystem: cmake-ninja
+#   config-opts:
+#     - -DCMAKE_BUILD_TYPE=Release
+#   sources:
+#     - type: archive
+#       url: https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+#       sha256: 0352a6a9a703a969a805e0d6498e013cba2dc7091cc2013b7c89b1a21f61e3f8
+
+# - name: vulkan-extensionlayer
+#   buildsystem: cmake-ninja
+#   config-opts:
+#     - -DCMAKE_BUILD_TYPE=Release
+#   sources:
+#     - type: archive
+#       url: https://github.com/KhronosGroup/Vulkan-ExtensionLayer/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+#       sha256: 68d530b97439bd70db2bedd22c5ec878e580c03ed74147c9fa95b2aed0b261b0
+
+  - name: vulkan-validationlayers
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/KhronosGroup/Vulkan-ExtensionLayer/archive/refs/tags/vulkan-sdk-1.3.268.0.tar.gz
+        sha256: 68d530b97439bd70db2bedd22c5ec878e580c03ed74147c9fa95b2aed0b261b0
+
+#  Need to figure out a way to have vsg compile with glslang; so that it can compile shaders.
+#   The problem is that vsg tries to automagically pull in 3rd party lib via git; if fails silently
+#   because flatpak does not allow network access while building.
+#
+#  - name: glslang
+#    buildsystem: cmake-ninja
+#    config-opts:
+#      - "-DCMAKE_BUILD_TYPE=Release"
+#      - "-DSHADERC_SKIP_TESTS=ON"
+#      - "-DSHADERC_SKIP_EXAMPLES=ON"
+#    sources:
+#      - type: archive
+#        url: https://salsa.debian.org/debian/shaderc/-/archive/upstream/2022.4/shaderc-upstream-2022.4.tar.gz
+#        sha256: 462ba6f43f64e9e1fef8f8c2d21f99a68a627900920cf8f40ae66eb392cfb029
+#      - type: patch
+#        path: "use-system-thirdparties.patch"
+#
+#  - name: glslc
+#    buildsystem: cmake-ninja
+#    config-opts:
+#      - "-DCMAKE_BUILD_TYPE=Release"
+#      - "-DSHADERC_SKIP_TESTS=ON"
+#      - "-DSHADERC_SKIP_EXAMPLES=ON"
+#      - "-DSHADERC_SKIP_COPYRIGHT_CHECK=ON"
+#      - "-Dglslang_SOURCE_DIR=/app/usr/include/glslang"
+#    sources:
+#      - type: archive
+#        url: https://github.com/google/shaderc/archive/refs/tags/v2023.7.tar.gz
+#        sha256: 681e1340726a0bf46bea7e31f10cbfe78e01e4446a35d90fedc2b78d400fcdeb
+#
+#  - name: vsg-glslang-source
+#    buildsystem: simple
+#    build-commands:
+#      - "cd ../; cp -fr vsg-glslang /app/"
+#    sources:
+#      - type: archive
+#        url: https://github.com/vsg-dev/glslang/archive/refs/tags/vsg-1.0.tar.gz
+#        sha256: 23e9d0c9e1ffc3059ef3016c700fb0b78da45293e51faeecdf0531307ce013b5
+
+  - name: vulkanscenegraph
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+#      - "-DVSG_SUPPORTS_ShaderCompiler=1"
+#      - "-DVSG_glslang_DIR=/app/vsg-glslang"
+    sources:
+      - type: archive
+        url: https://github.com/psi29a/VulkanSceneGraph/archive/refs/heads/system_glslang.zip
+        sha256: 056f372194152609f58ea01a2196f959c96f521a13d2dca6b8f757b322a2f2b8
+
+  - name: vsgXchange
+    buildsystem: cmake-ninja
+    config-opts:
+      - "-DCMAKE_BUILD_TYPE=Release"
+    sources:
+      - type: archive
+        url: https://github.com/vsg-dev/vsgXchange/archive/refs/tags/v1.0.5.zip
+        sha256: 4dccfefed049bb6bf101036be271b9b95dbf21c8025b3b0baf1972022814f06e
+
   - name: boost
     buildsystem: simple
     build-commands:
@@ -39,16 +153,6 @@ modules:
       - type: archive
         url: https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
         sha256: aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
-
-  - name: collada-dom
-    buildsystem: cmake-ninja
-    config-opts:
-      - "-DOPT_COLLADA14=1"
-      - "-DOPT_COLLADA15=0"
-    sources:
-      - type: archive
-        url: https://github.com/rdiankov/collada-dom/archive/c1e20b7d6ff806237030fe82f126cb86d661f063.zip
-        sha256: 6c51cd068c7d6760b587391884942caaac8a515d138535041e42d00d3e5c9152
 
   - name: ffmpeg
     config-opts:
@@ -68,32 +172,10 @@ modules:
       - "--disable-filters"
     sources:
       - type: archive
-        url: http://ffmpeg.org/releases/ffmpeg-4.3.2.tar.xz
-        sha256: 46e4e64f1dd0233cbc0934b9f1c0da676008cad34725113fb7f802cfa84ccddb
+        url: http://ffmpeg.org/releases/ffmpeg-5.1.4.tar.xz
+        sha256: 54383bb890a1cd62580e9f1eaa8081203196ed53bde9e98fb6b0004423f49063
     cleanup:
       - "/share/ffmpeg"
-
-  - name: openscenegraph
-    buildsystem: cmake-ninja
-    config-opts:
-      - "-DBUILD_OSG_PLUGINS_BY_DEFAULT=0"
-      - "-DBUILD_OSG_PLUGIN_OSG=1"
-      - "-DBUILD_OSG_PLUGIN_DDS=1"
-      - "-DBUILD_OSG_PLUGIN_DAE=1"
-      - "-DBUILD_OSG_PLUGIN_TGA=1"
-      - "-DBUILD_OSG_PLUGIN_BMP=1"
-      - "-DBUILD_OSG_PLUGIN_JPEG=1"
-      - "-DBUILD_OSG_PLUGIN_PNG=1"
-      - "-DBUILD_OSG_DEPRECATED_SERIALIZERS=0"
-      - "-DBUILD_OSG_APPLICATIONS=0"
-      - "-DCMAKE_BUILD_TYPE=Release"
-    build-options:
-      env:
-        COLLADA_DIR: /app/include/collada-dom2.5
-    sources:
-      - type: archive
-        url: https://github.com/openmw/osg/archive/76e061739610bc9a3420a59e7c9395e742ce2f97.zip
-        sha256: fa1100362eae260192819d65d90b29ec0b88fdf80e30cee677730b7a0d68637e
 
   - name: bullet
     # The cmake + ninja buildsystem doesn't install the required binaries correctly
@@ -156,15 +238,15 @@ modules:
       - "-DRECASTNAVIGATION_EXAMPLES=no"
     sources:
       - type: archive
-        url: https://github.com/recastnavigation/recastnavigation/archive/c5cbd53024c8a9d8d097a4371215e3342d2fdc87.zip
-        sha256: 53dacfd7bead4d3b0c9a04a648caed3e7c3900e0aba765c15dee26b50f6103c6
+        url: https://github.com/recastnavigation/recastnavigation/archive/refs/tags/v1.6.0.zip
+        sha256: 8b50c62177249554b226514b307e6c529934a62b3926822777bf6abb8906a155
 
   - name: yaml-cpp
     buildsystem: cmake-ninja
     sources:
       - type: archive
-        url: https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip
-        sha256: 4d5e664a7fb2d7445fc548cc8c0e1aa7b1a496540eb382d137e2cc263e6d3ef5
+        url: https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.zip
+        sha256: 334e80ab7b52e14c23f94e041c74bab0742f2281aad55f66be2f19f4b7747071
 
   - name: LuaJIT
     buildsystem: simple
@@ -179,8 +261,15 @@ modules:
     builddir: true
     buildsystem: cmake-ninja
     config-opts:
+      - "-DBUILD_OPENCS=no"
+      - "-DBUILD_BSATOOL=no"
       - "-DBUILD_BSATOOL=no"
       - "-DBUILD_ESMTOOL=no"
+      - "-DBUILD_ESMTOOL=no"
+      - "-DBUILD_ESSIMPORTER=no"
+      - "-DBUILD_NIFTEST=no"
+      - "-DBUILD_NAVMESHTOOL=no"
+      - "-DBUILD_BULLETOBJECTTOOL=no"
       - "-DCMAKE_BUILD_TYPE=Release"
       - "-DICONDIR=/app/share/icons"
       - "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=yes"
@@ -192,9 +281,9 @@ modules:
           - "sed -i 's:/wiki:/old-wiki:' ./files/openmw.appdata.xml"
           - "sed -i 's:>org.openmw.launcher.desktop<:>org.openmw.OpenMW.devel.desktop<:' ./files/openmw.appdata.xml"
           - "sed -i 's:Icon=openmw:Icon=org.openmw.OpenMW.devel.png:' ./files/org.openmw.launcher.desktop"
-          - "sed -i 's:Icon=openmw-cs:Icon=org.openmw.OpenMW.OpenCS.devel.png:' ./files/org.openmw.cs.desktop"
+          #- "sed -i 's:Icon=openmw-cs:Icon=org.openmw.OpenMW.OpenCS.devel.png:' ./files/org.openmw.cs.desktop"
     post-install:
       - "mv /app/share/applications/org.openmw.launcher.desktop /app/share/applications/org.openmw.OpenMW.devel.desktop"
-      - "mv /app/share/applications/org.openmw.cs.desktop /app/share/applications/org.openmw.OpenMW.OpenCS.devel.desktop"
+      #- "mv /app/share/applications/org.openmw.cs.desktop /app/share/applications/org.openmw.OpenMW.OpenCS.devel.desktop"
       - "mv /app/share/icons/openmw.png /app/share/icons/org.openmw.OpenMW.devel.png"
-      - "mv /app/share/icons/openmw-cs.png /app/share/icons/org.openmw.OpenMW.OpenCS.devel.png"
+      #- "mv /app/share/icons/openmw-cs.png /app/share/icons/org.openmw.OpenMW.OpenCS.devel.png"

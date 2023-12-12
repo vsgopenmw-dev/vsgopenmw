@@ -39,18 +39,9 @@ declare -rA GROUPED_DEPS=(
   "
 
   # These dependencies can alternatively be built and linked statically.
-  [openmw-deps-dynamic]="libmygui-dev libopenscenegraph-dev libsqlite3-dev libcollada-dom-dev"
+  [openmw-deps-dynamic]="libmygui-dev libsqlite3-dev libcollada-dom-dev"
   [clang-tidy]="clang-tidy"
 
-  # Pre-requisites for building MyGUI and OSG for static linking.
-  #
-  # * MyGUI and OSG: libsdl2-dev liblz4-dev libfreetype6-dev
-  # * OSG: libgl-dev
-  #
-  #   Plugins:
-  #   * DAE: libcollada-dom-dev libboost-system-dev libboost-filesystem-dev
-  #   * JPEG: libjpeg-dev
-  #   * PNG: libpng-dev
   [openmw-deps-static]="
     libcollada-dom-dev libfreetype6-dev libjpeg-dev libpng-dev
     libsdl2-dev libboost-system-dev libboost-filesystem-dev libgl-dev
@@ -77,7 +68,6 @@ declare -rA GROUPED_DEPS=(
     liblz4-1
     libmyguiengine3debian1v5
     libopenal1
-    libopenscenegraph161
     libpng16-16
     libqt5opengl5
     librecast1

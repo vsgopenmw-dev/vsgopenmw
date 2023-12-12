@@ -9,10 +9,12 @@
 #include "spellmodel.hpp"
 #include "windowbase.hpp"
 
+
 namespace MWGui
 {
 
     class QuickKeysMenuAssign;
+    class ItemSelectionDialog;
     class MagicSelectionDialog;
     class ItemWidget;
     class SpellView;
@@ -21,6 +23,7 @@ namespace MWGui
     {
     public:
         QuickKeysMenu();
+        ~QuickKeysMenu();
 
         void onResChange(int, int) override { center(); }
 

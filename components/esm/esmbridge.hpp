@@ -45,7 +45,7 @@ namespace ESM
         }
 
         bool isEsm4() const { return std::holds_alternative<const ESM4::Cell*>(mVariant); }
-        const ESM4::Cell& getEsm4() const;
+        //const ESM4::Cell& getEsm4() const;
         const ESM::Cell& getEsm3() const;
 
         template <class F, class... T>

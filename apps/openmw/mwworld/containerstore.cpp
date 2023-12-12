@@ -10,7 +10,6 @@
 #include <components/esm3/loadlevlist.hpp>
 #include <components/misc/strings/algorithm.hpp>
 #include <components/misc/strings/lower.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
@@ -323,8 +322,6 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::add(
     MWBase::Environment::get().getWorldModel()->registerPtr(item);
 
     // we may have copied an item from the world, so reset a few things first
-    item.getRefData().setBaseNode(
-        nullptr); // Especially important, otherwise scripts on the item could think that it's actually in a cell
     ESM::Position pos;
     pos.rot[0] = 0;
     pos.rot[1] = 0;

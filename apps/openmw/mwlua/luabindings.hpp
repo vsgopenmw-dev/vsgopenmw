@@ -7,6 +7,10 @@
 
 #include "context.hpp"
 
+namespace MWRender
+{
+    class RenderManager;
+}
 namespace MWLua
 {
     // Initialize Lua packages that are available for all scripts.

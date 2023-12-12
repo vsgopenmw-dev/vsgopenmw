@@ -22,11 +22,13 @@
 
 namespace Files
 {
+    // vsgopenmw-fixme(dependency-policy)
     struct ConfigurationManager;
 }
 
 namespace Settings
 {
+    // vsgopenmw-fixme(find-my-place)
     enum class WindowMode
     {
         Fullscreen = 0,
@@ -34,6 +36,7 @@ namespace Settings
         Windowed
     };
 
+    // vsgopenmw-fixme(global-state)
     ///
     /// \brief Settings management (can change during runtime)
     ///

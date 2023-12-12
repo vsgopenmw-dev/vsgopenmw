@@ -8,15 +8,8 @@
 #include "../mwscript/locals.hpp"
 #include "../mwworld/customdata.hpp"
 
-#include <osg/ref_ptr>
-
 #include <memory>
 #include <string>
-
-namespace SceneUtil
-{
-    class PositionAttitudeTransform;
-}
 
 namespace ESM
 {
@@ -43,8 +36,6 @@ namespace MWWorld
 
     class RefData
     {
-        osg::ref_ptr<SceneUtil::PositionAttitudeTransform> mBaseNode;
-
         MWScript::Locals mLocals;
         std::shared_ptr<MWLua::LocalScripts> mLuaScripts;
 
@@ -82,8 +73,11 @@ namespace MWWorld
         /// be altered without affecting the original data. This makes it possible
         /// to reset the position as the original data is still held in the CellRef
         RefData(const ESM::CellRef& cellRef);
+        /*
         RefData(const ESM4::Reference& cellRef);
         RefData(const ESM4::ActorCharacter& cellRef);
+
+        */
 
         RefData(const ESM::ObjectState& objectState, bool deletedByContentFile);
         ///< Ignores local variables and custom data (not enough context available here to
@@ -100,15 +94,6 @@ namespace MWWorld
 
         RefData& operator=(const RefData& refData);
         RefData& operator=(RefData&& other);
-
-        /// Return base node (can be a null pointer).
-        SceneUtil::PositionAttitudeTransform* getBaseNode();
-
-        /// Return base node (can be a null pointer).
-        const SceneUtil::PositionAttitudeTransform* getBaseNode() const;
-
-        /// Set base node (can be a null pointer).
-        void setBaseNode(osg::ref_ptr<SceneUtil::PositionAttitudeTransform> base);
 
         int getCount(bool absolute = true) const;
 

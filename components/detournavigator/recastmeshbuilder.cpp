@@ -138,7 +138,7 @@ namespace DetourNavigator
     }
 
     void RecastMeshBuilder::addObject(const btCollisionShape& shape, const btTransform& transform,
-        const AreaType areaType, osg::ref_ptr<const Resource::BulletShape> source,
+        const AreaType areaType, vsg::ref_ptr<const Resource::BulletShape> source,
         const ObjectTransform& objectTransform)
     {
         addObject(shape, transform, areaType);

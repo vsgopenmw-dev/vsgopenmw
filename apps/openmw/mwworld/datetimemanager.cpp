@@ -264,7 +264,8 @@ namespace MWWorld
     void DateTimeManager::updateIsPaused()
     {
         auto wm = MWBase::Environment::get().getWindowManager();
-        mPaused = !mPausedTags.empty() || wm->isConsoleMode() || wm->isPostProcessorHudVisible()
+        // TODO: couldn't we remove the WindowManager dependency by moving the below logic to game.hpp?
+        mPaused = !mPausedTags.empty() || wm->isConsoleMode() /*|| wm->isPostProcessorHudVisible()*/
             || wm->isInteractiveMessageBoxActive();
     }
 }

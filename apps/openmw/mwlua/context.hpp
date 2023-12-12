@@ -6,6 +6,10 @@ namespace LuaUtil
     class LuaState;
     class UserdataSerializer;
 }
+namespace MWRender
+{
+    class RenderManager;
+}
 
 namespace MWLua
 {
@@ -17,6 +21,7 @@ namespace MWLua
     {
         bool mIsGlobal;
         LuaManager* mLuaManager;
+        MWRender::RenderManager* mRenderManager;
         LuaUtil::LuaState* mLua;
         LuaUtil::UserdataSerializer* mSerializer;
         ObjectLists* mObjectLists;

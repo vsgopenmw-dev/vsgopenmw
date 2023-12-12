@@ -56,10 +56,8 @@ namespace MWInput
 
         MWBase::InputManager* input = MWBase::Environment::get().getInputManager();
         if (!input->controlsDisabled() && !consumed)
-            mBindingsManager->keyPressed(arg);
-
-        if (!consumed)
         {
+            mBindingsManager->keyPressed(arg);
             MWBase::Environment::get().getLuaManager()->inputEvent(
                 { MWBase::LuaManager::InputEvent::KeyPressed, arg.keysym });
         }
@@ -74,8 +72,12 @@ namespace MWInput
 
         if (!mBindingsManager->isDetectingBindingState())
             mBindingsManager->setPlayerControlsEnabled(!MyGUI::InputManager::getInstance().injectKeyRelease(kc));
-        mBindingsManager->keyReleased(arg);
-        MWBase::Environment::get().getLuaManager()->inputEvent(
-            { MWBase::LuaManager::InputEvent::KeyReleased, arg.keysym });
+
+        if (!MWBase::Environment::get().getInputManager()->controlsDisabled())
+        {
+            mBindingsManager->keyReleased(arg);
+            MWBase::Environment::get().getLuaManager()->inputEvent(
+                { MWBase::LuaManager::InputEvent::KeyReleased, arg.keysym });
+        }
     }
 }

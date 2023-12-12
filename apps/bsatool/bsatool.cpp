@@ -117,8 +117,7 @@ Allowed options)");
     }
     auto inputFiles = variables["input-file"].as<Files::MaybeQuotedPathContainer>();
 
-    info.filename = inputFiles[0].u8string(); // This call to u8string is redundant, but required to build on MSVC 14.26
-                                              // due to implementation bugs.
+    info.filename = inputFiles[0];
 
     // Default output to the working directory
     info.outdir = std::filesystem::current_path();
@@ -131,11 +130,9 @@ Allowed options)");
             return false;
         }
         if (inputFiles.size() > 1)
-            info.extractfile = inputFiles[1].u8string(); // This call to u8string is redundant, but required to build on
-                                                         // MSVC 14.26 due to implementation bugs.
+            info.extractfile = inputFiles[1];
         if (inputFiles.size() > 2)
-            info.outdir = inputFiles[2].u8string(); // This call to u8string is redundant, but required to build on
-                                                    // MSVC 14.26 due to implementation bugs.
+            info.outdir = inputFiles[2];
     }
     else if (info.mode == "add")
     {
@@ -145,12 +142,9 @@ Allowed options)");
             return false;
         }
         if (inputFiles.size() > 1)
-            info.addfile = inputFiles[1].u8string(); // This call to u8string is redundant, but required to build on
-                                                     // MSVC 14.26 due to implementation bugs.
-    }
+            info.addfile = inputFiles[1];   }
     else if (inputFiles.size() > 1)
-        info.outdir = inputFiles[1].u8string(); // This call to u8string is redundant, but required to build on
-                                                // MSVC 14.26 due to implementation bugs.
+        info.outdir = inputFiles[1];
 
     info.longformat = variables.count("long") != 0;
     info.fullpath = variables.count("full-path") != 0;
@@ -184,17 +178,17 @@ int list(std::unique_ptr<File>& bsa, Arguments& info)
 template <typename File>
 int extract(std::unique_ptr<File>& bsa, Arguments& info)
 {
-    auto archivePath = info.extractfile.u8string();
-    Misc::StringUtils::replaceAll(archivePath, u8"/", u8"\\");
+    auto archivePath = info.extractfile.string();
+    Misc::StringUtils::replaceAll(archivePath, "/", "\\");
 
-    auto extractPath = info.extractfile.u8string();
-    Misc::StringUtils::replaceAll(extractPath, u8"\\", u8"/");
+    auto extractPath = info.extractfile.string();
+    Misc::StringUtils::replaceAll(extractPath, "\\", "/");
 
     Files::IStreamPtr stream;
     // Get a stream for the file to extract
     for (auto it = bsa->getList().rbegin(); it != bsa->getList().rend(); ++it)
     {
-        if (Misc::StringUtils::ciEqual(Misc::StringUtils::stringToU8String(it->name()), archivePath))
+        if (Misc::StringUtils::ciEqual(it->name(), archivePath))
         {
             stream = bsa->getFile(&*it);
             break;
@@ -202,7 +196,7 @@ int extract(std::unique_ptr<File>& bsa, Arguments& info)
     }
     if (!stream)
     {
-        std::cout << "ERROR: file '" << Misc::StringUtils::u8StringToString(archivePath) << "' not found\n";
+        std::cout << "ERROR: file '" << archivePath << "' not found\n";
         std::cout << "In archive: " << Files::pathToUnicodeString(info.filename) << std::endl;
         return 3;
     }
@@ -249,7 +243,7 @@ int extractAll(std::unique_ptr<File>& bsa, Arguments& info)
 
         // Get the target path (the path the file will be extracted to)
         auto target = info.outdir;
-        target /= Misc::StringUtils::stringToU8String(extractPath);
+        target /= extractPath;
 
         // Create the directory hierarchy
         std::filesystem::create_directories(target.parent_path());

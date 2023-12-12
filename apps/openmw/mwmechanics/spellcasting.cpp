@@ -4,9 +4,9 @@
 #include <components/esm3/loadmgef.hpp>
 #include <components/esm3/loadstat.hpp>
 #include <components/misc/constants.hpp>
-#include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/format.hpp>
+#include <components/mwanimation/object.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -18,7 +18,8 @@
 #include "../mwworld/containerstore.hpp"
 #include "../mwworld/esmstore.hpp"
 
-#include "../mwrender/animation.hpp"
+#include "../mwrender/effect.hpp"
+#include "../mwrender/spellcastglow.hpp"
 
 #include "actorutil.hpp"
 #include "creaturestats.hpp"
@@ -41,7 +42,6 @@ namespace MWMechanics
         const ESM::EffectList& effects, const MWWorld::Ptr& ignore, ESM::RangeType rangeType) const
     {
         const auto world = MWBase::Environment::get().getWorld();
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
         std::map<MWWorld::Ptr, std::vector<ESM::ENAMstruct>> toApply;
         int index = -1;
         for (const ESM::ENAMstruct& effectInfo : effects.mList)
@@ -74,13 +74,11 @@ namespace MWMechanics
             if (effectInfo.mArea <= 0)
             {
                 if (effectInfo.mRange == ESM::RT_Target)
-                    world->spawnEffect(
-                        Misc::ResourceHelpers::correctMeshPath(areaStatic->mModel, vfs), texture, mHitPosition, 1.0f);
+                    world->spawnEffect(areaStatic->mModel, texture, mHitPosition, 1.0f);
                 continue;
             }
             else
-                world->spawnEffect(Misc::ResourceHelpers::correctMeshPath(areaStatic->mModel, vfs), texture,
-                    mHitPosition, static_cast<float>(effectInfo.mArea * 2));
+                world->spawnEffect(areaStatic->mModel, texture, mHitPosition, static_cast<float>(effectInfo.mArea * 2));
 
             // Play explosion sound (make sure to use NoTrack, since we will delete the projectile now)
             {
@@ -531,67 +529,61 @@ namespace MWMechanics
     void CastSpell::playSpellCastingEffects(const std::vector<ESM::ENAMstruct>& effects) const
     {
         const MWWorld::ESMStore& store = *MWBase::Environment::get().getESMStore();
-        std::vector<std::string> addedEffects;
-        const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
+        std::vector<ESM::RefId> addedEffects;
 
         for (const ESM::ENAMstruct& effectData : effects)
         {
             const auto effect = store.get<ESM::MagicEffect>().find(effectData.mEffectID);
 
-            const ESM::Static* castStatic;
-
-            if (!effect->mCasting.empty())
-                castStatic = store.get<ESM::Static>().find(effect->mCasting);
-            else
-                castStatic = store.get<ESM::Static>().find(ESM::RefId::stringRefId("VFX_DefaultCast"));
+            auto effectRefId = effect->mCasting;
+            if (effectRefId.empty())
+                effectRefId = ESM::RefId::stringRefId("VFX_DefaultCast");
 
             // check if the effect was already added
-            if (std::find(addedEffects.begin(), addedEffects.end(),
-                    Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs))
-                != addedEffects.end())
+            if (std::find(addedEffects.begin(), addedEffects.end(), effectRefId) != addedEffects.end())
                 continue;
 
-            MWRender::Animation* animation = MWBase::Environment::get().getWorld()->getAnimation(mCaster);
-            if (animation)
-            {
-                animation->addEffect(Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs), effect->mIndex,
-                    false, {}, effect->mParticle);
-            }
-            else
-            {
-                // If the caster has no animation, add the effect directly to the effectManager
-                // We must scale and position it manually
-                float scale = mCaster.getCellRef().getScale();
-                osg::Vec3f pos(mCaster.getRefData().getPosition().asVec3());
-                if (!mCaster.getClass().isNpc())
-                {
-                    osg::Vec3f bounds(MWBase::Environment::get().getWorld()->getHalfExtents(mCaster) * 2.f);
-                    scale *= std::max({ bounds.x(), bounds.y(), bounds.z() / 2.f }) / 64.f;
-                    float offset = 0.f;
-                    if (bounds.z() < 128.f)
-                        offset = bounds.z() - 128.f;
-                    else if (bounds.z() < bounds.x() + bounds.y())
-                        offset = 128.f - bounds.z();
-                    if (MWBase::Environment::get().getWorld()->isFlying(mCaster))
-                        offset /= 20.f;
-                    pos.z() += offset * scale;
-                }
+            MWRender::addEffect(mCaster, effectRefId, effect->mIndex, false, {}, effect->mParticle);
+            /*
                 else
                 {
-                    // Additionally use the NPC's height
-                    osg::Vec3f npcScaleVec(1.f, 1.f, 1.f);
-                    mCaster.getClass().adjustScale(mCaster, npcScaleVec, true);
-                    scale *= npcScaleVec.z();
+                    // If the caster has no animation, add the effect directly to the effectManager
+                    // We must scale and position it manually
+                    float scale = mCaster.getCellRef().getScale();
+                    osg::Vec3f pos (mCaster.getRefData().getPosition().asVec3());
+                    if (!mCaster.getClass().isNpc())
+                    {
+                        osg::Vec3f bounds (MWBase::Environment::get().getWorld()->getHalfExtents(mCaster) * 2.f);
+                        scale *= std::max({bounds.x(), bounds.y(), bounds.z() / 2.f}) / 64.f;
+                        float offset = 0.f;
+                        if (bounds.z() < 128.f)
+                            offset = bounds.z() - 128.f;
+                        else if (bounds.z() < bounds.x() + bounds.y())
+                            offset = 128.f - bounds.z();
+                        if (MWBase::Environment::get().getWorld()->isFlying(mCaster))
+                            offset /= 20.f;
+                        pos.z() += offset * scale;
+                    }
+                    else
+                    {
+                        // Additionally use the NPC's height
+                        osg::Vec3f npcScaleVec (1.f, 1.f, 1.f);
+                        mCaster.getClass().adjustScale(mCaster, npcScaleVec, true);
+                        scale *= npcScaleVec.z();
+                    }
+                    scale = std::max(scale, 1.f);
+                    MWBase::Environment::get().getWorld()->spawnEffect(castStatic->mModel, effect->mParticle, pos,
+               scale);
                 }
-                scale = std::max(scale, 1.f);
-                MWBase::Environment::get().getWorld()->spawnEffect(
-                    Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs), effect->mParticle, pos, scale);
+                */
+
+            if (!mCaster.getClass().isActor())
+            {
+                if (auto anim = MWBase::Environment::get().getWorld()->getAnimation(mCaster))
+                    MWRender::addSpellCastGlow(anim, *effect);
             }
 
-            if (animation && !mCaster.getClass().isActor())
-                animation->addSpellCastGlow(effect);
-
-            addedEffects.push_back(Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs));
+            addedEffects.push_back(effectRefId);
 
             MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
             if (!effect->mCastSound.empty())
@@ -616,23 +608,13 @@ namespace MWMechanics
         }
 
         // Add VFX
-        const ESM::Static* castStatic;
-        if (!magicEffect.mHit.empty())
-            castStatic = store->get<ESM::Static>().find(magicEffect.mHit);
-        else
-            castStatic = store->get<ESM::Static>().find(ESM::RefId::stringRefId("VFX_DefaultHit"));
+        auto effectRefId = magicEffect.mHit;
+        if (effectRefId.empty())
+            effectRefId = ESM::RefId::stringRefId("VFX_DefaultHit");
 
         bool loop = (magicEffect.mData.mFlags & ESM::MagicEffect::ContinuousVfx) != 0;
-        MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(target);
-        if (anim && !castStatic->mModel.empty())
-        {
-            // Don't play particle VFX unless the effect is new or it should be looping.
-            if (playNonLooping || loop)
-            {
-                const VFS::Manager* const vfs = MWBase::Environment::get().getResourceSystem()->getVFS();
-                anim->addEffect(Misc::ResourceHelpers::correctMeshPath(castStatic->mModel, vfs), magicEffect.mIndex,
-                    loop, {}, magicEffect.mParticle);
-            }
-        }
+        // Don't play particle VFX unless the effect is new or it should be looping.
+        if (playNonLooping || loop)
+            MWRender::addEffect(target, effectRefId, magicEffect.mIndex, loop, {}, magicEffect.mParticle);
     }
 }

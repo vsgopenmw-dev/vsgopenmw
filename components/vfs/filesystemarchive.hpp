@@ -16,8 +16,6 @@ namespace VFS
 
         Files::IStreamPtr open() override;
 
-        std::filesystem::path getPath() override { return mPath; }
-
     private:
         std::filesystem::path mPath;
     };

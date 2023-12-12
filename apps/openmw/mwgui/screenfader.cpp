@@ -169,8 +169,7 @@ namespace MWGui
 
         if (time == 0.f && delay == 0.f)
         {
-            mCurrentAlpha = targetAlpha;
-            applyAlpha();
+            notifyAlphaChanged(targetAlpha);
             return;
         }
 

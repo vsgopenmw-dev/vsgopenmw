@@ -18,6 +18,12 @@ namespace Settings
     {
         using WithIndex::WithIndex;
 
+        //vsgopenmw-settings
+        SettingValue<bool> mPCSS{ mIndex, "Shadows", "percentage closer soft shadows" };
+        SettingValue<int> mBlockerSamples{ mIndex, "Shadows", "blocker samples", makeClampSanitizerInt(4, 16) };
+        SettingValue<int> mPCFSamples{ mIndex, "Shadows", "pcf samples", makeClampSanitizerInt(4, 16) };
+        SettingValue<bool> mFilterShadowMaps{ mIndex, "Shadows", "filter shadow maps" };
+
         SettingValue<bool> mEnableShadows{ mIndex, "Shadows", "enable shadows" };
         SettingValue<int> mNumberOfShadowMaps{ mIndex, "Shadows", "number of shadow maps",
             makeClampSanitizerInt(1, 8) };

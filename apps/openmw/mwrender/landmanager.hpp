@@ -1,34 +1,34 @@
 #ifndef OPENMW_MWRENDER_LANDMANAGER_H
 #define OPENMW_MWRENDER_LANDMANAGER_H
 
-#include <osg/Object>
 
 #include <components/esm/util.hpp>
-#include <components/esmterrain/storage.hpp>
-#include <components/resource/resourcemanager.hpp>
+#include <components/esm3terrain/storage.hpp>
+#include <components/vsgutil/cache.hpp>
 
 namespace ESM
 {
     struct Land;
 }
-
 namespace MWRender
 {
 
-    class LandManager : public Resource::GenericResourceManager<ESM::ExteriorCellLocation>
+    class LandManager
     {
     public:
         LandManager(int loadFlags);
 
         /// @note Will return nullptr if not found.
-        osg::ref_ptr<ESMTerrain::LandObject> getLand(ESM::ExteriorCellLocation cellIndex);
+        vsg::ref_ptr<ESMTerrain::LandObject> getLand(ESM::ExteriorCellLocation cellIndex) const;
 
-        void reportStats(unsigned int frameNumber, osg::Stats* stats) const override;
+        vsg::ref_ptr<ESMTerrain::LandObject> create(ESM::ExteriorCellLocation cellIndex) const;
+
+        void pruneCache() { mCache.prune(); }
 
     private:
         int mLoadFlags;
+        mutable vsgUtil::RefCache<ESM::ExteriorCellLocation, ESMTerrain::LandObject> mCache;
     };
-
 }
 
 #endif

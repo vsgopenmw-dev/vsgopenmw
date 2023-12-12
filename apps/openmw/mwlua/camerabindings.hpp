@@ -3,9 +3,13 @@
 
 #include <sol/forward.hpp>
 
+namespace MWRender
+{
+    class RenderManager;
+}
 namespace MWLua
 {
-    sol::table initCameraPackage(sol::state_view& lua);
+    sol::table initCameraPackage(sol::state_view& lua, MWRender::RenderManager* renderManager);
 }
 
 #endif // MWLUA_CAMERABINDINGS_H

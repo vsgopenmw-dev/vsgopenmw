@@ -25,9 +25,10 @@ namespace MWMechanics
 
     /// configure rotation settings for an actor to reach this target angle (eventually)
     /// @return have we reached the target angle?
-    bool zTurn(const MWWorld::Ptr& actor, float targetAngleRadians, float epsilonRadians = osg::DegreesToRadians(0.5));
+    bool zTurn(const MWWorld::Ptr& actor, float duration, float targetAngleRadians,
+        float epsilonRadians = osg::DegreesToRadians(0.5));
 
-    bool smoothTurn(const MWWorld::Ptr& actor, float targetAngleRadians, int axis,
+    bool smoothTurn(const MWWorld::Ptr& actor, float duration, float targetAngleRadians, int axis,
         float epsilonRadians = osg::DegreesToRadians(0.5));
 
 }

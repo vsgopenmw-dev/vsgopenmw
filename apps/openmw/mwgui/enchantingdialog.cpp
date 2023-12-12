@@ -61,6 +61,8 @@ namespace MWGui
         mName->eventEditSelectAccept += MyGUI::newDelegate(this, &EnchantingDialog::onAccept);
     }
 
+    EnchantingDialog::~EnchantingDialog() {}
+
     void EnchantingDialog::onOpen()
     {
         center();

@@ -9,8 +9,6 @@
 #include "MyGUI_TextureUtility.h"
 
 #include <components/misc/utf8stream.hpp>
-#include <components/sceneutil/depth.hpp>
-#include <components/settings/values.hpp>
 
 namespace MWGui
 {
@@ -1226,7 +1224,7 @@ namespace MWGui
 
             RenderXform renderXform(mCroppedParent, textFormat.mRenderItem->getRenderTarget()->getInfo());
 
-            float z = SceneUtil::AutoDepth::isReversed() ? 1.f : -1.f;
+            float z = 0;
 
             GlyphStream glyphStream(textFormat.mFont, static_cast<float>(mCoord.left),
                 static_cast<float>(mCoord.top - mViewTop), z /*mNode->getNodeDepth()*/, vertices, renderXform);
@@ -1279,14 +1277,23 @@ namespace MWGui
         {
         }
 
-        void showPage(TypesetBook::Ptr book, size_t page) override { mPageDisplay->showPage(std::move(book), page); }
+        void showPage(TypesetBook::Ptr book, size_t page) override
+        {
+            if (mPageDisplay)
+                mPageDisplay->showPage(std::move(book), page);
+        }
 
         void adviseLinkClicked(std::function<void(InteractiveId)> linkClicked) override
         {
-            mPageDisplay->mLinkClicked = std::move(linkClicked);
+            if (mPageDisplay)
+                mPageDisplay->mLinkClicked = std::move(linkClicked);
         }
 
-        void unadviseLinkClicked() override { mPageDisplay->mLinkClicked = std::function<void(InteractiveId)>(); }
+        void unadviseLinkClicked() override
+        {
+            if (mPageDisplay)
+                mPageDisplay->mLinkClicked = std::function<void(InteractiveId)>();
+        }
 
     protected:
         void initialiseOverride() override
@@ -1297,29 +1304,32 @@ namespace MWGui
             {
                 mPageDisplay = getSubWidgetText()->castType<PageDisplay>();
             }
-            else
-            {
-                throw std::runtime_error("BookPage unable to find page display sub widget");
-            }
         }
 
         void onMouseLostFocus(Widget* _new) override
         {
             // NOTE: MyGUI also fires eventMouseLostFocus for widgets that are about to be destroyed (if they had
             // focus). Child widgets may already be destroyed! So be careful.
-            mPageDisplay->onMouseLostFocus();
+            if (mPageDisplay)
+                mPageDisplay->onMouseLostFocus();
         }
 
-        void onMouseMove(int left, int top) override { mPageDisplay->onMouseMove(left, top); }
+        void onMouseMove(int left, int top) override
+        {
+            if (mPageDisplay)
+                mPageDisplay->onMouseMove(left, top);
+        }
 
         void onMouseButtonPressed(int left, int top, MyGUI::MouseButton id) override
         {
-            mPageDisplay->onMouseButtonPressed(left, top, id);
+            if (mPageDisplay)
+                mPageDisplay->onMouseButtonPressed(left, top, id);
         }
 
         void onMouseButtonReleased(int left, int top, MyGUI::MouseButton id) override
         {
-            mPageDisplay->onMouseButtonReleased(left, top, id);
+            if (mPageDisplay)
+                mPageDisplay->onMouseButtonReleased(left, top, id);
         }
 
         PageDisplay* mPageDisplay;

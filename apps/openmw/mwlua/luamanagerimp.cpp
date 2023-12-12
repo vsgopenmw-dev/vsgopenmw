@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include <MyGUI_InputManager.h>
-#include <osg/Stats>
+//#include <osg/Stats>
 
 #include "sol/state_view.hpp"
 
@@ -22,9 +22,8 @@
 
 #include "../mwbase/windowmanager.hpp"
 
-#include "../mwrender/postprocessor.hpp"
-
 #include "../mwworld/datetimemanager.hpp"
+#include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/ptr.hpp"
 #include "../mwworld/scene.hpp"
@@ -71,11 +70,12 @@ namespace MWLua
         mGlobalScripts.setAutoStartConf(mConfiguration.getGlobalConf());
     }
 
-    void LuaManager::init()
+    void LuaManager::init(MWRender::RenderManager* renderManager)
     {
         Context context;
         context.mIsGlobal = true;
         context.mLuaManager = this;
+        context.mRenderManager = renderManager;
         context.mLua = &mLua;
         context.mObjectLists = &mObjectLists;
         context.mLuaEvents = &mLuaEvents;
@@ -121,10 +121,10 @@ namespace MWLua
         mPlayerStorage.save(userConfigPath / "player_storage.bin");
     }
 
-    void LuaManager::update()
+    void LuaManager::update(float frameDuration)
     {
         if (Settings::lua().mGcStepsPerFrame > 0)
-            lua_gc(mLua.sol(), LUA_GCSTEP, Settings::lua().mGcStepsPerFrame);
+            lua_gc(mLua.sol(), LUA_GCSTEP, static_cast<int>(Settings::lua().mGcStepsPerFrame));
 
         if (mPlayer.isEmpty())
             return; // The game is not started yet.
@@ -170,7 +170,6 @@ namespace MWLua
         mEngineEvents.callEngineHandlers();
         if (!timeManager.isPaused())
         {
-            float frameDuration = MWBase::Environment::get().getFrameDuration();
             for (LocalScripts* scripts : mActiveLocalScripts)
                 scripts->update(frameDuration);
             mGlobalScripts.update(frameDuration);
@@ -202,7 +201,7 @@ namespace MWLua
         }
     }
 
-    void LuaManager::synchronizedUpdate()
+    void LuaManager::synchronizedUpdate(float dt)
     {
         if (mPlayer.isEmpty())
             return; // The game is not started yet.
@@ -228,7 +227,7 @@ namespace MWLua
         if (playerScripts)
             playerScripts->onFrame(MWBase::Environment::get().getWorld()->getTimeManager()->isPaused()
                     ? 0.0
-                    : MWBase::Environment::get().getFrameDuration());
+                    : dt);
         mProcessingInputEvents = false;
 
         for (const std::string& message : mUIMessages)
@@ -266,7 +265,7 @@ namespace MWLua
         LuaUi::clearUserInterface();
         mUiResourceManager.clear();
         MWBase::Environment::get().getWindowManager()->setConsoleMode("");
-        MWBase::Environment::get().getWorld()->getPostProcessor()->disableDynamicShaders();
+        // MWBase::Environment::get().getWorld()->getPostProcessor()->disableDynamicShaders();
         mActiveLocalScripts.clear();
         mLuaEvents.clear();
         mEngineEvents.clear();
@@ -576,7 +575,7 @@ namespace MWLua
 
     void LuaManager::reportStats(unsigned int frameNumber, osg::Stats& stats) const
     {
-        stats.setAttribute(frameNumber, "Lua UsedMemory", mLua.getTotalMemoryUsage());
+        //stats.setAttribute(frameNumber, "Lua UsedMemory", mLua.getTotalMemoryUsage());
     }
 
     std::string LuaManager::formatResourceUsageStats() const

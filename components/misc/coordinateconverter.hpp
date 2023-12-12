@@ -4,8 +4,7 @@
 #include <components/esm/esmbridge.hpp>
 #include <components/esm3/loadcell.hpp>
 #include <components/esm3/loadpgrd.hpp>
-#include <components/esm4/loadcell.hpp>
-#include <components/misc/constants.hpp>
+//#include <components/esm4/loadcell.hpp>
 
 namespace Misc
 {
@@ -83,14 +82,18 @@ namespace Misc
         return makeCoordinateConverterImpl(cell);
     }
 
+    /*
     inline CoordinateConverter makeCoordinateConverter(const ESM4::Cell& cell)
     {
         return makeCoordinateConverterImpl(cell);
     }
 
+    */
+
     inline CoordinateConverter makeCoordinateConverter(const ESM::CellVariant& cell)
     {
-        return visit([](const auto& v) { return makeCoordinateConverterImpl(v); }, cell);
+        return makeCoordinateConverterImpl(cell.getEsm3());
+        //return visit([](const auto& v) { return makeCoordinateConverterImpl(v); }, cell);
     }
 }
 

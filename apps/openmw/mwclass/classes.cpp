@@ -1,5 +1,6 @@
 #include "classes.hpp"
 
+/*
 #include <components/esm4/loadacti.hpp>
 #include <components/esm4/loadalch.hpp>
 #include <components/esm4/loadammo.hpp>
@@ -20,6 +21,7 @@
 #include <components/esm4/loadtree.hpp>
 #include <components/esm4/loadweap.hpp>
 
+*/
 #include "activator.hpp"
 #include "apparatus.hpp"
 #include "armor.hpp"
@@ -42,10 +44,12 @@
 #include "static.hpp"
 #include "weapon.hpp"
 
+/*
 #include "esm4base.hpp"
 #include "esm4npc.hpp"
 #include "light4.hpp"
 
+*/
 namespace MWClass
 {
     void registerClasses()
@@ -71,25 +75,5 @@ namespace MWClass
         Repair::registerSelf();
         Static::registerSelf();
         BodyPart::registerSelf();
-
-        ESM4Named<ESM4::Activator>::registerSelf();
-        ESM4Named<ESM4::Ammunition>::registerSelf();
-        ESM4Named<ESM4::Armor>::registerSelf();
-        ESM4Named<ESM4::Book>::registerSelf();
-        ESM4Named<ESM4::Clothing>::registerSelf();
-        ESM4Named<ESM4::Creature>::registerSelf();
-        ESM4Named<ESM4::Container>::registerSelf();
-        ESM4Named<ESM4::Door>::registerSelf();
-        ESM4Named<ESM4::Flora>::registerSelf();
-        ESM4Named<ESM4::Furniture>::registerSelf();
-        ESM4Named<ESM4::Ingredient>::registerSelf();
-        ESM4Light::registerSelf();
-        ESM4Named<ESM4::MiscItem>::registerSelf();
-        ESM4Npc::registerSelf();
-        ESM4Named<ESM4::Potion>::registerSelf();
-        ESM4Static::registerSelf();
-        ESM4Named<ESM4::Terminal>::registerSelf();
-        ESM4Tree::registerSelf();
-        ESM4Named<ESM4::Weapon>::registerSelf();
     }
 }

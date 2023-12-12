@@ -30,7 +30,7 @@ namespace MWWorld
 
         std::optional<int> getMasterFileFormat() const { return mMasterFileFormat; }
 
-        void load(const std::filesystem::path& filepath, int& index, Loading::Listener* listener) override;
+        void load(const std::filesystem::path& filepath, int& index, MWState::Loading& state) override;
 
     private:
         ESM::ReadersCache& mReaders;

@@ -3,18 +3,20 @@
 
 #include <memory>
 
-#include "spellicons.hpp"
-#include "spellmodel.hpp"
 #include "windowpinnablebase.hpp"
+
+#include "spellmodel.hpp"
 
 namespace MWGui
 {
+    class SpellIcons;
     class SpellView;
 
     class SpellWindow : public WindowPinnableBase, public NoDrop
     {
     public:
         SpellWindow(DragAndDrop* drag);
+        ~SpellWindow();
 
         void updateSpells();
 

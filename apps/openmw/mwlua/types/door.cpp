@@ -1,7 +1,7 @@
 #include "types.hpp"
 
 #include <components/esm3/loaddoor.hpp>
-#include <components/esm4/loaddoor.hpp>
+//#include <components/esm4/loaddoor.hpp>
 #include <components/lua/utilpackage.hpp>
 #include <components/misc/convert.hpp>
 #include <components/misc/resourcehelpers.hpp>
@@ -17,10 +17,13 @@ namespace sol
     {
     };
 
+    /*
     template <>
     struct is_automagical<ESM4::Door> : std::false_type
     {
     };
+
+    */
 }
 
 namespace MWLua
@@ -76,6 +79,7 @@ namespace MWLua
             [](const ESM::Door& rec) -> std::string { return rec.mCloseSound.serializeText(); });
     }
 
+    /*
     void addESM4DoorBindings(sol::table door, const Context& context)
     {
         door["isTeleport"] = [](const Object& o) { return door4Ptr(o).getCellRef().getTeleport(); };
@@ -112,4 +116,6 @@ namespace MWLua
         record["isAutomatic"] = sol::readonly_property(
             [](const ESM4::Door& rec) -> bool { return rec.mDoorFlags & ESM4::Door::Flag_AutomaticDoor; });
     }
+
+    */
 }

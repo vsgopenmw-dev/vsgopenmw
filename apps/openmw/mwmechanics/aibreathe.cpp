@@ -24,7 +24,7 @@ bool MWMechanics::AiBreathe::execute(
             actorClass.getCreatureStats(actor).setMovementFlag(CreatureStats::Flag_Run, true);
 
             actorClass.getMovementSettings(actor).mPosition[1] = 1;
-            smoothTurn(actor, static_cast<float>(-osg::PI_2), 0);
+            smoothTurn(actor, duration, static_cast<float>(-osg::PI_2), 0);
 
             return false;
         }

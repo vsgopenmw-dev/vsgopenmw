@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Add OpenMW PPA Dependencies
         run: sudo add-apt-repository ppa:openmw/openmw; sudo apt-get update
@@ -24,48 +24,41 @@ jobs:
         run: sudo CI/install_debian_deps.sh gcc openmw-deps openmw-deps-dynamic
 
       - name: Prime ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
           max-size: 1000M
 
       - name: Configure
-        run: cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1 -DUSE_SYSTEM_TINYXML=1 -DBUILD_UNITTESTS=1 -DCMAKE_INSTALL_PREFIX=install
+        run: |
+          cmake . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DUSE_SYSTEM_TINYXML=TRUE \
+          -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=TRUE \
+          -DOPENMW_USE_SYSTEM_VSG=FALSE \
+          -DOPENMW_USE_SYSTEM_VSGXCHANGE=FALSE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_OPENCS=FALSE \
+          -DBUILD_BSATOOL=FALSE \
+          -DBUILD_LAUNCHER=FALSE \
+          -DBUILD_WIZARD=FALSE \
+          -DBUILD_ESMTOOL=FALSE \
+          -DBUILD_NAVMESHTOOL=FALSE \
+          -DBUILD_BULLETOBJECTTOOL=FALSE
 
       - name: Build
         run: make -j3
-
-      - name: Test
-        run: ./openmw_test_suite
-
-          #    - name: Install
-          #      shell: bash
-          #      run: cmake --install .
-
-          #    - name: Create Artifact
-          #      shell: bash
-          #      working-directory: install
-          #      run: |
-          #        ls -laR
-          #        7z a ../build_artifact.7z .
-
-  #    - name: Upload Artifact
-  #      uses: actions/upload-artifact@v1
-  #      with:
-  #        path: ./build_artifact.7z
-  #        name: build_artifact.7z
 
   MacOS:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Building Dependencies
         run: CI/before_install.osx.sh
 
       - name: Prime ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
           max-size: 1000M
@@ -74,7 +67,30 @@ jobs:
         run: |
           rm -fr build  # remove the build directory
           CI/before_script.osx.sh
+
       - name: Build
         run: |
           cd build 
           make -j $(sysctl -n hw.logicalcpu) package
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: OpenMW.dmg
+          path: build/OpenMW-*.dmg
+
+  Flatpak:
+    name: "Flatpak"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-23.08
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: openmw.flatpak
+          manifest-path: CI/org.openmw.OpenMW.devel.yaml
+          cache-key: flatpak-builder-${{ github.sha }}

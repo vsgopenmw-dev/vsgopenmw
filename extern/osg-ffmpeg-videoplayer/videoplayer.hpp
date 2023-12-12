@@ -8,13 +8,6 @@
 
 #include <iosfwd>
 
-#include <osg/Texture2D>
-
-namespace osg
-{
-    class Texture2D;
-}
-
 namespace Video
 {
 
@@ -65,7 +58,7 @@ namespace Video
         void close();
 
         /// Return the texture of the currently playing video, or a null pointer if no video is playing.
-        osg::ref_ptr<osg::Texture2D> getVideoTexture();
+        void *getVideoData();
 
         /// Return the width of the currently playing video, or 0 if no video is playing.
         int getVideoWidth();

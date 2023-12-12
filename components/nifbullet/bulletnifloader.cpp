@@ -143,7 +143,7 @@ namespace
 namespace NifBullet
 {
 
-    osg::ref_ptr<Resource::BulletShape> BulletNifLoader::load(Nif::FileView nif)
+    vsg::ref_ptr<Resource::BulletShape> BulletNifLoader::load(Nif::FileView nif)
     {
         mShape = new Resource::BulletShape;
 

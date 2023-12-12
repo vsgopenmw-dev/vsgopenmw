@@ -48,6 +48,10 @@ namespace LuaUi
     {
         clearSettings();
         while (!Element::sAllElements.empty())
-            Element::sAllElements.begin()->second->destroy();
+        {
+            auto element = Element::sAllElements.begin()->first;
+            element->destroy();
+            Element::sAllElements.erase(element);
+        }
     }
 }

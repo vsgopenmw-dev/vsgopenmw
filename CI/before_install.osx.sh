@@ -26,6 +26,8 @@ export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
 
 # Install deps
 brew install icu4c yaml-cpp sqlite
+brew install vulkan-headers vulkan-loader vulkan-validationlayers
+# vulkan-tools vulkan-extensionlayer
 
 ccache --version
 cmake --version

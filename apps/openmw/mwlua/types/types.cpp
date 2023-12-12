@@ -224,7 +224,7 @@ namespace MWLua
         addType(ObjectTypeName::ESM4Book, { ESM::REC_BOOK4 });
         addType(ObjectTypeName::ESM4Clothing, { ESM::REC_CLOT4 });
         addType(ObjectTypeName::ESM4Container, { ESM::REC_CONT4 });
-        addESM4DoorBindings(addType(ObjectTypeName::ESM4Door, { ESM::REC_DOOR4 }, ObjectTypeName::Lockable), context);
+        //addESM4DoorBindings(addType(ObjectTypeName::ESM4Door, { ESM::REC_DOOR4 }, ObjectTypeName::Lockable), context);
         addType(ObjectTypeName::ESM4Flora, { ESM::REC_FLOR4 });
         addType(ObjectTypeName::ESM4Furniture, { ESM::REC_FURN4 });
         addType(ObjectTypeName::ESM4Ingredient, { ESM::REC_INGR4 });
@@ -232,7 +232,7 @@ namespace MWLua
         addType(ObjectTypeName::ESM4MiscItem, { ESM::REC_MISC4 });
         addType(ObjectTypeName::ESM4Potion, { ESM::REC_ALCH4 });
         addType(ObjectTypeName::ESM4Static, { ESM::REC_STAT4 });
-        addESM4TerminalBindings(addType(ObjectTypeName::ESM4Terminal, { ESM::REC_TERM4 }), context);
+        //addESM4TerminalBindings(addType(ObjectTypeName::ESM4Terminal, { ESM::REC_TERM4 }), context);
         addType(ObjectTypeName::ESM4Tree, { ESM::REC_TREE4 });
         addType(ObjectTypeName::ESM4Weapon, { ESM::REC_WEAP4 });
 

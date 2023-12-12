@@ -71,9 +71,8 @@ namespace Resource
         deleteShape(shape);
     }
 
-    BulletShape::BulletShape(const BulletShape& other, const osg::CopyOp& copyOp)
-        : Object(other, copyOp)
-        , mCollisionShape(duplicateCollisionShape(other.mCollisionShape.get()))
+    BulletShape::BulletShape(const BulletShape& other)
+        : mCollisionShape(duplicateCollisionShape(other.mCollisionShape.get()))
         , mAvoidCollisionShape(duplicateCollisionShape(other.mAvoidCollisionShape.get()))
         , mCollisionBox(other.mCollisionBox)
         , mAnimatedShapes(other.mAnimatedShapes)
@@ -90,12 +89,12 @@ namespace Resource
             mAvoidCollisionShape->setLocalScaling(scale);
     }
 
-    osg::ref_ptr<BulletShapeInstance> makeInstance(osg::ref_ptr<const BulletShape> source)
+    vsg::ref_ptr<BulletShapeInstance> makeInstance(vsg::ref_ptr<const BulletShape> source)
     {
-        return { new BulletShapeInstance(std::move(source)) };
+        return vsg::ref_ptr{ new BulletShapeInstance(std::move(source)) };
     }
 
-    BulletShapeInstance::BulletShapeInstance(osg::ref_ptr<const BulletShape> source)
+    BulletShapeInstance::BulletShapeInstance(vsg::ref_ptr<const BulletShape> source)
         : BulletShape(*source)
         , mSource(std::move(source))
     {

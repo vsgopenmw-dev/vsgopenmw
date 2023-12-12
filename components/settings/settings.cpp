@@ -133,7 +133,8 @@ namespace Settings
         mChangedSettings.clear();
     }
 
-    std::filesystem::path Manager::load(const Files::ConfigurationManager& cfgMgr, bool loadEditorSettings)
+    std::filesystem::path Manager::load(
+        const Files::ConfigurationManager& cfgMgr, bool /*vsgopenmw-fixme(dependency-policy)*/ loadEditorSettings)
     {
         SettingsFileParser parser;
         const std::vector<std::filesystem::path>& paths = cfgMgr.getActiveConfigPaths();
@@ -146,12 +147,12 @@ namespace Settings
 
         if (!loadEditorSettings)
         {
-            defaultSettingsFile = "defaults.bin";
+            defaultSettingsFile = "defaults.cfg";
             userSettingsFile = "settings.cfg";
         }
         else
         {
-            defaultSettingsFile = "defaults-cs.bin";
+            defaultSettingsFile = "defaults-cs.cfg";
             userSettingsFile = "openmw-cs.cfg";
         }
 
@@ -210,7 +211,7 @@ namespace Settings
             return it->second;
 
         throw std::runtime_error("Trying to retrieve a non-existing setting: [" + std::string(category) + "] "
-            + std::string(setting) + ".\nMake sure the defaults.bin file was properly installed.");
+            + std::string(setting) + ".\nMake sure the defaults.cfg file was properly installed.");
     }
 
     std::vector<std::string> Manager::getStringArray(std::string_view setting, std::string_view category)

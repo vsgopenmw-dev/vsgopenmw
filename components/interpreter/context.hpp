@@ -11,6 +11,8 @@ namespace Interpreter
     class Context
     {
     public:
+        float dt{};
+
         virtual ~Context() {}
 
         virtual ESM::RefId getTarget() const = 0;

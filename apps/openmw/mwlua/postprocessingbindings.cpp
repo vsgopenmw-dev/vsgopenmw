@@ -2,8 +2,11 @@
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
-#include "../mwrender/postprocessor.hpp"
+//#include "../mwrender/postprocessor.hpp"
 
+#include <osg/Vec4f>
+#include <osg/Vec3f>
+#include <osg/Vec2f>
 #include "luamanagerimp.hpp"
 
 namespace MWLua
@@ -23,19 +26,21 @@ namespace MWLua
 {
     struct Shader
     {
+        /*
         std::shared_ptr<fx::Technique> mShader;
 
         Shader(std::shared_ptr<fx::Technique> shader)
             : mShader(std::move(shader))
         {
         }
+        */
 
         std::string toString() const
         {
-            if (!mShader)
+            //if (!mShader)
                 return "Shader(nil)";
 
-            return Misc::StringUtils::format("Shader(%s, %s)", mShader->getName(), mShader->getFileName());
+            //return Misc::StringUtils::format("Shader(%s, %s)", mShader->getName(), mShader->getFileName());
         }
 
         enum
@@ -53,7 +58,7 @@ namespace MWLua
         return [context](const Shader& shader, const std::string& name, const T& value) {
             context.mLuaManager->addAction(
                 [=] {
-                    MWBase::Environment::get().getWorld()->getPostProcessor()->setUniform(shader.mShader, name, value);
+                    //MWBase::Environment::get().getWorld()->getPostProcessor()->setUniform(shader.mShader, name, value);
                 },
                 "SetUniformShaderAction");
         };
@@ -63,6 +68,7 @@ namespace MWLua
     auto getArraySetter(const Context& context)
     {
         return [context](const Shader& shader, const std::string& name, const sol::table& table) {
+            /*
             auto targetSize
                 = MWBase::Environment::get().getWorld()->getPostProcessor()->getUniformSize(shader.mShader, name);
 
@@ -72,8 +78,9 @@ namespace MWLua
             if (*targetSize != table.size())
                 throw std::runtime_error(Misc::StringUtils::format(
                     "Mismatching uniform array size, got %zu expected %zu", table.size(), *targetSize));
-
+*/
             std::vector<T> values;
+            /*
             values.reserve(*targetSize);
 
             for (size_t i = 0; i < *targetSize; ++i)
@@ -82,11 +89,11 @@ namespace MWLua
                 if (!obj.is<T>())
                     throw std::runtime_error("Invalid type for uniform array");
                 values.push_back(obj.as<T>());
-            }
+            }*/
 
             context.mLuaManager->addAction(
                 [=] {
-                    MWBase::Environment::get().getWorld()->getPostProcessor()->setUniform(shader.mShader, name, values);
+                    //MWBase::Environment::get().getWorld()->getPostProcessor()->setUniform(shader.mShader, name, values);
                 },
                 "SetUniformShaderAction");
         };
@@ -104,15 +111,15 @@ namespace MWLua
             if (optPos)
                 pos = optPos.value();
 
-            if (shader.mShader && shader.mShader->isValid())
+            //if (shader.mShader && shader.mShader->isValid())
                 shader.mQueuedAction = Shader::Action_Enable;
 
             context.mLuaManager->addAction([=, &shader] {
                 shader.mQueuedAction = Shader::Action_None;
-
+/*
                 if (MWBase::Environment::get().getWorld()->getPostProcessor()->enableTechnique(shader.mShader, pos)
                     == MWRender::PostProcessor::Status_Error)
-                    throw std::runtime_error("Failed enabling shader '" + shader.mShader->getName() + "'");
+                    throw std::runtime_error("Failed enabling shader '" + shader.mShader->getName() + "'");*/
             });
         };
 
@@ -121,10 +128,10 @@ namespace MWLua
 
             context.mLuaManager->addAction([&] {
                 shader.mQueuedAction = Shader::Action_None;
-
+/*
                 if (MWBase::Environment::get().getWorld()->getPostProcessor()->disableTechnique(shader.mShader)
                     == MWRender::PostProcessor::Status_Error)
-                    throw std::runtime_error("Failed disabling shader '" + shader.mShader->getName() + "'");
+                    throw std::runtime_error("Failed disabling shader '" + shader.mShader->getName() + "'");*/
             });
         };
 
@@ -133,7 +140,7 @@ namespace MWLua
                 return true;
             else if (shader.mQueuedAction == Shader::Action_Disable)
                 return false;
-            return MWBase::Environment::get().getWorld()->getPostProcessor()->isTechniqueEnabled(shader.mShader);
+            return false;//MWBase::Environment::get().getWorld()->getPostProcessor()->isTechniqueEnabled(shader.mShader);
         };
 
         shader["setBool"] = getSetter<bool>(context);
@@ -150,15 +157,15 @@ namespace MWLua
         shader["setVector4Array"] = getArraySetter<osg::Vec4f>(context);
 
         api["load"] = [](const std::string& name) {
-            Shader shader{ MWBase::Environment::get().getWorld()->getPostProcessor()->loadTechnique(name, false) };
+            //Shader shader{ MWBase::Environment::get().getWorld()->getPostProcessor()->loadTechnique(name, false) };
 
-            if (!shader.mShader || !shader.mShader->isValid())
-                throw std::runtime_error(Misc::StringUtils::format("Failed loading shader '%s'", name));
-
+            //if (!shader.mShader || !shader.mShader->isValid())
+                throw std::runtime_error("Failed loading shader");
+/*
             if (!shader.mShader->getDynamic())
                 throw std::runtime_error(Misc::StringUtils::format("Shader '%s' is not marked as dynamic", name));
-
-            return shader;
+*/
+            //return shader;
         };
 
         return LuaUtil::makeReadOnly(api);

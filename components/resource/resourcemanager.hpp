@@ -1,7 +1,7 @@
 #ifndef OPENMW_COMPONENTS_RESOURCE_MANAGER_H
 #define OPENMW_COMPONENTS_RESOURCE_MANAGER_H
 
-#include <osg/ref_ptr>
+#include <vsg/core/ref_ptr.h>
 
 #include "objectcache.hpp"
 
@@ -13,7 +13,6 @@ namespace VFS
 namespace osg
 {
     class Stats;
-    class State;
 }
 
 namespace Resource
@@ -22,12 +21,11 @@ namespace Resource
     class BaseResourceManager
     {
     public:
-        virtual ~BaseResourceManager() = default;
-        virtual void updateCache(double referenceTime) = 0;
-        virtual void clearCache() = 0;
-        virtual void setExpiryDelay(double expiryDelay) = 0;
-        virtual void reportStats(unsigned int frameNumber, osg::Stats* stats) const = 0;
-        virtual void releaseGLObjects(osg::State* state) = 0;
+        virtual ~BaseResourceManager() {}
+        virtual void updateCache(double referenceTime) {}
+        virtual void clearCache() {}
+        virtual void setExpiryDelay(double expiryDelay) {}
+        virtual void reportStats(unsigned int frameNumber, osg::Stats* stats) const {}
     };
 
     /// @brief Base class for managers that require a virtual file system and object cache.
@@ -66,11 +64,9 @@ namespace Resource
 
         void reportStats(unsigned int frameNumber, osg::Stats* stats) const override {}
 
-        void releaseGLObjects(osg::State* state) override { mCache->releaseGLObjects(state); }
-
     protected:
         const VFS::Manager* mVFS;
-        osg::ref_ptr<CacheType> mCache;
+        vsg::ref_ptr<CacheType> mCache;
         double mExpiryDelay;
     };
 

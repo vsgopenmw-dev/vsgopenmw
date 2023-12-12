@@ -1,6 +1,6 @@
 #include "types.hpp"
 
-#include <components/esm4/loadterm.hpp>
+//#include <components/esm4/loadterm.hpp>
 #include <components/lua/utilpackage.hpp>
 #include <components/misc/convert.hpp>
 #include <components/misc/resourcehelpers.hpp>
@@ -18,7 +18,7 @@ namespace sol
 
 namespace MWLua
 {
-
+/*
     void addESM4TerminalBindings(sol::table term, const Context& context)
     {
 
@@ -42,4 +42,5 @@ namespace MWLua
             return Misc::ResourceHelpers::correctMeshPath(rec.mModel, vfs);
         });
     }
+    */
 }

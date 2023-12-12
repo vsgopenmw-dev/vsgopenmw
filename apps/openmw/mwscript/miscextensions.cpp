@@ -8,6 +8,7 @@
 #include <components/compiler/extensions.hpp>
 #include <components/compiler/locals.hpp>
 #include <components/compiler/opcodes.hpp>
+#include <components/mwanimation/wielding.hpp>
 
 #include <components/debug/debuglog.hpp>
 
@@ -19,9 +20,6 @@
 #include <components/misc/rng.hpp>
 
 #include <components/resource/resourcesystem.hpp>
-#include <components/resource/scenemanager.hpp>
-
-#include <components/sceneutil/positionattitudetransform.hpp>
 
 #include <components/esm3/loadacti.hpp>
 #include <components/esm3/loadalch.hpp>
@@ -70,14 +68,13 @@
 #include "../mwmechanics/npcstats.hpp"
 #include "../mwmechanics/spellcasting.hpp"
 
-#include "../mwrender/animation.hpp"
-
 #include "interpretercontext.hpp"
 #include "ref.hpp"
 
 namespace
 {
 
+    /*
     struct TextureFetchVisitor : osg::NodeVisitor
     {
         std::vector<std::pair<std::string, std::string>> mTextures;
@@ -112,6 +109,7 @@ namespace
             traverse(node);
         }
     };
+    */
 
     void addToLevList(ESM::LevelledListBase* list, const ESM::RefId& itemId, int level)
     {
@@ -213,10 +211,7 @@ namespace MWScript
         class OpGetSecondsPassed : public Interpreter::Opcode0
         {
         public:
-            void execute(Interpreter::Runtime& runtime) override
-            {
-                runtime.push(MWBase::Environment::get().getFrameDuration());
-            }
+            void execute(Interpreter::Runtime& runtime) override { runtime.push(runtime.getContext().dt); }
         };
 
         template <class R>
@@ -812,8 +807,8 @@ namespace MWScript
                     return;
                 }
 
-                MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
-                runtime.push(anim && anim->getWeaponsShown());
+                auto* anim = dynamic_cast<MWAnim::Wielding*>(MWBase::Environment::get().getWorld()->getAnimation(ptr));
+                runtime.push(anim && anim->isShown(MWAnim::Wielding::Wield::Weapon));
             }
         };
 
@@ -954,7 +949,8 @@ namespace MWScript
                 float healthDiffPerSecond = runtime[0].mFloat;
                 runtime.pop();
 
-                MWBase::Environment::get().getWorld()->hurtStandingActors(ptr, healthDiffPerSecond);
+                MWBase::Environment::get().getWorld()->hurtStandingActors(
+                    ptr, healthDiffPerSecond * runtime.getContext().dt);
             }
         };
 
@@ -968,7 +964,8 @@ namespace MWScript
                 float healthDiffPerSecond = runtime[0].mFloat;
                 runtime.pop();
 
-                MWBase::Environment::get().getWorld()->hurtCollidingActors(ptr, healthDiffPerSecond);
+                MWBase::Environment::get().getWorld()->hurtCollidingActors(
+                    ptr, healthDiffPerSecond * runtime.getContext().dt);
             }
         };
 
@@ -1423,6 +1420,7 @@ namespace MWScript
                         const std::string archive = vfs->getArchive(model);
                         if (!archive.empty())
                             msg << "(" << archive << ")" << std::endl;
+                        /*
                         TextureFetchVisitor visitor;
                         SceneUtil::PositionAttitudeTransform* baseNode = ptr.getRefData().getBaseNode();
                         if (baseNode)
@@ -1468,7 +1466,7 @@ namespace MWScript
                         else
                         {
                             msg << "[None]" << std::endl;
-                        }
+                        }*/
                     }
                     if (!ptr.getClass().getScript(ptr).empty())
                         msg << "Script: " << ptr.getClass().getScript(ptr) << std::endl;
@@ -1686,6 +1684,7 @@ namespace MWScript
             template <class T>
             void test(int& count) const
             {
+                /*
                 Resource::SceneManager* sceneManager
                     = MWBase::Environment::get().getResourceSystem()->getSceneManager();
                 const MWWorld::ESMStore& store = *MWBase::Environment::get().getESMStore();
@@ -1699,11 +1698,13 @@ namespace MWScript
                         ++count;
                     }
                 }
+                */
             }
 
         public:
             void execute(Interpreter::Runtime& runtime) override
             {
+                /*
                 Resource::SceneManager* sceneManager
                     = MWBase::Environment::get().getResourceSystem()->getSceneManager();
                 double delay = sceneManager->getExpiryDelay();
@@ -1733,6 +1734,7 @@ namespace MWScript
                 std::stringstream message;
                 message << "Attempted to load models for " << count << " objects. Check the log for details.";
                 runtime.getContext().report(message.str());
+                */
             }
         };
 

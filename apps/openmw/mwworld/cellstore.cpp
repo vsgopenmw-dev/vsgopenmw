@@ -40,7 +40,7 @@
 #include <components/esm3/npcstate.hpp>
 #include <components/esm3/objectstate.hpp>
 #include <components/esm3/readerscache.hpp>
-
+/*
 #include <components/esm4/loadachr.hpp>
 #include <components/esm4/loadacti.hpp>
 #include <components/esm4/loadalch.hpp>
@@ -65,6 +65,7 @@
 #include <components/esm4/loadweap.hpp>
 #include <components/esm4/readerutils.hpp>
 
+*/
 #include <components/files/openfile.hpp>
 #include <components/misc/tuplehelpers.hpp>
 #include <components/resource/resourcesystem.hpp>
@@ -397,10 +398,12 @@ namespace MWWorld
         }
     }
 
+    /*
     static constexpr bool isESM4ActorRec(unsigned int rec)
     {
         return rec == ESM::REC_NPC_4 || rec == ESM::REC_CREA4;
     }
+    */
 
     template <typename X, typename R>
     static void loadImpl(const R& ref, const MWWorld::ESMStore& esmStore, auto& list)
@@ -433,6 +436,7 @@ namespace MWWorld
         list.push_back(liveCellRef);
     }
 
+    /*
     template <typename X>
     void CellRefList<X>::load(const ESM4::Reference& ref, const MWWorld::ESMStore& esmStore)
     {
@@ -445,6 +449,8 @@ namespace MWWorld
         if constexpr (isESM4ActorRec(X::sRecordId))
             loadImpl<X>(ref, esmStore, mList);
     }
+
+    */
 
     template <typename X>
     bool operator==(const LiveCellRef<X>& ref, int pRefnum)
@@ -799,6 +805,7 @@ namespace MWWorld
         }
     }
 
+    /*
     template <typename ReferenceInvocable>
     static void visitCell4References(
         const ESM4::Cell& cell, const ESMStore& esmStore, ESM::ReadersCache& readers, ReferenceInvocable&& invocable)
@@ -816,17 +823,20 @@ namespace MWWorld
         for (const ESM4::ActorCharacter* ref : esmStore.get<ESM4::ActorCreature>().getByCell(cell.mId))
             invocable(*ref);
     }
+    */
 
+    /*
     void CellStore::listRefs(const ESM4::Cell& cell)
     {
         visitCell4References(cell, mStore, mReaders, [&](const ESM4::Reference& ref) { mIds.push_back(ref.mBaseObj); });
         visitCell4ActorReferences(
             cell, mStore, mReaders, [&](const ESM4::ActorCharacter& ref) { mIds.push_back(ref.mBaseObj); });
     }
+*/
 
     void CellStore::listRefs()
     {
-        ESM::visit([&](auto&& cell) { listRefs(cell); }, mCellVariant);
+        listRefs(mCellVariant.getEsm3());
         std::sort(mIds.begin(), mIds.end());
     }
 
@@ -883,17 +893,19 @@ namespace MWWorld
         }
     }
 
+    /*
     void CellStore::loadRefs(const ESM4::Cell& cell, std::map<ESM::RefNum, ESM::RefId>& refNumToID)
     {
         visitCell4References(cell, mStore, mReaders, [&](const ESM4::Reference& ref) { loadRef(ref); });
         visitCell4ActorReferences(cell, mStore, mReaders, [&](const ESM4::ActorCharacter& ref) { loadRef(ref); });
     }
+    */
 
     void CellStore::loadRefs()
     {
         std::map<ESM::RefNum, ESM::RefId> refNumToID; // used to detect refID modifications
 
-        ESM::visit([&](auto&& cell) { loadRefs(cell, refNumToID); }, mCellVariant);
+        loadRefs(mCellVariant.getEsm3(), refNumToID);
 
         requestMergedRefsUpdate();
     }
@@ -928,6 +940,7 @@ namespace MWWorld
         return Ptr();
     }
 
+    /*
     void CellStore::loadRef(const ESM4::Reference& ref)
     {
         const MWWorld::ESMStore& store = mStore;
@@ -948,6 +961,7 @@ namespace MWWorld
             recNameSwitcher(x, foundType, [&ref, &store](auto& storeIn) { storeIn.load(ref, store); });
         });
     }
+    */
 
     void CellStore::loadRef(ESM::CellRef& ref, bool deleted, std::map<ESM::RefNum, ESM::RefId>& refNumToID)
     {

@@ -5,7 +5,7 @@
 
 #include <components/detournavigator/agentbounds.hpp>
 #include <components/esm3/loaddoor.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
+#include <components/mwanimation/position.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
@@ -58,7 +58,8 @@ namespace MWMechanics
         osg::Vec3f pos(actor.getRefData().getPosition().asVec3());
         pos.z() = 0;
 
-        osg::Vec3f actorDir = (actor.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0, 1, 0));
+        auto dir = MWAnim::forward(actor.getRefData().getPosition());
+        osg::Vec3f actorDir = { dir.x, dir.y, dir.z };
 
         for (const auto& ref : doors.mList)
         {

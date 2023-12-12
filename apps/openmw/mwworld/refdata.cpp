@@ -1,10 +1,11 @@
 #include "refdata.hpp"
 
 #include <components/esm3/objectstate.hpp>
+/*
 #include <components/esm4/loadachr.hpp>
 #include <components/esm4/loadrefr.hpp>
-#include <components/sceneutil/positionattitudetransform.hpp>
 
+*/
 #include "customdata.hpp"
 
 #include "../mwbase/environment.hpp"
@@ -34,7 +35,6 @@ namespace MWWorld
 
     void RefData::copy(const RefData& refData)
     {
-        mBaseNode = refData.mBaseNode;
         mLocals = refData.mLocals;
         mEnabled = refData.mEnabled;
         mCount = refData.mCount;
@@ -52,14 +52,12 @@ namespace MWWorld
 
     void RefData::cleanup()
     {
-        mBaseNode = nullptr;
         mCustomData = nullptr;
         mLuaScripts = nullptr;
     }
 
     RefData::RefData()
-        : mBaseNode(nullptr)
-        , mDeletedByContentFile(false)
+        : mDeletedByContentFile(false)
         , mEnabled(true)
         , mPhysicsPostponed(false)
         , mCount(1)
@@ -75,8 +73,7 @@ namespace MWWorld
     }
 
     RefData::RefData(const ESM::CellRef& cellRef)
-        : mBaseNode(nullptr)
-        , mDeletedByContentFile(false)
+        : mDeletedByContentFile(false)
         , mEnabled(true)
         , mPhysicsPostponed(false)
         , mCount(1)
@@ -87,6 +84,7 @@ namespace MWWorld
     {
     }
 
+    /*
     RefData::RefData(const ESM4::Reference& ref)
         : mBaseNode(nullptr)
         , mDeletedByContentFile(ref.mFlags & ESM4::Rec_Deleted)
@@ -113,9 +111,10 @@ namespace MWWorld
     {
     }
 
+    */
+
     RefData::RefData(const ESM::ObjectState& objectState, bool deletedByContentFile)
-        : mBaseNode(nullptr)
-        , mDeletedByContentFile(deletedByContentFile)
+        : mDeletedByContentFile(deletedByContentFile)
         , mEnabled(objectState.mEnabled != 0)
         , mPhysicsPostponed(false)
         , mCount(objectState.mCount)
@@ -133,8 +132,7 @@ namespace MWWorld
     }
 
     RefData::RefData(const RefData& refData)
-        : mBaseNode(nullptr)
-        , mCustomData(nullptr)
+        : mCustomData(nullptr)
     {
         try
         {
@@ -189,21 +187,6 @@ namespace MWWorld
 
     RefData::RefData(RefData&& other) = default;
     RefData& RefData::operator=(RefData&& other) = default;
-
-    void RefData::setBaseNode(osg::ref_ptr<SceneUtil::PositionAttitudeTransform> base)
-    {
-        mBaseNode = std::move(base);
-    }
-
-    SceneUtil::PositionAttitudeTransform* RefData::getBaseNode()
-    {
-        return mBaseNode;
-    }
-
-    const SceneUtil::PositionAttitudeTransform* RefData::getBaseNode() const
-    {
-        return mBaseNode;
-    }
 
     int RefData::getCount(bool absolute) const
     {

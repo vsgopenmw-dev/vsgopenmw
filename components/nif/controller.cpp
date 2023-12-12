@@ -225,6 +225,9 @@ namespace Nif
         NiTimeController::post(nif);
 
         mEmitter.post(nif);
+        if (!mEmitter.empty())
+            mEmitter->useFlags |= Nif::NiAVObject::Emitter;
+
         mModifier.post(nif);
         mCollider.post(nif);
     }

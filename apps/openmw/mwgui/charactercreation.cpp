@@ -1,7 +1,5 @@
 #include "charactercreation.hpp"
 
-#include <MyGUI_ITexture.h>
-
 #include <components/debug/debuglog.hpp>
 #include <components/fallback/fallback.hpp>
 #include <components/misc/resourcehelpers.hpp>
@@ -80,10 +78,8 @@ namespace
 
 namespace MWGui
 {
-
-    CharacterCreation::CharacterCreation(osg::Group* parent, Resource::ResourceSystem* resourceSystem)
-        : mParent(parent)
-        , mResourceSystem(resourceSystem)
+    CharacterCreation::CharacterCreation(MWRender::Preview* preview)
+        : mPreview(preview)
         , mGenerateClassStep(0)
     {
         mCreationStage = CSE_NotStarted;
@@ -170,7 +166,7 @@ namespace MWGui
 
                 case GM_Race:
                     MWBase::Environment::get().getWindowManager()->removeDialog(std::move(mRaceDialog));
-                    mRaceDialog = std::make_unique<RaceDialog>(mParent, mResourceSystem);
+                    mRaceDialog = std::make_unique<RaceDialog>(mPreview);
                     mRaceDialog->setNextButtonShow(mCreationStage >= CSE_RaceChosen);
                     mRaceDialog->setRaceId(mPlayerRaceId);
                     mRaceDialog->eventDone += MyGUI::newDelegate(this, &CharacterCreation::onRaceDialogDone);

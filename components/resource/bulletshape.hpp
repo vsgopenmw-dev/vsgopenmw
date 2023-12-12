@@ -5,9 +5,8 @@
 #include <map>
 #include <memory>
 
-#include <osg/Object>
 #include <osg/Vec3f>
-#include <osg/ref_ptr>
+#include <vsg/core/Object.h>
 
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 
@@ -40,7 +39,7 @@ namespace Resource
         Camera
     };
 
-    struct BulletShape : public osg::Object
+    struct BulletShape : public vsg::Object
     {
         CollisionShapePtr mCollisionShape;
         CollisionShapePtr mAvoidCollisionShape;
@@ -61,9 +60,7 @@ namespace Resource
         VisualCollisionType mVisualCollisionType = VisualCollisionType::None;
 
         BulletShape() = default;
-        BulletShape(const BulletShape& other, const osg::CopyOp& copyOp = osg::CopyOp());
-
-        META_Object(Resource, BulletShape)
+        BulletShape(const BulletShape& other);
 
         void setLocalScaling(const btVector3& scale);
 
@@ -76,15 +73,15 @@ namespace Resource
     class BulletShapeInstance : public BulletShape
     {
     public:
-        explicit BulletShapeInstance(osg::ref_ptr<const BulletShape> source);
+        explicit BulletShapeInstance(vsg::ref_ptr<const BulletShape> source);
 
-        const osg::ref_ptr<const BulletShape>& getSource() const { return mSource; }
+        const vsg::ref_ptr<const BulletShape>& getSource() const { return mSource; }
 
     private:
-        osg::ref_ptr<const BulletShape> mSource;
+        vsg::ref_ptr<const BulletShape> mSource;
     };
 
-    osg::ref_ptr<BulletShapeInstance> makeInstance(osg::ref_ptr<const BulletShape> source);
+    vsg::ref_ptr<BulletShapeInstance> makeInstance(vsg::ref_ptr<const BulletShape> source);
 
     // Subclass btBhvTriangleMeshShape to auto-delete the meshInterface
     struct TriangleMeshShape : public btBvhTriangleMeshShape

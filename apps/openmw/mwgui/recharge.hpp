@@ -21,6 +21,7 @@ namespace MWGui
     {
     public:
         Recharge();
+        ~Recharge();
 
         void onOpen() override;
 

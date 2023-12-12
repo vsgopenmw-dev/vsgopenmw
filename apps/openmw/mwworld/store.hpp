@@ -20,9 +20,11 @@
 #include <components/esm3/loadpgrd.hpp>
 #include <components/esm3/loadskil.hpp>
 #include <components/esm4/loadachr.hpp>
+/*
 #include <components/esm4/loadcell.hpp>
 #include <components/esm4/loadland.hpp>
 #include <components/esm4/loadrefr.hpp>
+*/
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/algorithm.hpp>
 
@@ -292,6 +294,7 @@ namespace MWWorld
         void setUp() override;
     };
 
+    /*
     template <>
     class Store<ESM4::Cell> : public TypedDynamicStore<ESM4::Cell>
     {
@@ -320,6 +323,7 @@ namespace MWWorld
         const ESM4::Land* search(ESM::ExteriorCellLocation cellLocation) const;
         const std::unordered_map<ESM::ExteriorCellLocation, const ESM4::Land*>& getLands() const { return mLands; }
     };
+    */
 
     template <>
     class Store<ESM::Land> : public DynamicStore
@@ -566,6 +570,7 @@ namespace MWWorld
         const MWDialogue::KeywordSearch<int>& getDialogIdKeywordSearch() const;
     };
 
+    /*
     template <typename T>
     class ESM4RefsStore : public TypedDynamicStore<T, ESM::FormId>
     {
@@ -612,6 +617,8 @@ namespace MWWorld
     class Store<ESM4::ActorCreature> : public ESM4RefsStore<ESM4::ActorCreature>
     {
     };
+
+    */
 
 } // end namespace
 

@@ -7,6 +7,8 @@
 #include <components/esm/refid.hpp>
 #include <components/esm/util.hpp>
 
+#include <components/esm3/loadcell.hpp>
+
 namespace ESM
 {
     struct Cell;
@@ -32,7 +34,7 @@ namespace MWWorld
         };
 
     public:
-        explicit Cell(const ESM4::Cell& cell);
+        //explicit Cell(const ESM4::Cell& cell);
         explicit Cell(const ESM::Cell& cell);
 
         int getGridX() const { return mGridPos.x(); }

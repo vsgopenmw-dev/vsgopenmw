@@ -10,10 +10,19 @@ namespace MWRender
         Render_Wireframe,
         Render_Pathgrid,
         Render_Water,
+        Render_Terrain,
         Render_Scene,
         Render_NavMesh,
         Render_ActorsPaths,
         Render_RecastMesh,
+        Render_Sky,
+        Render_Count
+    };
+
+    enum class ViewMode
+    {
+        Gui,
+        Scene
     };
 
 }

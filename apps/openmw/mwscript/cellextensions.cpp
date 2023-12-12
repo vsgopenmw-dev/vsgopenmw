@@ -11,6 +11,7 @@
 
 #include <components/misc/strings/algorithm.hpp>
 
+#include "../mwstate/testcells.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/statemanager.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -46,14 +47,7 @@ namespace MWScript
                     return;
                 }
 
-                bool wasConsole = MWBase::Environment::get().getWindowManager()->isConsoleMode();
-                if (wasConsole)
-                    MWBase::Environment::get().getWindowManager()->toggleConsole();
-
-                MWBase::Environment::get().getWorldScene()->testExteriorCells();
-
-                if (wasConsole)
-                    MWBase::Environment::get().getWindowManager()->toggleConsole();
+                MWBase::Environment::get().getStateManager()->pushGameState(MWState::TestCells::makeLoadingScreen(false));
             }
         };
 
@@ -69,14 +63,7 @@ namespace MWScript
                     return;
                 }
 
-                bool wasConsole = MWBase::Environment::get().getWindowManager()->isConsoleMode();
-                if (wasConsole)
-                    MWBase::Environment::get().getWindowManager()->toggleConsole();
-
-                MWBase::Environment::get().getWorldScene()->testInteriorCells();
-
-                if (wasConsole)
-                    MWBase::Environment::get().getWindowManager()->toggleConsole();
+                MWBase::Environment::get().getStateManager()->pushGameState(MWState::TestCells::makeLoadingScreen(true));
             }
         };
 
