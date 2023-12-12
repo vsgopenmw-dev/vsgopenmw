@@ -1,0 +1,30 @@
+#include "workgroupsize.glsl"
+layout (local_size_x = workGroupSize, local_size_y = workGroupSize) in;
+
+#include "lib/sets.glsl"
+#include "lib/math/distance.glsl"
+
+#include "constants.glsl"
+
+layout (set=COMPUTE_SET, binding=0, r8) uniform image2D fogImage;
+
+layout(push_constant) uniform PushConstants {
+    vec4 rect;
+    /*vec2*/vec4 center;
+};
+
+void main()
+{
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy) + ivec2(rect.xy);
+    if (coord.x < rect.z && coord.y < rect.w)
+    {
+        vec2 texelCenter = coord + 0.5;
+        float sqrDist = distanceSquared(texelCenter, center.xy);
+        float v = sqrDist/sqrExploreRadius;
+        if (v < 1)
+        {
+            float current = imageLoad(fogImage, coord).r;
+            imageStore(fogImage, coord, vec4(min(current, v)));
+        }
+    }
+}

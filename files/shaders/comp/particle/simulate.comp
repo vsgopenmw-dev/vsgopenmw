@@ -1,0 +1,125 @@
+#include "workgroupsize.glsl"
+#include "lib/material/bindings.glsl"
+#include "bindings.glsl"
+#include "data.glsl"
+#include "lib/sets.glsl"
+#include "lib/particle/data.glsl"
+#include "lib/particle/util.glsl"
+#include "lib/math/rotate.glsl"
+#include "lib/math/plane.glsl"
+#include "lib/math/random.glsl"
+
+layout(constant_id=0) const bool growFade = false;
+layout(constant_id=1) const bool colorCurve = false;
+layout(constant_id=2) const bool gravityPlane = false;
+layout(constant_id=3) const bool gravityPoint = false;
+layout(constant_id=4) const bool collidePlane = false;
+layout(constant_id=5) const bool worldSpace = false;
+
+layout(set=TEXTURE_SET, binding=PARTICLE_BINDING) buffer ParticleBuffer{
+    Particle particles[];
+};
+
+layout(std140, set=TEXTURE_SET, binding=SIMULATE_ARGS_BINDING) uniform Args {
+    SimulateArgs args;
+};
+
+layout(std430, set=TEXTURE_SET, binding=FRAME_ARGS_BINDING) buffer Frame {
+    FrameArgs frameArgs;
+};
+
+layout(set=TEXTURE_SET, binding=COLOR_CURVE_BINDING) uniform sampler1D colorLUT;
+
+layout (local_size_x = workGroupSizeX) in;
+
+void main()
+{
+    uint gid = gl_GlobalInvocationID.x;
+    float dt = frameArgs.time.x;
+    if (gid < particles.length())
+    {
+        Particle p = particles[gid];
+        p.velocityAge.w += dt;
+        if (worldSpace)
+        {
+            p.positionSize.xyz = (frameArgs.worldOffset * vec4(p.positionSize.xyz, 1)).xyz;
+            p.velocityAge.xyz = (vec4(p.velocityAge.xyz, 0) * inverse(frameArgs.worldOffset)).xyz;
+        }
+        if (!isDead(p))
+        {
+            p.positionSize.xyz += p.velocityAge.xyz * dt;
+        }
+        else
+        {
+            if (atomicAdd(frameArgs.emitCount.y, 1) <= frameArgs.emitCount.x)
+            {
+                float rand1 = signedRandom(vec2(frameArgs.time.y, gid));
+                float rand2 = signedRandom(rand1);
+                float rand3 = signedRandom(rand2);
+                p.positionSize.xyz = (frameArgs.emitMatrix * vec4(args.emit.offsetRandom.x * rand1,
+                    args.emit.offsetRandom.y * rand2,
+                    args.emit.offsetRandom.z * rand3, 1)).xyz;
+
+                rand1 = signedRandom(rand3);
+                rand2 = signedRandom(rand1);
+                rand3 = signedRandom(rand2);
+                float speed = args.emit.velocityLifetime.x + args.emit.velocityLifetime.y * rand1;
+                float hAngle = args.emit.direction.x + args.emit.direction.y * rand2;
+                float vAngle = args.emit.direction.z + args.emit.direction.w * rand3;
+                mat3 rotateH = rotate(hAngle, vec3(0,0,1));
+                mat3 rotateV = rotate(vAngle, vec3(0,1,0));
+                mat4 emitNormalMatrix = inverse(transpose(frameArgs.emitMatrix));
+                //vec3 dir = rotateV * (rotateH * vec3(0,0,1));
+                vec3 dir = rotateV * rotateH * vec3(0,0,1);
+                dir = (emitNormalMatrix * vec4(dir,0)).xyz;
+                p.velocityAge = vec4(dir * speed, 0);
+                p.maxAge.x = args.emit.velocityLifetime.z + args.emit.velocityLifetime.w * random(rand3);
+            }
+            else
+                return;
+        }
+        if(growFade)
+        {
+            float age = p.velocityAge.w;
+            if (age < args.size.growTime)
+                p.positionSize.w = args.size.defaultSize * age / args.size.growTime;
+            float timeLeft = max(p.maxAge.x - age, 0.0001);
+            if (timeLeft < args.size.fadeTime) //>
+                p.positionSize.w = args.size.defaultSize  * timeLeft / args.size.fadeTime;
+        }
+        if (colorCurve)
+        {
+            p.color = texture(colorLUT, p.velocityAge.w / p.maxAge.x);
+        }
+        if (gravityPlane)
+        {
+            vec4 plane = makePlane(args.gravity.directionForce.xyz, args.gravity.positionDecay.xyz);
+            float dist = abs(distanceToPlane(plane, p.positionSize.xyz));
+            float decayFactor = exp(args.gravity.positionDecay.w * dist);
+            p.velocityAge.xyz += args.gravity.directionForce.xyz * args.gravity.directionForce.w * dt * decayFactor;
+        }
+        else if (gravityPoint)
+        {
+            vec3 diff = args.gravity.positionDecay.xyz - p.positionSize.xyz;
+            float dist = length(diff);
+            float decayFactor = exp(args.gravity.positionDecay.w * dist);
+            vec3 dir = diff/dist;
+            p.velocityAge.xyz += dir * args.gravity.directionForce.w * dt * decayFactor;
+        }
+        if (collidePlane)
+        {
+            float velDotProduct = dot(p.velocityAge.xyz, args.collide.plane.xyz);
+            if (velDotProduct > 0 && distanceToPlane(args.collide.plane, p.positionSize.xyz) > 0)
+            {
+                vec3 relativePos = p.positionSize.xyz - args.collide.positionBounce.xyz;
+                float xDotProduct = dot(relativePos, args.collide.xVectorRadius.xyz);
+                float yDotProduct = dot(relativePos, args.collide.yVectorRadius.xyz);
+                if (-args.collide.xVectorRadius.w <= xDotProduct && args.collide.xVectorRadius.w >= xDotProduct && -args.collide.yVectorRadius.w <= yDotProduct && args.collide.yVectorRadius.w >= yDotProduct)
+                {
+                    p.velocityAge.xyz = args.collide.positionBounce.w * (p.velocityAge.xyz - args.collide.plane.xyz * (2 * velDotProduct));
+                }
+            }
+        }
+        particles[gid] = p;
+    }
+}
