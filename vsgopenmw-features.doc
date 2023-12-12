@@ -1,0 +1,41 @@
+# Lists new functionality in vsgopenmw not present in OpenMW.
+vsgopenmw-features={
+    # Redesigns application control flow.
+    "vsgopenmw-game-states" : {
+        "vsgopenmw-feature-play-company-logo-while-loading-data-files", # Proceeds data file loading in the background while the Bethesda company logo video is playing.
+        "vsgopenmw-feature-keep-loading-while-asking-for-plugins-changed-confirmation", # Proceeds save file loading in the background while the plugins have changed confirmation pop-up is shown.
+        "vsgopenmw-feature-abort-loading", # Responds to exit requests during loading screens.
+        "vsgopenmw-feature-emergency-save" # Attempts to create an emergency save file in the event of a fatal error during play.
+    },
+    # Improves graphical fidelity.
+    "vsgopenmw-graphics" : {
+        # Improves shadows.
+        "vsgopenmw-shadows" : {
+            "vsgopenmw-feature-shadow-pcss" # Supports Percentage-Closer Soft Shadows (PCSS)
+        },
+        # Improves water shader.
+        "vsgopenmw-water" : {
+            "vsgopenmw-feature-water-lights", # Reflects point lights in the scene.
+            "vsgopenmw-feature-water-screen-space-reflection", # Provides realistic, high-performance raytraced water reflections and opens the door to having multiple bodies of water at different heights in the scene, and to have other objects receive reflections.
+        },
+        # Improves lighting.
+        "vsgopenmw-lighting" : {
+            "vsgopenmw-feature-clustered-shading" # Supports clustered shading technique that removes lighting artifacts, improves performance in many-light scenes, increases the maximum simultaneous light count and opens the door to high-performance batched object rendering techniques.
+        },
+        # Takes advantage of graphics hardware.
+        "vsgopenmw-gpu" : {
+            "vsgopenmw-feature-hw-skin", # Uses the GPU to improve performance of skeletal animations when used with detailed meshes.
+            "vsgopenmw-feature-hw-morph", # Uses the GPU to improve performance of morph animations when used with detailed meshes.
+            "vsgopenmw-feature-hw-particles" # Uses the GPU to improve performance of large particle systems.
+        },
+        # Supports antialiased render textures.
+        "vsgopenmw-render-textures" : {
+            "vsgopenmw-feature-multisample-map",
+            "vsgopenmw-feature-multisample-preview"
+        }
+    },
+    # Supports additional hardware and systems.
+    "vsgopenmw-compatibility" : {
+        "vsgopenmw-feature-dxtc-fallback" # Unpacks DXTC compressed images in software if unsupported by the graphics driver.
+    }
+}
