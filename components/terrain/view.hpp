@@ -1,23 +1,21 @@
-#ifndef COMPONENTS_TERRAIN_VIEW_H
-#define COMPONENTS_TERRAIN_VIEW_H
+#ifndef VSGOPENMW_TERRAIN_VIEW_H
+#define VSGOPENMW_TERRAIN_VIEW_H
 
-#include <osg/Referenced>
+#include <components/vsgutil/composite.hpp>
 
 namespace Terrain
 {
     /**
-     * @brief A View is a collection of rendering objects that are visible from a given camera/intersection.
-     * The base View class is part of the interface for usage in conjunction with preload feature.
+     * @brief A View is a collection of rendering objects that are visible from a given view point and distance.
      */
-    class View : public osg::Referenced
+    class View : public vsgUtil::Composite<vsg::Node>
     {
     public:
         virtual ~View() {}
 
-        /// Reset internal structure so that the next addition to the view will override the previous frame's contents.
-        virtual void reset() = 0;
+        static constexpr float reuseDistance = 150; // large value should be safe because the visibility of each node is still updated individually for each camera even if the base view was reused. this value also serves as a threshold for when a newly loaded LOD gets unloaded again so that if you hover around an LOD transition point the LODs won't keep loading and unloading all the time.
+        static constexpr float sqrReuseDistance = reuseDistance * reuseDistance;
     };
-
 }
 
 #endif
