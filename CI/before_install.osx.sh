@@ -21,7 +21,7 @@ install_name_tool -change "@loader_path/libbrotlicommon.1.dylib" "${BREW_LIB_PAT
 command -v ccache >/dev/null 2>&1 || brew install ccache
 command -v cmake >/dev/null 2>&1 || brew install cmake
 command -v qmake >/dev/null 2>&1 || brew install qt@5
-export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
+export PATH="/usr/local/opt/qt@5/bin:$PATH"
 
 
 # Install deps
