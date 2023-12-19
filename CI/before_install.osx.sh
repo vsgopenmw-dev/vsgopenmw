@@ -2,13 +2,17 @@
 
 export HOMEBREW_NO_EMOJI=1
 
+# things that are installed by default, we need to purge
 brew uninstall --ignore-dependencies python@3.8 || true
 brew uninstall --ignore-dependencies python@3.9 || true
 brew uninstall --ignore-dependencies qt@6 || true
 brew uninstall --ignore-dependencies jpeg || true
+brew uninstall --ignore-dependencies node || true
+brew uninstall --ignore-dependencies php || true
+brew uninstall --ignore-dependencies selenium-server || true
 
-brew tap --repair || true
-brew update --quiet || true
+brew tap --repair
+brew update --quiet
 
 # Some of these tools can come from places other than brew, so check before installing
 brew reinstall xquartz fontconfig freetype harfbuzz brotli
