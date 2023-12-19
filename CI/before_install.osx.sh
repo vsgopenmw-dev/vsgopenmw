@@ -7,8 +7,8 @@ brew uninstall --ignore-dependencies python@3.9 || true
 brew uninstall --ignore-dependencies qt@6 || true
 brew uninstall --ignore-dependencies jpeg || true
 
-brew tap --repair
-brew update --quiet
+brew tap --repair || true
+brew update --quiet || true
 
 # Some of these tools can come from places other than brew, so check before installing
 brew reinstall xquartz fontconfig freetype harfbuzz brotli
