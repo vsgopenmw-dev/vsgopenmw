@@ -49,7 +49,13 @@ jobs:
         run: make -j3
 
   MacOS:
-    runs-on: macos-latest-xl
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+        arch:
+          - arm64
 
     steps:
       - uses: actions/checkout@v4
