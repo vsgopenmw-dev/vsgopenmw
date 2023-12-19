@@ -49,7 +49,7 @@ jobs:
         run: make -j3
 
   MacOS:
-    runs-on: macos-latest-arm64
+    runs-on: macos-latest-xl
 
     steps:
       - uses: actions/checkout@v4
