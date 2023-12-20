@@ -63,6 +63,8 @@ jobs:
 
       - name: Install Building Dependencies
         run: CI/before_install.osx.sh
+        env:
+          MACOS_AMD64: ${{ matrix.arch == 'amd64' && 'true' || '' }}
 
       - name: Prime ccache
         uses: hendrikmuhs/ccache-action@v1.2
