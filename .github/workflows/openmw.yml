@@ -53,9 +53,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13-xlarge
+          - macos-13
+          # - macos-13-xlarge # support for M1, no pay walled
         arch:
-          - arm64
+          # - arm64 # support for M1, now pay walled
           - amd64
 
     steps:
