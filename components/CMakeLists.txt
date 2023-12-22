@@ -279,8 +279,6 @@ add_component_dir (esmterrain
     )
 #]]
 
-#vsgopenmw-fixme(find-my-place)
-#[[
 add_component_dir (esm4
     actor
     cellgrid
@@ -378,7 +376,6 @@ add_component_dir (esm4
     typetraits
     vertex
 )
-#]]
 
 # Conveniently extends STL.
 # misc must not depend on other components.
@@ -405,8 +402,8 @@ add_component_dir (stereo
 # Note, Debug::Log is deprecated because of syntax and compatibility issues with redirecting std::cout/std::cerr.
 # Use std::cout/std::cerr or vsg::Logger instead.
 add_component_dir (debug
-    debuglog writeflags
-    #debugging gldebug debugdraw
+    debuglog writeflags debugging
+    # gldebug debugdraw
     )
 
 add_definitions(-DMYGUI_DONT_USE_OBSOLETE=ON)

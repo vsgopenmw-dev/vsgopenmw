@@ -2,10 +2,14 @@
 
 export HOMEBREW_NO_EMOJI=1
 
+# things that are installed by default, we need to purge
 brew uninstall --ignore-dependencies python@3.8 || true
 brew uninstall --ignore-dependencies python@3.9 || true
 brew uninstall --ignore-dependencies qt@6 || true
 brew uninstall --ignore-dependencies jpeg || true
+brew uninstall --ignore-dependencies node || true
+brew uninstall --ignore-dependencies php || true
+brew uninstall --ignore-dependencies selenium-server || true
 
 brew tap --repair
 brew update --quiet
@@ -21,7 +25,7 @@ install_name_tool -change "@loader_path/libbrotlicommon.1.dylib" "${BREW_LIB_PAT
 command -v ccache >/dev/null 2>&1 || brew install ccache
 command -v cmake >/dev/null 2>&1 || brew install cmake
 command -v qmake >/dev/null 2>&1 || brew install qt@5
-export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
+export PATH="/usr/local/opt/qt@5/bin:$PATH"
 
 
 # Install deps
@@ -34,7 +38,7 @@ cmake --version
 qmake --version
 
 if [[ "${MACOS_AMD64}" ]]; then
-    curl -fSL -R -J https://gitlab.com/OpenMW/openmw-deps/-/raw/main/macos/openmw-deps-20221113.zip -o ~/openmw-deps.zip
+    curl -fSL -R -J https://gitlab.com/OpenMW/openmw-deps/-/raw/main/macos/openmw-deps-20231220.zip -o ~/openmw-deps.zip
 else
     curl -fSL -R -J https://gitlab.com/OpenMW/openmw-deps/-/raw/main/macos/openmw-deps-20231022_arm64.zip -o ~/openmw-deps.zip
 fi

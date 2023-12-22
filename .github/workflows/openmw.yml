@@ -49,13 +49,23 @@ jobs:
         run: make -j3
 
   MacOS:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-13
+          # - macos-13-xlarge # support for M1, now pay walled
+        arch:
+          # - arm64 # support for M1, now pay walled
+          - amd64
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Building Dependencies
         run: CI/before_install.osx.sh
+        env:
+          MACOS_AMD64: ${{ matrix.arch == 'amd64' && 'true' || '' }}
 
       - name: Prime ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -79,18 +89,21 @@ jobs:
           name: OpenMW.dmg
           path: build/OpenMW-*.dmg
 
-  Flatpak:
-    name: "Flatpak"
-    runs-on: ubuntu-latest
-    container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-23.08
-      options: --privileged
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        with:
-          bundle: openmw.flatpak
-          manifest-path: CI/org.openmw.OpenMW.devel.yaml
-          cache-key: flatpak-builder-${{ github.sha }}
+#  Currently not building due to build error
+#  error: ‘void View::CollectLights::pack()’ marked ‘override’, but does not override
+#
+#  Flatpak:
+#    name: "Flatpak"
+#    runs-on: ubuntu-latest
+#    container:
+#      image: bilelmoussaoui/flatpak-github-actions:kde-5.15-23.08
+#      options: --privileged
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+#        with:
+#          bundle: openmw.flatpak
+#          manifest-path: CI/org.openmw.OpenMW.devel.yaml
+#          cache-key: flatpak-builder-${{ github.sha }}
