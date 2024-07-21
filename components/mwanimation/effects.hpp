@@ -2,6 +2,7 @@
 #define VSGOPENMW_MWANIM_EFFECTS_H
 
 #include <optional>
+#include <list>
 
 #include <vsg/nodes/Group.h>
 

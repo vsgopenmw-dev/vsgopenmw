@@ -104,12 +104,12 @@ namespace MWRender
         };
 
         auto& sceneData = mSceneData->value();
-        sceneData.lightDiffuse = { Fallback::Map::getFloat("Inventory_DirectionalDiffuseR"),
+        sceneData.lightDiffuse = vsg::vec4(Fallback::Map::getFloat("Inventory_DirectionalDiffuseR"),
             Fallback::Map::getFloat("Inventory_DirectionalDiffuseG"),
-            Fallback::Map::getFloat("Inventory_DirectionalDiffuseB"), 1 };
-        sceneData.ambient = { Fallback::Map::getFloat("Inventory_DirectionalAmbientR"),
+            Fallback::Map::getFloat("Inventory_DirectionalDiffuseB"), 1);
+        sceneData.ambient = vsg::vec4(Fallback::Map::getFloat("Inventory_DirectionalAmbientR"),
             Fallback::Map::getFloat("Inventory_DirectionalAmbientG"),
-            Fallback::Map::getFloat("Inventory_DirectionalAmbientB"), 1 };
+            Fallback::Map::getFloat("Inventory_DirectionalAmbientB"), 1);
 
         vsg::ref_ptr<vsg::RenderGraph> renderGraph;
         std::tie(renderGraph, mTexture) = Render::createRenderTexture(ctx, samples, extent);

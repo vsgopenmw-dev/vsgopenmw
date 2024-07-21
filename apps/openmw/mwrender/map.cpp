@@ -206,7 +206,7 @@ namespace MWRender
             for (auto& r : requests)
             {
                 mData->at(0) = r.rect;
-                mData->at(1) = { r.center.x, r.center.y, 0, 0 };
+                mData->at(1) = vsg::vec4(r.center.x, r.center.y, 0, 0 );
                 visitor.apply(*r.bds);
 
                 #include <files/shaders/comp/fogofwar/workgroupsize.glsl>
@@ -427,8 +427,8 @@ namespace MWRender
             return d;
         }
         auto sceneData = std::make_unique<View::Scene>();
-        sceneData->value().lightDiffuse = {0.7, 0.7, 0.7, 1};
-        sceneData->value().ambient = {0.3, 0.3, 0.3, 1};
+        sceneData->value().lightDiffuse = vsg::vec4(0.7, 0.7, 0.7, 1);
+        sceneData->value().ambient = vsg::vec4(0.3, 0.3, 0.3, 1);
 
         auto descriptors = View::createLightingDescriptors(mLightData, false);
         descriptors.emplace_back(View::dummyEnvMap());

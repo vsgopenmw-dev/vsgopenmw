@@ -1,4 +1,5 @@
 #include "collectlights.hpp"
+#include <vsg/lighting/PointLight.h>
 
 namespace View
 {

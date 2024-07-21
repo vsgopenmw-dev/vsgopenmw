@@ -1,6 +1,7 @@
 #ifndef VSGOPENMW_MWRENDER_PROJECTILES_H
 #define VSGOPENMW_MWRENDER_PROJECTILES_H
 
+#include <list>
 #include <optional>
 
 #include <vsg/nodes/Group.h>

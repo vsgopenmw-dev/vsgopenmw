@@ -258,7 +258,7 @@ namespace MWRender
                 share(sampler, textureOptions);
                 auto descriptorImage = vsg::DescriptorImage::create(sampler, flashTex);
 
-                sunFlashMaterial.value().emissive = { 1, 1, 1, 1 };
+                sunFlashMaterial.value().emissive = vsg::vec4(1, 1, 1, 1 );
                 auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline->layout,
                     Pipeline::TEXTURE_SET, vsg::Descriptors{ descriptorImage, sunFlashMaterial.descriptor() });
                 sg->stateCommands = { pipeline, bds };

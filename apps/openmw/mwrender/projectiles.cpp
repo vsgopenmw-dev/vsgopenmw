@@ -1,6 +1,7 @@
 #include "projectiles.hpp"
 
-#include <vsg/nodes/Light.h>
+#include <vsg/lighting/Light.h>
+#include <vsg/lighting/PointLight.h>
 
 #include <components/animation/constant.hpp>
 #include <components/animation/meta.hpp>

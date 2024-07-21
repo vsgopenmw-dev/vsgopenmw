@@ -34,7 +34,7 @@ namespace Terrain
         using Key = std::pair<Bounds, uint8_t /*lod*/>;
         struct BatchData
         {
-            vsg::StateGroup::StateCommands stateCommands;
+            vsg::StateCommands stateCommands;
             vsg::ref_ptr<vsg::vec2Array2D> heightRanges;
         };
         vsgUtil::Cache<Key, BatchData> dataCache;

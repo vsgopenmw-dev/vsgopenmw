@@ -16,7 +16,7 @@ namespace MWAnim
             // we can
             float targetBrightnessIncreaseFactor = minLuminance / relativeLuminance;
             if (col.r == 0.f && col.g == 0.f && col.b == 0.f)
-                col = { minLuminance, minLuminance, minLuminance, col.a };
+                col = vsg::vec4(minLuminance, minLuminance, minLuminance, col.a);
             else
                 col *= targetBrightnessIncreaseFactor;
         }

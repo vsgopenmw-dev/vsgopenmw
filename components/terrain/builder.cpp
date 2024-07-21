@@ -202,7 +202,7 @@ namespace Terrain
             }
         }
 
-        return { vsg::StateGroup::StateCommands{ mPipeline, bds }, ranges };
+        return { vsg::StateCommands{ mPipeline, bds }, ranges };
     }
 
     Builder::Batch Builder::createBatch(const Bounds& bounds, uint8_t lod) const

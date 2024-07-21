@@ -12,7 +12,7 @@ namespace vsgUtil
     class ArrayState : public vsg::ArrayState
     {
     public:
-        vsg::ref_ptr<vsg::ArrayState> clone(vsg::ref_ptr<vsg::ArrayState> arrayState) override
+        vsg::ref_ptr<vsg::ArrayState> clone(vsg::ref_ptr<vsg::ArrayState> arrayState)
         {
             auto ret = vsg::ref_ptr{ new Derived(static_cast<const Derived&>(*this)) };
             static_cast<vsg::ArrayState&>(*ret) = *arrayState;

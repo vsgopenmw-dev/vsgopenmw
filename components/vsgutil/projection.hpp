@@ -18,9 +18,9 @@ namespace vsgUtil
             auto state = record.getState();
             auto prev_projection = state->projectionMatrixStack.top();
             auto modelviewMatrix = state->modelviewMatrixStack.top();
-            record.setProjectionAndViewMatrix(projection->transform(), modelviewMatrix);
+            state->setProjectionAndViewMatrix(projection->transform(), modelviewMatrix);
             traverse(record);
-            record.setProjectionAndViewMatrix(prev_projection, modelviewMatrix);
+            state->setProjectionAndViewMatrix(prev_projection, modelviewMatrix);
         }
     };
 

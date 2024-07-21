@@ -2,7 +2,8 @@
 
 #include <optional>
 
-#include <vsg/nodes/Light.h>
+#include <vsg/lighting/Light.h>
+#include <vsg/lighting/PointLight.h>
 
 #include <components/animation/deltatime.hpp>
 #include <components/animation/tmutable.hpp>

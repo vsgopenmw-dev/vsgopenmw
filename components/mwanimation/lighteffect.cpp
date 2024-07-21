@@ -1,6 +1,7 @@
 #include "lighteffect.hpp"
 
-#include <vsg/nodes/Light.h>
+#include <vsg/lighting/Light.h>
+#include <vsg/lighting/PointLight.h>
 #include <vsg/nodes/Group.h>
 
 #include <components/vsgutil/removechild.hpp>
