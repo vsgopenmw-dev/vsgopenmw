@@ -182,7 +182,7 @@ namespace Render
             graph = vsg::CommandGraph::create(mHeadless->getOrCreateDevice(), mHeadless->getQueueFamily());
         //int maxSlot = 1 + maxDescriptorSet;
         int maxSlot = 4; // At the moment, reducing maxSlot won't help because vsg::updateViewer will update the maxSlot for all command graphs.
-        graph->recordTraversal = vsg::RecordTraversal::create(nullptr, maxSlot);
+        graph->recordTraversal = new vsg::RecordTraversal;
         graph->maxSlot = maxSlot;
         return graph;
     }
@@ -199,7 +199,8 @@ namespace Render
             graph = vsg::SecondaryCommandGraph::create(mHeadless->getOrCreateDevice(), mHeadless->getQueueFamily());
             graph->framebuffer = inherit_framebuffer->framebuffer;
         }
-        graph->recordTraversal = vsg::RecordTraversal::create(nullptr, maxDescriptorSet + 1);
+        graph->recordTraversal = new vsg::RecordTraversal;
+        graph->maxSlot = maxDescriptorSet + 1;
         return graph;
     }
 
