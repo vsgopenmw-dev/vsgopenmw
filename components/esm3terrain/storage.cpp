@@ -96,13 +96,13 @@ namespace ESMTerrain
         const ESM::Land::LandData* data = land ? land->getData(ESM::Land::DATA_VCLR) : nullptr;
         if (data)
         {
-            color = { data->mColours[col * ESM::Land::LAND_SIZE * 3 + row * 3],
+            color = vsg::ubvec4(data->mColours[col * ESM::Land::LAND_SIZE * 3 + row * 3],
                 data->mColours[col * ESM::Land::LAND_SIZE * 3 + row * 3 + 1],
-                data->mColours[col * ESM::Land::LAND_SIZE * 3 + row * 3 + 2], 0xff };
+                data->mColours[col * ESM::Land::LAND_SIZE * 3 + row * 3 + 2], 0xff );
         }
         else
         {
-            color = { 0xff, 0xff, 0xff, 0xff };
+            color = vsg::ubvec4(0xff, 0xff, 0xff, 0xff);
         }
     }
 
@@ -210,11 +210,11 @@ namespace ESMTerrain
 
                         if (colourData)
                         {
-                            color = { colourData->mColours[srcArrayIndex], colourData->mColours[srcArrayIndex + 1],
-                                colourData->mColours[srcArrayIndex + 2], 0xff };
+                            color = vsg::ubvec4(colourData->mColours[srcArrayIndex], colourData->mColours[srcArrayIndex + 1],
+                                colourData->mColours[srcArrayIndex + 2], 0xff);
                         }
                         else
-                            color = { 0xff, 0xff, 0xff, 0xff };
+                            color = vsg::ubvec4(0xff, 0xff, 0xff, 0xff);
                         //if (alteration)
                             //adjustColor(col, row, heightData, color); // Does nothing by default, override in OpenMW-CS
 

@@ -258,10 +258,10 @@ namespace vsgAdapters
         if (active->value(time) && emitterVisible())
         {
             data.emitMatrix = calculateEmitMatrix();
-            data.emitCount = { calculateEmitCount(dt), 0, 0, 0 };
+            data.emitCount = vsg::ivec4(calculateEmitCount(dt), 0, 0, 0 );
         }
         else
-            data.emitCount = {};
+            data.emitCount = vsg::ivec4();
     }
 
     void ParticleSystem::link(Anim::Context& ctx, vsg::Object&)
