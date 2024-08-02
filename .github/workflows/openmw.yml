@@ -48,47 +48,57 @@ jobs:
       - name: Build
         run: make -j3
 
-  MacOS:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-          - macos-13
-          # - macos-13-xlarge # support for M1, now pay walled
-        arch:
-          # - arm64 # support for M1, now pay walled
-          - amd64
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Building Dependencies
-        run: CI/before_install.osx.sh
-        env:
-          MACOS_AMD64: ${{ matrix.arch == 'amd64' && 'true' || '' }}
-
-      - name: Prime ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
-          max-size: 1000M
-
-      - name: Configure
-        run: |
-          rm -fr build  # remove the build directory
-          CI/before_script.osx.sh
-
-      - name: Build
-        run: |
-          cd build 
-          make -j $(sysctl -n hw.logicalcpu) package
+      - name: ZIP folder
+        run: zip -r ubuntu.zip ./
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: OpenMW.dmg
-          path: build/OpenMW-*.dmg
+          name: ubuntu.zip
+          path: ./ubuntu.zip
 
+
+#  MacOS:
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os:
+#          - macos-13
+#          # - macos-13-xlarge # support for M1, now pay walled
+#        arch:
+#          # - arm64 # support for M1, now pay walled
+#          - amd64
+#
+#    steps:
+#      - uses: actions/checkout@v4#
+#
+#      - name: Install Building Dependencies
+#        run: CI/before_install.osx.sh
+#        env:
+#          MACOS_AMD64: ${{ matrix.arch == 'amd64' && 'true' || '' }}
+#
+#      - name: Prime ccache
+#        uses: hendrikmuhs/ccache-action@v1.2
+#        with:
+#          key: ${{ matrix.os }}-${{ env.BUILD_TYPE }}
+#          max-size: 1000M
+#
+#      - name: Configure
+#        run: |
+#          rm -fr build  # remove the build directory
+#          CI/before_script.osx.sh
+#
+#      - name: Build
+#        run: |
+#          cd build 
+#          make -j $(sysctl -n hw.logicalcpu) package
+#
+#      - name: Archive artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: OpenMW.dmg
+#          path: build/OpenMW-*.dmg
+#
 #  Currently not building due to build error
 #  error: ‘void View::CollectLights::pack()’ marked ‘override’, but does not override
 #
