@@ -112,7 +112,11 @@ std::optional<OMW::Arguments> parseArgs(int argc, char** argv, Files::Configurat
     return args;
 }
 
+#ifdef ANDROID
+extern "C" int SDL_main(int argc, char** argv)
+#else
 int main(int argc, char** argv)
+#endif
 {
     Files::ConfigurationManager cfgMgr;
     OMW::Engine engine(cfgMgr);

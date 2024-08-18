@@ -5,6 +5,10 @@ set(GAME
     options.cpp
 )
 
+if (ANDROID)
+    set(GAME ${GAME} android_main.cpp)
+endif()
+
 set(GAME_HEADER
     arguments.hpp
     options.hpp
@@ -118,11 +122,28 @@ add_openmw_dir (mwbase
     )
 
 # Main executable
-openmw_add_executable(openmw
+
+add_library(openmw-lib STATIC
     ${OPENMW_FILES}
-    ${GAME} ${GAME_HEADER}
-    ${APPLE_BUNDLE_RESOURCES}
+    ${GAME_HEADER}
 )
+
+if(BUILD_OPENMW)
+    if (ANDROID)
+        add_library(openmw SHARED
+            ${OPENMW_FILES}
+            ${GAME} ${GAME_HEADER}
+        )
+    else()
+        openmw_add_executable(openmw
+            ${OPENMW_FILES}
+            ${GAME} ${GAME_HEADER}
+            ${APPLE_BUNDLE_RESOURCES}
+        )
+    endif()
+
+    target_link_libraries(openmw openmw-lib)
+endif()
 
 # Sound stuff - here so CMake doesn't stupidly recompile EVERYTHING
 # when we change the backend.
@@ -130,7 +151,7 @@ include_directories(
     ${FFmpeg_INCLUDE_DIRS}
 )
 
-target_link_libraries(openmw
+target_link_libraries(openmw-lib
     ${Boost_PROGRAM_OPTIONS_LIBRARY} #vsgopenmw-replace-me
     ${OPENAL_LIBRARY}
     ${FFmpeg_LIBRARIES}
@@ -171,17 +192,23 @@ if (MSVC)
 endif()
 
 add_definitions(-DMYGUI_DONT_USE_OBSOLETE=ON)
+
+if (ANDROID)
+    target_link_libraries(openmw-lib EGL android log z)
+endif
+
+
 if (USE_SYSTEM_TINYXML)
-    target_link_libraries(openmw ${TinyXML_LIBRARIES})
+    target_link_libraries(openmw-lib ${TinyXML_LIBRARIES})
 endif()
 
 if (NOT UNIX)
-    target_link_libraries(openmw ${SDL2MAIN_LIBRARY})
+    target_link_libraries(openmw-lib ${SDL2MAIN_LIBRARY})
 endif()
 
 # Fix for not visible pthreads functions for linker with glibc 2.15
 if (UNIX AND NOT APPLE)
-    target_link_libraries(openmw ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(openmw-lib ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(APPLE)
@@ -213,8 +240,8 @@ if(APPLE)
 endif(APPLE)
 
 if (BUILD_WITH_CODE_COVERAGE)
-    target_compile_options(openmw PRIVATE --coverage)
-    target_link_libraries(openmw gcov)
+    target_compile_options(openmw-lib PRIVATE --coverage)
+    target_link_libraries(openmw-lib gcov)
 endif()
 
 if (WIN32)
