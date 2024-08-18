@@ -131,12 +131,10 @@ add_library(openmw-lib STATIC
 if(BUILD_OPENMW)
     if (ANDROID)
         add_library(openmw SHARED
-            ${OPENMW_FILES}
             ${GAME} ${GAME_HEADER}
         )
     else()
-        openmw_add_executable(openmw
-            ${OPENMW_FILES}
+        openmw_add_executable(openmw            
             ${GAME} ${GAME_HEADER}
             ${APPLE_BUNDLE_RESOURCES}
         )
