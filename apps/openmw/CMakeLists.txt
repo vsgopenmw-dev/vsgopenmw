@@ -193,7 +193,7 @@ add_definitions(-DMYGUI_DONT_USE_OBSOLETE=ON)
 
 if (ANDROID)
     target_link_libraries(openmw-lib EGL android log z)
-endif
+endif()
 
 
 if (USE_SYSTEM_TINYXML)
