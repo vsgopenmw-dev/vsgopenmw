@@ -107,6 +107,7 @@ if(NOT OPENMW_USE_SYSTEM_MYGUI)
 
     set(MyGUI_INCLUDE_DIRS ${mygui_SOURCE_DIR}/MyGUIEngine/include PARENT_SCOPE)
     set(MyGUI_LIBRARIES MyGUIEngine PARENT_SCOPE)
+    set(MyGUI_LIBRARY MyGUIEngine PARENT_SCOPE)  # ponytail: consumers reference the singular name
 endif()
 
 if(NOT OPENMW_USE_SYSTEM_RECASTNAVIGATION)

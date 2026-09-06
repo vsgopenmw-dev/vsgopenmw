@@ -423,7 +423,7 @@ IF(BOOST_STATIC)
     set(Boost_USE_STATIC_LIBS   ON)
 endif()
 
-set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_NO_BOOST_CMAKE OFF)  # ponytail: modern boost ships CMake config; legacy FindBoost is gone in CMake 4
 set(Boost_NO_WARN_NEW_VERSIONS ON)  # ignore warnings about new releases of boost
 
 find_package(Boost 1.6.2 REQUIRED COMPONENTS ${BOOST_COMPONENTS} OPTIONAL_COMPONENTS ${BOOST_OPTIONAL_COMPONENTS})
