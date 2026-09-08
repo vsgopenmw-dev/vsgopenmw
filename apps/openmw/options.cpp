@@ -85,6 +85,12 @@ namespace OpenMW
         addOption("new-game", bpo::value<bool>()->implicit_value(true)->default_value(false),
             "run new game sequence (ignored if skip-menu=0)");
 
+        addOption("auto-screenshot", bpo::value<unsigned int>()->default_value(0),
+            "fire a screenshot after this many frames of Running state (0 = disabled)");
+
+        addOption("auto-quit", bpo::value<unsigned int>()->default_value(0),
+            "request quit after this many frames of Running state (0 = disabled)");
+
         addOption("encoding", bpo::value<std::string>()->default_value("win1252"),
             "Character encoding used in OpenMW game messages:\n"
             "\n\twin1250 - Central and Eastern European such as Polish, Czech, Slovak, Hungarian, Slovene, Bosnian, "

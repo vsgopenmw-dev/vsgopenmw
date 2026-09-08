@@ -35,6 +35,12 @@ namespace OMW
         std::string startupScript;
         bool newGame = false;
         bool skipMenu = false;
+
+        // Reference / A/B gold-render helpers. 0 disables.
+        // autoScreenshotFrame: fire A_Screenshot after N frames of State_Running.
+        // autoQuitFrame:       requestQuit() after N frames of State_Running.
+        unsigned int autoScreenshotFrame = 0;
+        unsigned int autoQuitFrame = 0;
     };
 }
 

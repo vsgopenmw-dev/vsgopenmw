@@ -3,8 +3,11 @@
 #include "luamanagerimp.hpp"
 
 #include "../mwbase/environment.hpp"
+#include "../mwbase/inputmanager.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
 #include "../mwbase/world.hpp"
+
+#include "../mwinput/actions.hpp"
 
 
 /*
@@ -56,6 +59,13 @@ namespace MWLua
         api["isMWScriptEnabled"] = []() { return MWBase::Environment::get().getWorld()->getScriptsEnabled(); };
 
         api["reloadLua"] = []() { MWBase::Environment::get().getLuaManager()->reloadAllScripts(); };
+
+        // Baseline / gold-render helper: fires the same code path as pressing F12.
+        // Screenshot lands in <userdata>/screenshots/ using the configured format.
+        api["takeScreenshot"] = [context]() {
+            context.mLuaManager->addAction(
+                [] { MWBase::Environment::get().getInputManager()->executeAction(MWInput::A_Screenshot); });
+        };
 
         api["NAV_MESH_RENDER_MODE"]
             = LuaUtil::makeStrictReadOnly(context.mLua->tableFromPairs<std::string_view, Settings::NavMeshRenderMode>({

@@ -95,6 +95,8 @@ std::optional<OMW::Arguments> parseArgs(int argc, char** argv, Files::Configurat
     args.compileAllDialogue = variables["script-all-dialogue"].as<bool>();
     args.scriptConsoleMode = variables["script-console"].as<bool>();
     args.startupScript = variables["script-run"].as<std::string>();
+    args.autoScreenshotFrame = variables["auto-screenshot"].as<unsigned int>();
+    args.autoQuitFrame = variables["auto-quit"].as<unsigned int>();
     args.warningsMode = variables["script-warn"].as<int>();
     auto& scriptBlacklistString = variables["script-blacklist"].as<StringsVector>();
     if (variables["script-blacklist-use"].as<bool>())

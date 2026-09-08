@@ -18,6 +18,7 @@
 #include <components/settings/values.hpp>
 
 #include "mwgui/windowmanagerimp.hpp"
+#include "mwinput/actions.hpp"
 #include "mwinput/inputmanagerimp.hpp"
 #include "mwrender/rendermanager.hpp"
 #include "mwrender/bin.hpp"
@@ -402,12 +403,36 @@ namespace OMW
             return;
         }
 
-        auto callback = [this](double dt, bool& requiresRender, bool& quit) {
+        // Reference / A/B automation counters. Count only frames where the world is
+        // in State_Running (skips loading screens etc.). Fire once for the screenshot.
+        unsigned int runningFrame = 0;
+        bool autoScreenshotFired = false;
+        bool autoQuitFired = false;
+        auto callback = [this, &args, &runningFrame, &autoScreenshotFired, &autoQuitFired](
+            double dt, bool& requiresRender, bool& quit) {
             auto state = mStateManager->getGameState();
             quit = !state;
             if (quit)
                 return;
             requiresRender = frame(dt, state);
+
+            if (mStateManager->getState() == MWBase::StateManager::State_Running)
+            {
+                ++runningFrame;
+                if (args.autoScreenshotFrame && !autoScreenshotFired
+                    && runningFrame >= args.autoScreenshotFrame)
+                {
+                    Log(Debug::Info) << "Auto-screenshot at running frame " << runningFrame;
+                    mInputManager->executeAction(MWInput::A_Screenshot);
+                    autoScreenshotFired = true;
+                }
+                if (args.autoQuitFrame && !autoQuitFired && runningFrame >= args.autoQuitFrame)
+                {
+                    Log(Debug::Info) << "Auto-quit at running frame " << runningFrame;
+                    mStateManager->requestQuit();
+                    autoQuitFired = true;
+                }
+            }
         };
         mRenderEngine->loop(callback, Settings::video().mFramerateLimit);
 
